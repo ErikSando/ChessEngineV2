@@ -56,6 +56,17 @@ U64 GenerateKnightMoves(int square) {
 
 U64 GenerateKingMoves(int square) {
     U64 attacks = 0ULL;
+    U64 bitboard = 1ULL << square;
+
+    attacks |=
+        (bitboard << 7) & NotFileH |
+        (bitboard << 8) |
+        (bitboard << 9) & NotFileA |
+        (bitboard << 1) & NotFileA |
+        (bitboard >> 1) & NotFileH |
+        (bitboard >> 7) & NotFileA |
+        (bitboard >> 8) |
+        (bitboard >> 9) & NotFileH;
 
     return attacks;
 }
@@ -89,5 +100,9 @@ void Board::InitAttackTables() {
         rookMoves[square] = GenerateRookMoves(square);
         queenMoves[square] = GenerateQueenMoves(square);
         kingMoves[square] = GenerateKingMoves(square);
+    }
+
+    for (int square = 0; square < 64; square++) {
+        PrintBitboard(kingMoves[square]);
     }
 }
