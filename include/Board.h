@@ -99,9 +99,9 @@ class Board {
 
     void InitAttackTables();
 
-    U64 GenerateBishopAttacks(int square, U64 occupancy);
-    U64 GenerateRookAttacks(int square, U64 occupancy);
-    U64 GenerateQueenAttacks(int square, U64 occupancy);
+    U64 GetBishopAttacks(int square, U64 occupancy);
+    U64 GetRookAttacks(int square, U64 occupancy);
+    U64 GetQueenAttacks(int square, U64 occupancy);
 
     U64 pawnMoves[2][64];
     U64 pawnCaptures[2][64];
