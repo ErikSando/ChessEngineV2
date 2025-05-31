@@ -100,6 +100,7 @@ class Board {
     void InitAttackTables();
 
     U64 pawnMoves[2][64];
+    U64 pawnCaptures[2][64];
     U64 knightMoves[64];
     U64 bishopMoves[64];
     U64 rookMoves[64];
