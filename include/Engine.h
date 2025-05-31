@@ -14,11 +14,11 @@ class Engine {
 
     Engine(Protocol protocol);
 
-    void GenerateMoves(Board& board, MoveList& list);
-    void GenerateCaptures(Board& board, MoveList& list);
+    void GenerateMoves(const Board& board, MoveList& list);
+    void GenerateCaptures(const Board& board, MoveList& list);
 
-    int Evaluate(Board& board);
+    int Evaluate(const Board& board);
 
     int Quiescence();
-    void Search(Board& board, SearchInfo& info);
+    void Search(Board& board, const SearchInfo& info);
 };
