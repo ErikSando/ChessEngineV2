@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "Attacks.h"
 #include "Board.h"
 
@@ -90,19 +88,17 @@ U64 GenerateQueenMoves(int square) {
 }
 
 void Board::InitAttackTables() {
-    for (int square = 0; square < 64; square++) {
-        pawnMoves[White][square] = GeneratePawnMoves(White, square);
-        pawnMoves[Black][square] = GeneratePawnMoves(Black, square);
-        pawnCaptures[White][square] = GeneratePawnCaptures(White, square);
-        pawnCaptures[Black][square] = GeneratePawnCaptures(Black, square);
-        knightMoves[square] = GenerateKnightMoves(square);
-        bishopMoves[square] = GenerateBishopMoves(square);
-        rookMoves[square] = GenerateRookMoves(square);
-        queenMoves[square] = GenerateQueenMoves(square);
-        kingMoves[square] = GenerateKingMoves(square);
-    }
+    // for (int square = 0; square < 64; square++) {
+    //     pawnMoves[White][square] = GeneratePawnMoves(White, square);
+    //     pawnMoves[Black][square] = GeneratePawnMoves(Black, square);
+    //     pawnCaptures[White][square] = GeneratePawnCaptures(White, square);
+    //     pawnCaptures[Black][square] = GeneratePawnCaptures(Black, square);
+    //     knightMoves[square] = GenerateKnightMoves(square);
+    //     bishopMoves[square] = GenerateBishopMoves(square);
+    //     rookMoves[square] = GenerateRookMoves(square);
+    //     queenMoves[square] = GenerateQueenMoves(square);
+    //     kingMoves[square] = GenerateKingMoves(square);
+    // }
 
-    for (int square = 0; square < 64; square++) {
-        PrintBitboard(kingMoves[square]);
-    }
+    FindMagics();
 }
