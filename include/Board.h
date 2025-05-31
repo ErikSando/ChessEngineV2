@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "Globals.h"
+#include "Moves.h"
 
 enum Side {
     White, Black, Both
@@ -79,8 +80,6 @@ class Board {
 
     Board();
 
-    std::array<BoardInfo, MAX_GAME_MOVES> history;
-
     void GeneratePositionKey();
 
     void ParseFEN(const char* fen);
@@ -90,19 +89,33 @@ class Board {
 
     bool CheckDraw();
 
+    void GenerateMoves(MoveList& list);
+    void GenerateCaptures(MoveList& list);
+
     bool MakeMove(int move);
     void TakeMove();
 
     private:
 
-    U64 m_bitboards[12];
-    U64 m_occupancy[3];
+    void InitAttackTables();
 
-    U64 m_key;
+    U64 pawnMoves[2][64];
+    U64 knightMoves[64];
+    U64 bishopMoves[64];
+    U64 rookMoves[64];
+    U64 queenMoves[64];
+    U64 kingMoves[64];
 
-    int m_move = 0;
-    int m_fiftyMoveCounter = 0;
-    int m_enPassant = NO_SQUARE;
-    int m_side = Side::White;
-    int m_castlingPerms = 0;
+    U64 bitboards[12];
+    U64 occupancy[3];
+
+    U64 positionKey;
+
+    std::array<BoardInfo, MAX_GAME_MOVES> history;
+
+    int move = 0;
+    int fiftyMoveCounter = 0;
+    int enPassant = NO_SQUARE;
+    int side = Side::White;
+    int castlingPerms = 0;
 };

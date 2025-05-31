@@ -6,8 +6,10 @@
 
 Board::Board() {
     for (int piece = WP; piece <= BK; piece++) {
-        m_bitboards[piece] = 0ULL;
+        bitboards[piece] = 0ULL;
     }
+
+    InitAttackTables();
 
     ParseFEN(START_FEN);
 }
@@ -18,9 +20,9 @@ void Board::Print() {
             int square = GetSquare(file, rank);
             int piece = NO_PIECE;
 
-            if (IsBitSet(m_occupancy[Both], square)) {
+            if (IsBitSet(occupancy[Both], square)) {
                 for (int pce = WP; pce <= BK; pce++) {
-                    if (IsBitSet(m_bitboards[pce], square)) {
+                    if (IsBitSet(bitboards[pce], square)) {
                         piece = pce;
                         break;
                     }
@@ -33,22 +35,22 @@ void Board::Print() {
         std::cout << "\n";
     }
 
-    char castlingPerms[5] = { '-', '\0', '\0', '\0', '\0' };
+    char castlingPermsStr[5] = { '-', '\0', '\0', '\0', '\0' };
     int i = 0;
 
-    if (m_castlingPerms & Castling::WKC) castlingPerms[i++] = 'K';
-    if (m_castlingPerms & Castling::WQC) castlingPerms[i++] = 'Q';
-    if (m_castlingPerms & Castling::BKC) castlingPerms[i++] = 'k';
-    if (m_castlingPerms & Castling::BQC) castlingPerms[i++] = 'q';
+    if (castlingPerms & Castling::WKC) castlingPermsStr[i++] = 'K';
+    if (castlingPerms & Castling::WQC) castlingPermsStr[i++] = 'Q';
+    if (castlingPerms & Castling::BKC) castlingPermsStr[i++] = 'k';
+    if (castlingPerms & Castling::BQC) castlingPermsStr[i++] = 'q';
 
-    std::cout << "Side to move: " << (m_side == White ? "white" : "black") << "\n";
-    std::cout << "Castling permissions: " << castlingPerms << "\n";
-    std::cout << "En passant: " << (m_enPassant != NO_SQUARE ? ToSquareString(m_enPassant) : "none") << "\n";
-    std::cout << "Fifty move counter: " << m_fiftyMoveCounter << "\n";
+    std::cout << "Side to move: " << (side == White ? "white" : "black") << "\n";
+    std::cout << "Castling permissions: " << castlingPermsStr << "\n";
+    std::cout << "En passant: " << (enPassant != NO_SQUARE ? ToSquareString(enPassant) : "none") << "\n";
+    std::cout << "Fifty move counter: " << fiftyMoveCounter << "\n";
 }
 
 bool Board::CheckDraw() {
-    if (m_fiftyMoveCounter >= 50) return true;
+    if (fiftyMoveCounter >= 50) return true;
 
     // check material draw
     // check three fold repetition
@@ -61,7 +63,7 @@ void Board::GeneratePositionKey() {
 
 
 
-    m_key = key;
+    positionKey = key;
 }
 
 void Board::ParseFEN(const char* fen) {
@@ -69,13 +71,13 @@ void Board::ParseFEN(const char* fen) {
     int rank = Rank::Eight;
     // int numKings[2] = { 0, 0 };
 
-    U64 bitboards[12]{};
-    U64 occupancy[3]{};
+    U64 new_bitboards[12]{};
+    U64 new_occupancy[3]{};
 
-    int fiftyMoveCounter;
-    int enPassant = NO_SQUARE;
-    int side;
-    int castlingPerms = 0;
+    int new_fiftyMoveCounter;
+    int new_enPassant = NO_SQUARE;
+    int new_side;
+    int new_castlingPerms = 0;
 
     const char* ptr = fen;
 
@@ -140,13 +142,13 @@ void Board::ParseFEN(const char* fen) {
             case 'q':
             case 'k':
                 int piece = PieceID(c);
-                SetBit(bitboards[piece], square);
-                SetBit(occupancy[PIECE_SIDE[piece]], square);
+                SetBit(new_bitboards[piece], square);
+                SetBit(new_occupancy[PIECE_SIDE[piece]], square);
             break;
         }
     }
 
-    occupancy[Both] = occupancy[White] | occupancy[Black];
+    new_occupancy[Both] = new_occupancy[White] | new_occupancy[Black];
 
     // if (numKings[White] != 1 || numKings[Black] != 1) {
     //     std::cout << "Invalid FEN string: invalid number of king pieces\n";
@@ -156,8 +158,8 @@ void Board::ParseFEN(const char* fen) {
     char sideChar = *ptr;
 
     switch (sideChar) {
-        case 'w': side = White; break;
-        case 'b': side = Black; break;
+        case 'w': new_side = White; break;
+        case 'b': new_side = Black; break;
 
         default:
             std::cout << "Invalid FEN string: invalid side\n";
@@ -171,10 +173,10 @@ void Board::ParseFEN(const char* fen) {
         if (c == ' ') break;
 
         switch (c) {
-            case 'K': castlingPerms |= Castling::WKC; break;
-            case 'Q': castlingPerms |= Castling::WQC; break;
-            case 'k': castlingPerms |= Castling::BKC; break;
-            case 'q': castlingPerms |= Castling::BQC; break;
+            case 'K': new_castlingPerms |= Castling::WKC; break;
+            case 'Q': new_castlingPerms |= Castling::WQC; break;
+            case 'k': new_castlingPerms |= Castling::BKC; break;
+            case 'q': new_castlingPerms |= Castling::BQC; break;
 
             default:
                 std::cout << "Invalid FEN string: invalid castling permissions\n";
@@ -188,28 +190,28 @@ void Board::ParseFEN(const char* fen) {
         char enPassantFile = *ptr++ - 'a';
         char enPassantRank = *ptr++ - '1';
 
-        enPassant = GetSquare(enPassantFile, enPassantRank);
+        new_enPassant = GetSquare(enPassantFile, enPassantRank);
 
-        if (enPassant < 0 || enPassant >= 64) {
+        if (new_enPassant < 0 || new_enPassant >= 64) {
             std::cout << "Invalid FEN string: invalid en passant square\n";
             return;
         }
     }
 
-    fiftyMoveCounter = atoi(ptr + 1);
+    new_fiftyMoveCounter = atoi(ptr + 1);
 
-    if (fiftyMoveCounter < 0) {
+    if (new_fiftyMoveCounter < 0) {
         std::cout << "Invalid FEN string: invalid fifty move rule counter\n";
         return;
     }
 
-    m_fiftyMoveCounter = fiftyMoveCounter;
-    m_enPassant = enPassant;
-    m_castlingPerms = castlingPerms;
-    m_side = side;
+    fiftyMoveCounter = new_fiftyMoveCounter;
+    enPassant = new_enPassant;
+    castlingPerms = new_castlingPerms;
+    side = new_side;
     GeneratePositionKey();
-    memcpy(m_bitboards, bitboards, 12 * sizeof(U64));
-    memcpy(m_occupancy, occupancy, 3 * sizeof(U64));
+    memcpy(bitboards, new_bitboards, 12 * sizeof(U64));
+    memcpy(occupancy, new_occupancy, 3 * sizeof(U64));
 }
 
 const char* GenerateFEN() {
