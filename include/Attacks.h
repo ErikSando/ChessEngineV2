@@ -2,7 +2,17 @@
 
 #include "Globals.h"
 
+extern U64 IndexToU64(int index, int bits, U64 bitboard);
+
+extern U64 MaskB(int square);
+extern U64 MaskR(int square);
+extern U64 AttackMaskB(int square, U64 blockers);
+extern U64 AttackMaskR(int square, U64 blockers);
+
 extern void FindMagics();
+
+extern U64 AttackMasksB[64];
+extern U64 AttackMasksR[64];
 
 constexpr U64 NotFileA = 0xFEFEFEFEFEFEFEFEULL;
 constexpr U64 NotFileAB = 0xFCFCFCFCFCFCFCFCULL;

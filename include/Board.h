@@ -17,7 +17,7 @@ enum Piece {
 
 constexpr int NO_SQUARE = -1;
 constexpr int NO_PIECE = 12;
-constexpr int MAX_GAME_MOVES = 2048;
+constexpr int MAX_GAME_Attacks = 2048;
 
 constexpr const char* START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -99,20 +99,24 @@ class Board {
 
     void InitAttackTables();
 
+    U64 GenerateBishopAttacks(int square, U64 occupancy);
+    U64 GenerateRookAttacks(int square, U64 occupancy);
+    U64 GenerateQueenAttacks(int square, U64 occupancy);
+
     U64 pawnMoves[2][64];
     U64 pawnCaptures[2][64];
-    U64 knightMoves[64];
-    U64 bishopMoves[64];
-    U64 rookMoves[64];
-    U64 queenMoves[64];
-    U64 kingMoves[64];
+    U64 knightAttacks[64];
+    U64 bishopAttacks[64][512];
+    U64 rookAttacks[64][4096];
+    U64 queenAttacks[64]; // not sure how to deal with this yet
+    U64 kingAttacks[64];
 
     U64 bitboards[12];
     U64 occupancy[3];
 
     U64 positionKey;
 
-    std::array<BoardInfo, MAX_GAME_MOVES> history;
+    std::array<BoardInfo, MAX_GAME_Attacks> history;
 
     int move = 0;
     int fiftyMoveCounter = 0;

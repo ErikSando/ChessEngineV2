@@ -1,6 +1,9 @@
 #include "Attacks.h"
 #include "Board.h"
 
+U64 AttackMasksB[64];
+U64 AttackMasksR[64];
+
 U64 GeneratePawnMoves(int side, int square) {
     U64 attacks = 0ULL;
     U64 bitboard = 1ULL << square;
@@ -35,7 +38,7 @@ U64 GeneratePawnCaptures(int side, int square) {
     return attacks;
 }
 
-U64 GenerateKnightMoves(int square) {
+U64 GenerateKnightAttacks(int square) {
     U64 attacks = 0ULL;
     U64 bitboard = 1ULL << square;
 
@@ -52,7 +55,7 @@ U64 GenerateKnightMoves(int square) {
     return attacks;
 }
 
-U64 GenerateKingMoves(int square) {
+U64 GenerateKingAttacks(int square) {
     U64 attacks = 0ULL;
     U64 bitboard = 1ULL << square;
 
@@ -69,36 +72,173 @@ U64 GenerateKingMoves(int square) {
     return attacks;
 }
 
-U64 GenerateBishopMoves(int square) {
-    U64 attacks = 0ULL;
+U64 IndexToU64(int index, int bits, U64 bitboard) {
+    U64 result = 0ULL;
 
-    return attacks;
+    for (int i = 0; i < bits; i++) {
+        int square = PopFirstBit(bitboard);
+        if (index & (1 << i)) result |= (1ULL << square);
+    }
+
+    return result;
 }
 
-U64 GenerateRookMoves(int square) {
-    U64 attacks = 0ULL;
+U64 MaskB(int square) {
+    U64 result = 0ULL;
 
-    return attacks;
+    int file = GetFile(square);
+    int rank = GetRank(square);
+
+    for (int f = file + 1, r = rank + 1; f <= G && r <= Seven; f++, r++) SetBit(result, f + r * 8);
+    for (int f = file + 1, r = rank - 1; f <= G && r >= Two; f++, r--) SetBit(result, f + r * 8);
+    for (int f = file - 1, r = rank + 1; f >= B && r <= Seven; f--, r++) SetBit(result, f + r * 8);
+    for (int f = file - 1, r = rank - 1; f >= B && r >= Two; f--, r--) SetBit(result, f + r * 8);
+
+    return result;
 }
 
-U64 GenerateQueenMoves(int square) {
-    U64 attacks = 0ULL;
+U64 MaskR(int square) {
+    U64 result = 0ULL;
 
-    return attacks;
+    int file = GetFile(square);
+    int rank = GetRank(square);
+
+    for (int f = file + 1; f <= G; f++) SetBit(result, f + rank * 8);
+    for (int f = file - 1; f >= B; f--) SetBit(result, f + rank * 8);
+    for (int r = rank + 1; r <= Seven; r++) SetBit(result, file + r * 8);
+    for (int r = rank - 1; r >= Two; r--) SetBit(result, file + r * 8);
+
+    return result;
+}
+
+U64 AttackMaskB(int square, U64 occupancy) {
+    U64 result = 0ULL;
+
+    int file = GetFile(square);
+    int rank = GetRank(square);
+
+    for (int f = file + 1, r = rank + 1; f <= H && r <= Eight; f++, r++) {
+        int square = f + r * 8;
+        SetBit(result, square);
+        if (IsBitSet(occupancy, square)) break;
+    }
+
+    for (int f = file + 1, r = rank - 1; f <= H && r >= One; f++, r--) {
+        int square = f + r * 8;
+        SetBit(result, square);
+        if (IsBitSet(occupancy, square)) break;
+    }
+
+    for (int f = file - 1, r = rank + 1; f >= A && rank <= Eight; f--, r++) {
+        int square = f + r * 8;
+        SetBit(result, square);
+        if (IsBitSet(occupancy, square)) break;
+    }
+
+    for (int f = file - 1, r = rank - 1; f >= A && r >= One; f--, r--) {
+        int square = f + r * 8;
+        SetBit(result, square);
+        if (IsBitSet(occupancy, square)) break;
+    }
+
+    return result;
+}
+
+U64 AttackMaskR(int square, U64 occupancy) {
+    U64 result = 0ULL;
+
+    int file = GetFile(square);
+    int rank = GetRank(square);
+
+    for (int f = file + 1; f <= File::H; f++) {
+        int square = f + rank * 8;
+        SetBit(result, square);
+        if (IsBitSet(occupancy, square)) break;
+    }
+
+    for (int f = file - 1; f >= File::A; f--) {
+        int square = f + rank * 8;
+        SetBit(result, square);
+        if (IsBitSet(occupancy, square)) break;
+    }
+
+    for (int r = rank + 1; r <= Rank::Eight; r++) {
+        int square = file + r * 8;
+        SetBit(result, square);
+        if (IsBitSet(occupancy, square)) break;
+    }
+
+    for (int r = rank - 1; r >= Rank::One; r--) {
+        int square = file + r * 8;
+        SetBit(result, square);
+        if (IsBitSet(occupancy, square)) break;
+    }
+
+    return result;
+}
+
+U64 Board::GenerateBishopAttacks(int square, U64 occupancy) {
+    occupancy &= MaskB(square);
+    occupancy *= MagicsB[square];
+    occupancy >>= 64 - RelevantBitsB[square];
+
+    return bishopAttacks[square][occupancy];
+}
+
+U64 Board::GenerateRookAttacks(int square, U64 occupancy) {
+    occupancy &= MaskR(square);
+    occupancy *= MagicsR[square];
+    occupancy >>= 64 - RelevantBitsR[square];
+
+    return rookAttacks[square][occupancy];
+}
+
+U64 Board::GenerateQueenAttacks(int square, U64 occupancy) {
+    U64 bishopOccupancy = occupancy;
+	U64 rookOccupancy = occupancy;
+
+	bishopOccupancy &= AttackMasksB[square];
+	bishopOccupancy *= MagicsB[square];
+	bishopOccupancy >>= 64 - RelevantBitsB[square];
+
+	rookOccupancy &= AttackMasksR[square];
+	rookOccupancy *= MagicsR[square];
+	rookOccupancy >>= 64 - RelevantBitsR[square];
+
+	return bishopAttacks[square][bishopOccupancy] | rookAttacks[square][rookOccupancy];
 }
 
 void Board::InitAttackTables() {
-    // for (int square = 0; square < 64; square++) {
-    //     pawnMoves[White][square] = GeneratePawnMoves(White, square);
-    //     pawnMoves[Black][square] = GeneratePawnMoves(Black, square);
-    //     pawnCaptures[White][square] = GeneratePawnCaptures(White, square);
-    //     pawnCaptures[Black][square] = GeneratePawnCaptures(Black, square);
-    //     knightMoves[square] = GenerateKnightMoves(square);
-    //     bishopMoves[square] = GenerateBishopMoves(square);
-    //     rookMoves[square] = GenerateRookMoves(square);
-    //     queenMoves[square] = GenerateQueenMoves(square);
-    //     kingMoves[square] = GenerateKingMoves(square);
-    // }
+    for (int square = 0; square < 64; square++) {
+        pawnMoves[White][square] = GeneratePawnMoves(White, square);
+        pawnMoves[Black][square] = GeneratePawnMoves(Black, square);
+        pawnCaptures[White][square] = GeneratePawnCaptures(White, square);
+        pawnCaptures[Black][square] = GeneratePawnCaptures(Black, square);
+        knightAttacks[square] = GenerateKnightAttacks(square);
+        kingAttacks[square] = GenerateKingAttacks(square);
 
-    FindMagics();
+        AttackMasksB[square] = MaskB(square);
+        U64 attackMaskB = AttackMasksB[square];
+
+		int relevantBitsB = RelevantBitsB[square];
+		int occupancyIndicesB = 1 << relevantBitsB;
+
+		for (int i = 0; i < occupancyIndicesB; i++) {
+			U64 occupancy = IndexToU64(i, relevantBitsB, attackMaskB);
+			int magicIndex = (occupancy * MagicsB[square]) >> (64 - relevantBitsB);
+			bishopAttacks[square][magicIndex] = GenerateBishopAttacks(square, occupancy);
+		}
+
+        AttackMasksR[square] = MaskR(square);
+        U64 attackMaskR = AttackMasksR[square];
+
+		int relevantBitsR = RelevantBitsR[square];
+		int occupancyIndicesR = 1 << relevantBitsR;
+
+		for (int i = 0; i < occupancyIndicesR; i++) {
+			U64 occupancy = IndexToU64(i, relevantBitsR, attackMaskR);
+			int magicIndex = (occupancy * MagicsR[square]) >> (64 - relevantBitsR);
+			rookAttacks[square][magicIndex] = GenerateRookAttacks(square, occupancy);
+		}
+    }
 }
