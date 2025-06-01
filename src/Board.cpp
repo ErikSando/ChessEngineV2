@@ -18,10 +18,10 @@ Board::Board() {
 }
 
 void Board::Print() {
-    for (int rank = Rank::Eight; rank >= Rank::One; rank--) {
+    for (int rank = Rank8; rank >= Rank1; rank--) {
         std::cout << " " << (rank + 1);
 
-        for (int file = File::A; file <= File::H; file++) {
+        for (int file = FileA; file <= FileH; file++) {
             int square = GetSquare(file, rank);
             int piece = NO_PIECE;
 
@@ -40,7 +40,7 @@ void Board::Print() {
         std::cout << "\n";
     }
 
-    std::cout << "   A B C D E F G H\n";
+    std::cout << "   a b c d e f g h\n";
 
     char castlingPermsStr[5] = { '-', '\0', '\0', '\0', '\0' };
     int i = 0;

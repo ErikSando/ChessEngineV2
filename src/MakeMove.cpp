@@ -1,32 +1,9 @@
 #include <iostream>
 
 #include "Board.h"
+#include "Data.h"
+#include "MoveHandling.h"
 #include "Moves.h"
-
-inline void HashPiece(U64& key, int piece, int square) {
-    key ^= PieceKeys[piece][square];
-}
-
-inline void HashCastling(U64& key, int castlingPerms) {
-    key ^= CastlingKeys[castlingPerms];
-}
-
-inline void HashEnPassant(U64& key, int enPassant) {
-    key ^= EnPassantKeys[enPassant];
-}
-
-inline void HashSide(U64& key) {
-    key ^= SideKey;
-}
-
-inline void MoveRook(U64& hashKey, U64& bitboard, U64& occupancy, int rook, int fromSquare, int toSquare) {
-    HashPiece(hashKey, rook, fromSquare);
-    ClearBit(bitboard, fromSquare);
-    ClearBit(occupancy, fromSquare);
-    SetBit(bitboard, toSquare);
-    SetBit(occupancy, toSquare);
-    HashPiece(hashKey, rook, toSquare);
-}
 
 constexpr int CastlingPermsUpdate[64] = {
 	13, 15, 15, 15, 12, 15, 15, 14,
@@ -46,6 +23,7 @@ bool Board::MakeMove(int move) {
 
     history[ply].hashKey = hashKey;
     history[ply].move = move;
+    history[ply].castlingPerms = castlingPerms;
     history[ply++].enPassant = enPassant;
 
     // std::cout << "Updated undo info\n";
@@ -168,90 +146,47 @@ bool Board::MakeMove(int move) {
     return true;
 }
 
-void Board::TakeMove() {
-    // std::cout << "Taking move\n";
-    int enemy = side;
+bool Board::MakeMove(const char* move) {
+    int fromF = *move++ - 'a';
+    int fromR = *move++ - '1';
+    int toF = *move++ - 'a';
+    int toR = *move++ - '1';
+    char promoted = *move;
 
-    BoardInfo info = history[--ply];
-    //hashKey = info.hashKey;
+    MoveList list;
+    GenerateMoves(list);
 
-    //std::cout << "\nTaking move: " << info.move << "\n\n";
+    for (int i = 0; i < list.length; i++) {
+        int move = list.moves[i];
 
-    if (enPassant != NO_SQUARE) HashEnPassant(hashKey, enPassant);
-    enPassant = info.enPassant;
-    if (enPassant != NO_SQUARE) HashEnPassant(hashKey, enPassant);
+        int fS = GetFromSquare(move);
+        int tS = GetToSquare(move);
+        int fF = GetFile(fS);
+        int fR = GetRank(fS);
+        int tF = GetFile(tS);
+        int tR = GetRank(tS);
 
-    side ^= 1;
-    HashSide(hashKey);
+        if (fF == fromF && fR == fromR && tF == toF && tR == toR) {
+            if (promoted) {
+                int prom = GetPromotedPiece(move);
 
-    int move = info.move;
+                switch (promoted) {
+                    case 'q': if (IS_QUEEN[prom]) return MakeMove(move); break;
+                    case 'r': if (IS_ROOK[prom]) return MakeMove(move); break;
+                    case 'b': if (IS_BISHOP[prom]) return MakeMove(move); break;
+                    case 'n': if (IS_KNIGHT[prom]) return MakeMove(move); break;
+                }
 
-    int fromSquare = GetFromSquare(move);
-    int toSquare = GetToSquare(move);
-    int piece = GetMovedPiece(move);
-    int promoted = GetPromotedPiece(move);
+                return false;
+            }
 
-    if (promoted) {
-        ClearBit(bitboards[promoted], toSquare);
-        HashPiece(hashKey, piece, toSquare);
-    }
-    else {
-        ClearBit(bitboards[piece], toSquare);
-        HashPiece(hashKey, piece, toSquare);
-    }
-
-    ClearBit(occupancy[side], toSquare);
-
-    SetBit(bitboards[piece], fromSquare);
-    SetBit(occupancy[side], fromSquare);
-    HashPiece(hashKey, piece, fromSquare);
-
-    int flag = GetFlag(move);
-
-    switch (flag) {
-        case CaptureFlag: {
-            int captured = GetCapturedPiece(move);
-            SetBit(bitboards[captured], fromSquare);
-            SetBit(occupancy[enemy], fromSquare);
-            HashPiece(hashKey, captured, fromSquare);
+            return MakeMove(move);
         }
-
-        case EnPassantFlag:
-            if (side == White) {
-                SetBit(bitboards[BP], toSquare - 8);
-                SetBit(occupancy[Black], toSquare - 8);
-                HashPiece(hashKey, BP, toSquare - 8);
-            }
-            else {
-                SetBit(bitboards[WP], toSquare + 8);
-                SetBit(occupancy[White], toSquare + 8);
-                HashPiece(hashKey, WP, toSquare + 8);
-            }
-        break;
-
-        case CastlingFlag:
-
-        break;
     }
 
-    // if (IsEnPassant(move)) {
-    //     HashEnPassant(hashKey, enPassant);
-    //     enPassant = toSquare;
-    //     HashEnPassant(hashKey, enPassant);
-        
-    //     if (side == White) {
-    //         SetBit(bitboards[BP], toSquare - 8);
-    //         SetBit(occupancy[Black], toSquare - 8);
-    //         HashPiece(hashKey, BP, toSquare - 8);
-    //     }
-    //     else {
-    //         SetBit(bitboards[WP], toSquare + 8);
-    //         SetBit(occupancy[White], toSquare + 8);
-    //         HashPiece(hashKey, WP, toSquare + 8);
-    //     }
-    // }
+    return false;
+}
 
-    occupancy[Both] = occupancy[White] | occupancy[Black];
-
-    // std::cout << "Took move\n";
+bool Board::MakeMove(std::string move) {
+    return false;
 }

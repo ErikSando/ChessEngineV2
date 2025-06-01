@@ -5,7 +5,7 @@
 
 int main() {
     Board board;
-    board.Print();
+    //board.Print();
 
     //board.ParseFEN("rnbqkbnr/ppp2ppp/8/3pp3/3PP3/8/PPP2PPP/RNBQKBNR w KQkq d6 0 3");
     //board.ParseFEN("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 0");
@@ -44,7 +44,41 @@ int main() {
 
     //std::cout << "About to run perft" << std::endl;
 
-    board.PerftTest(2);
+    // board.ParseFEN("rnbqkbnr/p1pppppp/8/Pp6/8/8/1PPPPPPP/RNBQKBNR b Kkq - 0 0");
+    // board.Print();
+
+    // MoveList list;
+    // board.GenerateMoves(list);
+
+    // for (int i = 0; i < list.length; i++) {
+    //     board.MakeMove(list.moves[i]);
+    //     board.Print();
+    //     std::cout << "\n";
+    //     board.TakeMove();
+    //     board.Print();
+    //     std::cout << "\n";
+    // }
+
+    // board.PerftTest(3);
+
+    board.MakeMove("a2a4");
+    board.Print();
+    std::cout << "\n";
+    board.MakeMove("b7b5");
+    board.Print();
+    std::cout << "\n";
+    board.MakeMove("b1a3");
+    board.Print();
+    std::cout << "\n";
+    board.TakeMove();
+    board.Print();
+    std::cout << "\n";
+    board.TakeMove();
+    board.Print();
+    std::cout << "\n";
+    board.TakeMove();
+    board.Print();
+    std::cout << "\n";
 
     return 0;
 }

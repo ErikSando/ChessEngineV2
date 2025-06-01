@@ -2,10 +2,16 @@
 
 #include <stdlib.h>
 
-constexpr const char* NAME = "ErikEngine";
-constexpr const char* VERSION = "2.0";
+constexpr const char* ENGINE_NAME = "ErikEngine";
+constexpr const char* ENGINE_VERSION = "2.0";
 
 typedef unsigned long long U64;
+
+#ifdef NDEBUG
+    #define debug()
+#else
+    #define debug(x) x
+#endif
 
 #if defined(__GNUC__) || defined(__clang__)
     inline int CountBits(U64 bitboard) {

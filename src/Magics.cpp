@@ -10,13 +10,15 @@ U64 RandU64FewBits() {
     return RandU64() & RandU64() & RandU64();
 }
 
-U64 FindMagic(int square, int bits, bool bishop) {
+U64 FindMagic(int square, bool bishop) {
     U64 magic, occupancy[4096], attacks[4096], used[4096];
 
-    U64 mask = bishop ? MaskB(square) : MaskR(square);
-    int n = CountBits(mask);
+    U64 mask = bishop ? AttackMasksB[square] : AttackMasksR[square];
+    int bits = CountBits(mask);
 
-    for (int i = 0; i < (1 << bits); i++) {
+    int occupIndices = 1 << bits;
+
+    for (int i = 0; i < occupIndices; i++) {
         occupancy[i] = IndexToU64(i, bits, mask);
         attacks[i] = bishop ? GenerateBishopAttacks(square, occupancy[i])
                             : GenerateRookAttacks(square, occupancy[i]);
@@ -32,8 +34,8 @@ U64 FindMagic(int square, int bits, bool bishop) {
 
         bool fail = false;
 
-        for (int i = 0; !fail && i < (1 << bits); i++) {
-            int index = ((occupancy[i] * magic) >> (64 - bits)) & ((1 << bits) - 1);
+        for (int i = 0; !fail && i < occupIndices; i++) {
+            int index = (int) ((occupancy[i] * magic) >> (64 - bits));
 
             if (!slotUsed[index]) {
                 used[index] = attacks[i];
@@ -62,7 +64,7 @@ void FindMagics() {
 
         for (int col = 0; col < 4; col ++) {
             int square = col + row * 4;
-            std::cout << " 0x" << std::hex << FindMagic(square, RelevantBitsR[square], true) << "ULL,";
+            std::cout << " 0x" << std::hex << FindMagic(square, true) << "ULL,";
         }
 
         std::cout << "\n";
@@ -77,7 +79,7 @@ void FindMagics() {
 
         for (int col = 0; col < 4; col ++) {
             int square = col + row * 4;
-            std::cout << " 0x" << std::hex << FindMagic(square, RelevantBitsR[square], false) << "ULL,";
+            std::cout << " 0x" << std::hex << FindMagic(square, false) << "ULL,";
         }
 
         std::cout << "\n";

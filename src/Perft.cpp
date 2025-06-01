@@ -2,8 +2,11 @@
 #include <iostream>
 
 #include "Board.h"
+#include "Globals.h"
 
 U64 Board::Perft(int depth) {
+    debug(Check());
+
     if (depth == 0) return 1;
 
     MoveList list;
@@ -29,8 +32,8 @@ U64 Board::Perft(int depth) {
 
     for (int i = 0; i < list.length; i++) {
         if (!MakeMove(list.moves[i])) continue;
+        // Print();
         n += Perft(depth - 1);
-        //Print();
         TakeMove();
     }
 
@@ -72,16 +75,14 @@ void Board::PerftTest(int depth) {
         U64 newNodes = 0;
 
         if (!MakeMove(move)) continue;
+        // Print();
         newNodes = Perft(depth - 1);
-        //Print();
         TakeMove();
 
         nodes += newNodes;
 
         std::cout << ToMoveString(move) << ": " << newNodes << "\n";
     }
-
-    //Print();
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();

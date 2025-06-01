@@ -6,11 +6,11 @@
 void Board::GenerateCaptures(MoveList& list) {
     int enemy = side ^ 1;
     int direction = enemy ? 8 : -8;
-    int promotionRank = enemy ? Rank::Seven : Rank::Two;
-    int captureStart = enemy ? Piece::BP : Piece::WP;
+    int promotionRank = enemy ? Rank7 : Rank2;
+    int captureStart = enemy ? BP : WP;
 
     // pawns
-    int piece = enemy ? Piece::WP : Piece::BP;
+    int piece = enemy ? WP : BP;
     U64 bitboard = bitboards[piece];
 
     while (bitboard) {

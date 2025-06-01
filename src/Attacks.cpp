@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "Attacks.h"
+#include "Data.h"
 #include "Board.h"
 
 U64 AttackMasksB[64];
@@ -12,11 +13,11 @@ U64 GeneratePawnMoves(int side, int square) {
 
     if (side == White) {
         attacks |= bitboard << 8;
-        if (GetRank(square) == Rank::Two) attacks |= bitboard << 16;
+        if (GetRank(square) == Rank2) attacks |= bitboard << 16;
     }
     else {
         attacks |= bitboard >> 8;
-        if (GetRank(square) == Rank::Seven) attacks |= bitboard >> 16;
+        if (GetRank(square) == Rank7) attacks |= bitboard >> 16;
     }
 
     return attacks;
@@ -91,10 +92,10 @@ U64 MaskB(int square) {
     int file = GetFile(square);
     int rank = GetRank(square);
 
-    for (int f = file + 1, r = rank + 1; f <= G && r <= Seven; f++, r++) SetBit(mask, GetSquare(f, r));
-    for (int f = file + 1, r = rank - 1; f <= G && r >= Two; f++, r--) SetBit(mask, GetSquare(f, r));
-    for (int f = file - 1, r = rank + 1; f >= B && r <= Seven; f--, r++) SetBit(mask, GetSquare(f, r));
-    for (int f = file - 1, r = rank - 1; f >= B && r >= Two; f--, r--) SetBit(mask, GetSquare(f, r));
+    for (int f = file + 1, r = rank + 1; f <= FileG && r <= Rank7; f++, r++) SetBit(mask, GetSquare(f, r));
+    for (int f = file + 1, r = rank - 1; f <= FileG && r >= Rank2; f++, r--) SetBit(mask, GetSquare(f, r));
+    for (int f = file - 1, r = rank + 1; f >= FileB && r <= Rank7; f--, r++) SetBit(mask, GetSquare(f, r));
+    for (int f = file - 1, r = rank - 1; f >= FileB && r >= Rank2; f--, r--) SetBit(mask, GetSquare(f, r));
 
     return mask;
 }
@@ -105,10 +106,10 @@ U64 MaskR(int square) {
     int file = GetFile(square);
     int rank = GetRank(square);
 
-    for (int f = file + 1; f <= G; f++) SetBit(mask, GetSquare(f, rank));
-    for (int f = file - 1; f >= B; f--) SetBit(mask, GetSquare(f, rank));
-    for (int r = rank + 1; r <= Seven; r++) SetBit(mask, GetSquare(file, r));
-    for (int r = rank - 1; r >= Two; r--) SetBit(mask, GetSquare(file, r));
+    for (int f = file + 1; f <= FileG; f++) SetBit(mask, GetSquare(f, rank));
+    for (int f = file - 1; f >= FileB; f--) SetBit(mask, GetSquare(f, rank));
+    for (int r = rank + 1; r <= Rank7; r++) SetBit(mask, GetSquare(file, r));
+    for (int r = rank - 1; r >= Rank2; r--) SetBit(mask, GetSquare(file, r));
 
     return mask;
 }
@@ -119,26 +120,26 @@ U64 GenerateBishopAttacks(int square, U64 occupancy) {
     int file = GetFile(square);
     int rank = GetRank(square);
 
-    for (int f = file + 1, r = rank + 1; f <= File::H && r <= Rank::Eight; f++, r++) {
+    for (int f = file + 1, r = rank + 1; f <= FileH && r <= Rank8; f++, r++) {
         int square = GetSquare(f, r);
         SetBit(attacks, square);
         if (GetBit(occupancy, square)) break;
     }
 
 
-    for (int f = file + 1, r = rank - 1; f <= File::H && r >= Rank::One; f++, r--) {
+    for (int f = file + 1, r = rank - 1; f <= FileH && r >= Rank1; f++, r--) {
        int square = GetSquare(f, r);
        SetBit(attacks, square);
         if (GetBit(occupancy, square)) break;
     }
 
-    for (int f = file - 1, r = rank + 1; f >= File::A && r <= Rank::Eight; f--, r++) {
+    for (int f = file - 1, r = rank + 1; f >= FileA && r <= Rank8; f--, r++) {
         int square = GetSquare(f, r);
         SetBit(attacks, square);
         if (GetBit(occupancy, square)) break;
     }
 
-    for (int f = file - 1, r = rank - 1; f >= File::A && r >= Rank::One; f--, r--) {
+    for (int f = file - 1, r = rank - 1; f >= FileA && r >= Rank1; f--, r--) {
         int square = GetSquare(f, r);
         SetBit(attacks, square);
         if (GetBit(occupancy, square)) break;
@@ -153,25 +154,25 @@ U64 GenerateRookAttacks(int square, U64 occupancy) {
     int file = GetFile(square);
     int rank = GetRank(square);
 
-    for (int f = file + 1; f <= File::H; f++) {
+    for (int f = file + 1; f <= FileH; f++) {
         int square = GetSquare(f, rank);
         SetBit(attacks, square);
         if (GetBit(occupancy, square)) break;
     }
 
-    for (int f = file - 1; f >= File::A; f--) {
+    for (int f = file - 1; f >= FileA; f--) {
         int square = GetSquare(f, rank);
         attacks |= (1ULL << square);
         if (GetBit(occupancy, square)) break;
     }
 
-    for (int r = rank + 1; r <= Rank::Eight; r++) {
+    for (int r = rank + 1; r <= Rank8; r++) {
         int square = GetSquare(file, r);
         SetBit(attacks, square);
         if (GetBit(occupancy, square)) break;
     }
 
-    for (int r = rank - 1; r >= Rank::One; r--) {
+    for (int r = rank - 1; r >= Rank1; r--) {
         int square = GetSquare(file, r);
         SetBit(attacks, square);
         if (GetBit(occupancy, square)) break;
@@ -244,4 +245,6 @@ void Board::InitAttackTables() {
             rookAttacks[square][magicIndex] = GenerateRookAttacks(square, occupancy);
         }
     }
+
+    // FindMagics();
 }

@@ -18,8 +18,8 @@ void Board::GenerateMoves(MoveList& list) {
 
     int enemy = side ^ 1;
     int direction = enemy ? 8 : -8;
-    int promotionRank = enemy ? Rank::Seven : Rank::Two;
-    int captureStart = enemy ? Piece::BP : Piece::WP;
+    int promotionRank = enemy ? Rank7 : Rank2;
+    int captureStart = enemy ? BP : WP;
 
     // castling
     if (enemy) { // equivalent to if side == White
@@ -30,13 +30,13 @@ void Board::GenerateMoves(MoveList& list) {
                 !IsSquareAttacked(F1, side) &&
                 !IsSquareAttacked(G1, side)
             ) {
-                AddMove(list, EncodeMove(E1, G1, Piece::WK, 0, 0, CastlingFlag));
+                AddMove(list, EncodeMove(E1, G1, WK, 0, 0, CastlingFlag));
             }
 
             // U64 squaresMask = GetSquareMask(E1) | GetSquareMask(F1) | GetSquareMask(G1);
 
             // if (!IsSquaresAttacked(squaresMask, side)) {
-            //     AddMove(list, EncodeMove(E1, G1, Piece::WK, 0, 0, CastlingFlag));
+            //     AddMove(list, EncodeMove(E1, G1, WK, 0, 0, CastlingFlag));
             // }
         }
 
@@ -47,13 +47,13 @@ void Board::GenerateMoves(MoveList& list) {
                 !IsSquareAttacked(D1, side) &&
                 !IsSquareAttacked(C1, side)
             ) {
-                AddMove(list, EncodeMove(E1, C1, Piece::WK, 0, 0, CastlingFlag));
+                AddMove(list, EncodeMove(E1, C1, WK, 0, 0, CastlingFlag));
             }
 
             // U64 squaresMask = GetSquareMask(E1) | GetSquareMask(D1) | GetSquareMask(C1);
 
             // if (!IsSquaresAttacked(squaresMask, side)) {
-            //     AddMove(list, EncodeMove(E1, C1, Piece::WK, 0, 0, CastlingFlag));
+            //     AddMove(list, EncodeMove(E1, C1, WK, 0, 0, CastlingFlag));
             // }
         }
     }
@@ -65,13 +65,13 @@ void Board::GenerateMoves(MoveList& list) {
                 !IsSquareAttacked(F8, side) &&
                 !IsSquareAttacked(G8, side)
             ) {
-                AddMove(list, EncodeMove(E8, G8, Piece::BK, 0, 0, CastlingFlag));
+                AddMove(list, EncodeMove(E8, G8, BK, 0, 0, CastlingFlag));
             }
 
             // U64 squaresMask = GetSquareMask(E8) | GetSquareMask(F8) | GetSquareMask(G8);
 
             // if (!IsSquaresAttacked(squaresMask, side)) {
-            //     AddMove(list, EncodeMove(E8, G8, Piece::BK, 0, 0, CastlingFlag));
+            //     AddMove(list, EncodeMove(E8, G8, BK, 0, 0, CastlingFlag));
             // }
         }
 
@@ -82,19 +82,19 @@ void Board::GenerateMoves(MoveList& list) {
                 !IsSquareAttacked(D8, side) &&
                 !IsSquareAttacked(C8, side)
             ) {
-                AddMove(list, EncodeMove(E8, C8, Piece::BK, 0, 0, CastlingFlag));
+                AddMove(list, EncodeMove(E8, C8, BK, 0, 0, CastlingFlag));
             }
 
             // U64 squaresMask = GetSquareMask(E8) | GetSquareMask(D8) | GetSquareMask(C8);
 
             // if (!IsSquaresAttacked(squaresMask, side)) {
-            //     AddMove(list, EncodeMove(E8, G8, Piece::BK, 0, 0, CastlingFlag));
+            //     AddMove(list, EncodeMove(E8, G8, BK, 0, 0, CastlingFlag));
             // }
         }
     }
 
     // pawns
-    int piece = enemy ? Piece::WP : Piece::BP;
+    int piece = enemy ? WP : BP;
     U64 bitboard = bitboards[piece];
 
     while (bitboard) {

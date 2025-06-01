@@ -4,8 +4,8 @@
 #include "Board.h"
 
 void Board::ParseFEN(const char* fen) {
-    int file = File::A;
-    int rank = Rank::Eight;
+    int file = FileA;
+    int rank = Rank8;
     // int numKings[2] = { 0, 0 };
 
     U64 new_bitboards[12]{};
@@ -22,7 +22,7 @@ void Board::ParseFEN(const char* fen) {
         char c = *ptr++; // chracters are one byte, so the memory address can be incremented by 1 to get the next character
         if (c == ' ') break;
 
-        // if (rank < 0) {
+        // if (rank < Rank1) {
         //     std::cout << "Invalid FEN string: invalid piece positions\n";
         //     return;
         // }
@@ -31,8 +31,8 @@ void Board::ParseFEN(const char* fen) {
 
         file++;
 
-        if (file > File::H) {
-            file = File::A;
+        if (file > FileH) {
+            file = FileA;
             rank--;
         }
 
@@ -47,12 +47,12 @@ void Board::ParseFEN(const char* fen) {
             case '8':
                 file += c - '1'; // file is always incremented, so here it is incremented by 1 less than the jump
                 
-                if (file > File::H) {
-                    file = File::A;
+                if (file > FileH) {
+                    file = FileA;
                     rank--;
                 }
 
-                // if (rank < 0) {
+                // if (rank < Rank1) {
                 //     std::cout << "Invalid FEN string: invalid piece positions\n";
                 //     return;
                 // }
@@ -157,7 +157,7 @@ void Board::ParseFEN(const char* fen) {
     side = new_side;
     memcpy(bitboards, new_bitboards, 12 * sizeof(U64));
     memcpy(occupancy, new_occupancy, 3 * sizeof(U64));
-    
+
     GenerateHashKey();
 }
 
