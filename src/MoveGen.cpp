@@ -120,6 +120,12 @@ void Board::GenerateMoves(MoveList& list) {
 
             AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flags));
         }
+
+        if (enPassant != NO_SQUARE) {
+            if (IsBitSet(pawnCaptures[side][fromSquare], enPassant)) {
+                AddMove(list, EncodeMove(fromSquare, enPassant, piece, 0, 0, EnPassantFlag));
+            }
+        }
     }
 
     piece++; // knights
