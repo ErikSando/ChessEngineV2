@@ -1,4 +1,7 @@
+#include <iostream>
+
 #include "Board.h"
+#include "Moves.h"
 
 int main() {
     Board board;
@@ -11,6 +14,15 @@ int main() {
 
     MoveList list;
     board.GenerateMoves(list);
+
+    for (int i = 0; i < list.length; i++) {
+        int move = list.moves[i];
+        int from = GetFromSquare(move);
+        int to = GetToSquare(move);
+        std::cout << ToSquareString(from) << ToSquareString(to) << "\n";
+    }
+
+    board.Print();
 
     return 0;
 }

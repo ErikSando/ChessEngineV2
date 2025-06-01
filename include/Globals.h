@@ -85,6 +85,10 @@ inline int GetRank(int square) {
     return square >> 3;
 }
 
+inline U64 GetSquareMask(int square) {
+    return 1ULL << square;
+}
+
 extern int ToSquare(const char* square);
 extern const char* ToSquareString(int square);
 extern const char* ToMoveString(int move);
