@@ -7,6 +7,8 @@
 #include "Globals.h"
 
 void UCILoop(Board& board) {
+    // board.ParseFEN(START_FEN);
+
     std::cout << "uciok\n";
 
     std::istream input();

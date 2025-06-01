@@ -11,10 +11,10 @@ void Board::ParseFEN(const char* fen) {
     U64 new_bitboards[12]{};
     U64 new_occupancy[3]{};
 
-    int new_fiftyMoveCounter;
-    int new_enPassant = NO_SQUARE;
     int new_side;
     int new_castlingPerms = 0;
+    int new_fiftyMoveCount;
+    int new_enPassant = NO_SQUARE;
 
     const char* ptr = fen;
 
@@ -144,14 +144,14 @@ void Board::ParseFEN(const char* fen) {
         }
     }
 
-    new_fiftyMoveCounter = atoi(ptr + 1);
+    new_fiftyMoveCount = atoi(ptr + 1);
 
-    if (new_fiftyMoveCounter < 0) {
+    if (new_fiftyMoveCount < 0) {
         std::cout << "Invalid FEN string: invalid fifty move rule counter\n";
         return;
     }
 
-    fiftyMoveCounter = new_fiftyMoveCounter;
+    fiftyMoveCount = new_fiftyMoveCount;
     enPassant = new_enPassant;
     castlingPerms = new_castlingPerms;
     side = new_side;

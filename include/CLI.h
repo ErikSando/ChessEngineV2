@@ -2,5 +2,5 @@
 
 #include "Board.h"
 
-extern void CommandLoop(Board& board);
+extern void CommandLoop();
 extern void UCILoop(Board& board);

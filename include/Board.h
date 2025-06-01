@@ -7,11 +7,13 @@
 #include "Data.h"
 #include "Globals.h"
 #include "Moves.h"
+#include "Search.h"
 
 struct BoardInfo {
     U64 hashKey;
     int move;
     int castlingPerms;
+    int fiftyMoveCount;
     int enPassant = NO_SQUARE;
 };
 
@@ -34,17 +36,23 @@ class Board {
     void GenerateMoves(MoveList& list);
     void GenerateCaptures(MoveList& list);
 
-    bool MakeMove(int move);
-    bool MakeMove(const char* move);
-    bool MakeMove(std::string move);
+    bool MakeMove(const int move);
+    bool ParseMove(const int fromSquare, const int toSquare, const char promoted);
+    bool ParseMove(const char* move);
+    bool ParseMove(const std::string move);
     void TakeMove();
+
+    int Evaluate();
+    int Quiescence();
+    void Search(const SearchInfo& info);
 
     // below here could be private
 
     void InitAttackTables();
 
+    bool IsSquareAttacked(int square);
     bool IsSquareAttacked(int square, int side);
-    bool IsSquaresAttacked(U64 squaresMask, int side);
+    // bool IsSquaresAttacked(U64 squaresMask, int side);
 
     U64 GetBishopAttacks(int square, U64 occupancy);
     U64 GetRookAttacks(int square, U64 occupancy);
@@ -68,7 +76,7 @@ class Board {
     std::array<BoardInfo, MAX_GAME_MOVES> history;
 
     int ply = 0;
-    int fiftyMoveCounter = 0;
+    int fiftyMoveCount = 0;
     int enPassant = NO_SQUARE;
     int side = Side::White;
     int castlingPerms = 0;

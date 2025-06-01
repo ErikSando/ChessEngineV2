@@ -5,14 +5,10 @@
 #include "Moves.h"
 #include "Search.h"
 
-enum class Protocol {
-    UCI, XBoard
-};
-
 class Engine {
     public:
 
-    Engine(Protocol protocol);
+    Engine();
 
     void GenerateMoves(const Board& board, MoveList& list);
     void GenerateCaptures(const Board& board, MoveList& list);

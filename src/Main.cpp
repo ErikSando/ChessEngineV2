@@ -1,65 +1,19 @@
 #include <iostream>
 
-#include "Board.h"
-#include "Moves.h"
+#include "CLI.h"
 
 int main() {
-    Board board;
-    //board.Print();
+    // int repeat = 200000000;
+    // int start = GetTimeMS();
 
-    //board.ParseFEN("rnbqkbnr/ppp2ppp/8/3pp3/3PP3/8/PPP2PPP/RNBQKBNR w KQkq d6 0 3");
-    //board.ParseFEN("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 0");
-    // board.ParseFEN("4k2r/p2bp2p/1r1p1q2/8/5B2/2QB3P/P3P1P1/4K3 b KQkq c5 0 1");
-    // board.Print();
-
-    // MoveList list;
-    // board.GenerateMoves(list);
-
-    // for (int i = 0; i < 10; i++) {
-    //     MoveList list;
-    //     board.GenerateMoves(list);
-    //     board.MakeMove(list.moves[15]);
-    //     board.Print();
-    //     std::cout << "\n";
-    // }
-    // for (int i = 0; i < 10; i++) {
-    //     board.TakeMove();
-    //     board.Print();
-    //     std::cout << "\n";
+    // for (int i = 0; i < repeat - 2; i++) {
+    //     GetTimeMS();
     // }
 
-    // for (int i = 0; i < list.length; i++) {
-    //     int move = list.moves[i];
-    //     int from = GetFromSquare(move);
-    //     int to = GetToSquare(move);
-    //     std::cout << ToSquareString(from) << ToSquareString(to) << "\n";
-    // }
+    // int end = GetTimeMS();
+    // std::cout << "Called GetTimeMS() " << repeat << " times in " << (end - start) << " ms.\n";
 
-    // board.MakeMove(list.moves[1]);
-    // board.Print();
-    // board.TakeMove();
-    // board.Print();
-
-    // board.Print();
-
-    //std::cout << "About to run perft" << std::endl;
-
-    // board.ParseFEN("rnbqkbnr/p1pppppp/8/Pp6/8/8/1PPPPPPP/RNBQKBNR b Kkq - 0 0");
-    // board.Print();
-
-    // MoveList list;
-    // board.GenerateMoves(list);
-
-    // for (int i = 0; i < list.length; i++) {
-    //     board.MakeMove(list.moves[i]);
-    //     board.Print();
-    //     std::cout << "\n";
-    //     board.TakeMove();
-    //     board.Print();
-    //     std::cout << "\n";
-    // }
-
-    board.PerftTest(6);
+    CommandLoop();
 
     return 0;
 }

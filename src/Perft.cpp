@@ -12,6 +12,9 @@ U64 Board::Perft(int depth) {
     MoveList list;
     GenerateMoves(list);
 
+    // requires legal move generator
+    // if (depth == 1) return list.length;
+
     // for (int i = 0; i < list.length; i++) {
     //     int move = list.moves[i];
     //     int from = GetFromSquare(move);

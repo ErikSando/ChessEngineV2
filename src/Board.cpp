@@ -19,7 +19,7 @@ Board::Board() {
 
 void Board::Print() {
     for (int rank = Rank8; rank >= Rank1; rank--) {
-        std::cout << " " << (rank + 1);
+        std::cout << " " << (rank + 1) << "  ";
 
         for (int file = FileA; file <= FileH; file++) {
             int square = GetSquare(file, rank);
@@ -40,7 +40,7 @@ void Board::Print() {
         std::cout << "\n";
     }
 
-    std::cout << "   a b c d e f g h\n";
+    std::cout << "\n     a b c d e f g h\n";
 
     char castlingPermsStr[5] = { '-', '\0', '\0', '\0', '\0' };
     int i = 0;
@@ -50,11 +50,11 @@ void Board::Print() {
     if (castlingPerms & Castling::BKC) castlingPermsStr[i++] = 'k';
     if (castlingPerms & Castling::BQC) castlingPermsStr[i++] = 'q';
 
-    std::cout << "Side to move: " << (side == White ? "white" : "black") << "\n";
-    std::cout << "Castling permissions: " << castlingPermsStr << "\n";
-    std::cout << "En passant: " << (enPassant != NO_SQUARE ? ToSquareString(enPassant) : "none") << "\n";
-    std::cout << "Fifty move counter: " << fiftyMoveCounter << "\n";
-    std::cout << "Hash key: " << std::hex << hashKey << std::dec << "\n";
+    std::cout << "Side to move:       " << (side == White ? "white" : "black") << "\n";
+    std::cout << "Castling:           " << castlingPermsStr << "\n";
+    std::cout << "En passant:         " << (enPassant != NO_SQUARE ? ToSquareString(enPassant) : "none") << "\n";
+    std::cout << "50 move counter:    " << fiftyMoveCount << "\n";
+    std::cout << "Hash key:           " << std::hex << hashKey << std::dec << "\n";
 }
 
 
@@ -68,13 +68,30 @@ bool Board::IsSquareAttacked(int square, int side) {
     // if (GetRookAttacks(square, occupancy[Both]) & bitboards[piece + 3]) return true;
     // if (GetQueenAttacks(square, occupancy[Both]) & bitboards[piece + 4]) return true;
 
-    if (pawnCaptures[enemy][square] & bitboards[piece]) return true;
+    if (pawnCaptures[side][square] & bitboards[piece]) return true;
     if (knightAttacks[square] & bitboards[piece + 1]) return true;
     U64 bishopAttacks = GetBishopAttacks(square, occupancy[Both]);
     if (bishopAttacks & bitboards[piece + 2]) return true;
     U64 rookAttacks = GetRookAttacks(square, occupancy[Both]);
     if (rookAttacks & bitboards[piece + 3]) return true;
     if ((bishopAttacks | rookAttacks) & bitboards[piece + 4]) return true;
+    if (kingAttacks[square] & bitboards[piece + 5]) return true;
+
+    return false;
+}
+
+bool Board::IsSquareAttacked(int square) {
+    int enemy = side ^ 1;
+    int piece = enemy * 6;
+
+    if (pawnCaptures[side][square] & bitboards[piece]) return true;
+    if (knightAttacks[square] & bitboards[piece + 1]) return true;
+    U64 bishopAttacks = GetBishopAttacks(square, occupancy[Both]);
+    if (bishopAttacks & bitboards[piece + 2]) return true;
+    U64 rookAttacks = GetRookAttacks(square, occupancy[Both]);
+    if (rookAttacks & bitboards[piece + 3]) return true;
+    if ((bishopAttacks | rookAttacks) & bitboards[piece + 4]) return true;
+    if (kingAttacks[square] & bitboards[piece + 5]) return true;
 
     return false;
 }
@@ -86,7 +103,7 @@ bool Board::IsSquareAttacked(int square, int side) {
 // }
 
 bool Board::CheckDraw() {
-    if (fiftyMoveCounter >= 50) return true;
+    if (fiftyMoveCount >= 50) return true;
 
     // check material draw
     // check three fold repetition

@@ -43,6 +43,7 @@ void Board::GenerateMoves(MoveList& list) {
         if (castlingPerms & Castling::WQC) {
             if (!IsBitSet(occupancy[Both], D1) &&
                 !IsBitSet(occupancy[Both], C1) &&
+                !IsBitSet(occupancy[Both], B1) &&
                 !IsSquareAttacked(E1, side) &&
                 !IsSquareAttacked(D1, side) &&
                 !IsSquareAttacked(C1, side)
@@ -78,6 +79,7 @@ void Board::GenerateMoves(MoveList& list) {
         if (castlingPerms & Castling::BQC) {
             if (!IsBitSet(occupancy[Both], D8) &&
                 !IsBitSet(occupancy[Both], C8) &&
+                !IsBitSet(occupancy[Both], B8) &&
                 !IsSquareAttacked(E8, side) &&
                 !IsSquareAttacked(D8, side) &&
                 !IsSquareAttacked(C8, side)
@@ -159,7 +161,7 @@ void Board::GenerateMoves(MoveList& list) {
 
         while (moves) {
             int toSquare = PopFirstBit(moves);
-            int captured = 0;
+            int captured = captureStart;
             int flag = 0;
 
             if (IsBitSet(occupancy[enemy], toSquare)) {
@@ -185,7 +187,7 @@ void Board::GenerateMoves(MoveList& list) {
 
         while (moves) {
             int toSquare = PopFirstBit(moves);
-            int captured = 0;
+            int captured = captureStart;
             int flag = 0;
 
             if (IsBitSet(occupancy[enemy], toSquare)) {
@@ -211,7 +213,7 @@ void Board::GenerateMoves(MoveList& list) {
 
         while (moves) {
             int toSquare = PopFirstBit(moves);
-            int captured = 0;
+            int captured = captureStart;
             int flag = 0;
 
             if (IsBitSet(occupancy[enemy], toSquare)) {
@@ -237,7 +239,7 @@ void Board::GenerateMoves(MoveList& list) {
 
         while (moves) {
             int toSquare = PopFirstBit(moves);
-            int captured = 0;
+            int captured = captureStart;
             int flag = 0;
 
             if (IsBitSet(occupancy[enemy], toSquare)) {
@@ -264,7 +266,7 @@ void Board::GenerateMoves(MoveList& list) {
             int toSquare = PopFirstBit(moves);
             if (IsSquareAttacked(toSquare, side)) continue;
 
-            int captured = 0;
+            int captured = captureStart;
             int flag = 0;
 
             if (IsBitSet(occupancy[enemy], toSquare)) {
