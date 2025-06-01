@@ -3,13 +3,11 @@
 #include "Moves.h"
 
 void Board::TakeMove() {
-    // std::cout << "Taking move\n";
     int enemy = side;
 
     BoardInfo info = history[--ply];
     //hashKey = info.hashKey;
-
-    //std::cout << "\nTaking move: " << info.move << "\n\n";
+    castlingPerms = info.castlingPerms;
 
     if (enPassant != NO_SQUARE) HashEnPassant(hashKey, enPassant);
     enPassant = info.enPassant;
@@ -45,9 +43,10 @@ void Board::TakeMove() {
     switch (flag) {
         case CaptureFlag: {
             int captured = GetCapturedPiece(move);
-            SetBit(bitboards[captured], fromSquare);
-            SetBit(occupancy[enemy], fromSquare);
-            HashPiece(hashKey, captured, fromSquare);
+            SetBit(bitboards[captured], toSquare);
+            SetBit(occupancy[enemy], toSquare);
+            HashPiece(hashKey, captured, toSquare);
+            break;
         }
 
         case EnPassantFlag:
@@ -64,28 +63,25 @@ void Board::TakeMove() {
         break;
 
         case CastlingFlag:
+            switch (toSquare) {
+                case G1:
+                    MoveRook(hashKey, bitboards[WR], occupancy[White], WR, F1, H1);
+                break;
 
+                case C1:
+                    MoveRook(hashKey, bitboards[WR], occupancy[White], WR, C1, A1);
+                break;
+
+                case G8:
+                    MoveRook(hashKey, bitboards[BR], occupancy[Black], BR, F8, H8);
+                break;
+
+                case C8:
+                    MoveRook(hashKey, bitboards[BR], occupancy[Black], BR, C8, A8);
+                break;
+            }
         break;
     }
 
-    // if (IsEnPassant(move)) {
-    //     HashEnPassant(hashKey, enPassant);
-    //     enPassant = toSquare;
-    //     HashEnPassant(hashKey, enPassant);
-        
-    //     if (side == White) {
-    //         SetBit(bitboards[BP], toSquare - 8);
-    //         SetBit(occupancy[Black], toSquare - 8);
-    //         HashPiece(hashKey, BP, toSquare - 8);
-    //     }
-    //     else {
-    //         SetBit(bitboards[WP], toSquare + 8);
-    //         SetBit(occupancy[White], toSquare + 8);
-    //         HashPiece(hashKey, WP, toSquare + 8);
-    //     }
-    // }
-
     occupancy[Both] = occupancy[White] | occupancy[Black];
-
-    // std::cout << "Took move\n";
 }

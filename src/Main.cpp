@@ -59,26 +59,7 @@ int main() {
     //     std::cout << "\n";
     // }
 
-    // board.PerftTest(3);
-
-    board.MakeMove("a2a4");
-    board.Print();
-    std::cout << "\n";
-    board.MakeMove("b7b5");
-    board.Print();
-    std::cout << "\n";
-    board.MakeMove("b1a3");
-    board.Print();
-    std::cout << "\n";
-    board.TakeMove();
-    board.Print();
-    std::cout << "\n";
-    board.TakeMove();
-    board.Print();
-    std::cout << "\n";
-    board.TakeMove();
-    board.Print();
-    std::cout << "\n";
+    board.PerftTest(6);
 
     return 0;
 }

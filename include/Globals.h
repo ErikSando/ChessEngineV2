@@ -8,7 +8,7 @@ constexpr const char* ENGINE_VERSION = "2.0";
 typedef unsigned long long U64;
 
 #ifdef NDEBUG
-    #define debug()
+    #define debug(x)
 #else
     #define debug(x) x
 #endif
