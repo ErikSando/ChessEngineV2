@@ -1,21 +1,10 @@
-#include <ctime>
 #include <iostream>
-#include <stdlib.h>
 #include <string.h>
 
 #include "Attacks.h"
 #include "Board.h"
 
 // https://www.chessprogramming.org/Looking_for_Magics
-
-U64 RandU64() {
-    U64 u1, u2, u3, u4;
-    u1 = (U64)(random()) & 0xFFFF;
-    u2 = (U64)(random()) & 0xFFFF;
-    u3 = (U64)(random()) & 0xFFFF;
-    u4 = (U64)(random()) & 0xFFFF;
-    return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
-}
 
 U64 RandU64FewBits() {
     return RandU64() & RandU64() & RandU64();
@@ -66,8 +55,6 @@ U64 FindMagic(int square, int bits, bool bishop) {
 }
 
 void FindMagics() {
-    srand(time(nullptr));
-
     std::cout << "constexpr U64 MagicsB[64] = {\n";
 
     for (int row = 0; row < 16; row++) {

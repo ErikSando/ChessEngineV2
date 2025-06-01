@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdlib.h>
+
 constexpr const char* NAME = "ErikEngine";
 constexpr const char* VERSION = "2.0";
 
@@ -51,6 +53,23 @@ typedef unsigned long long U64;
     }
 #endif
 
+extern U64 PieceKeys[12][64];
+extern U64 CastlingKeys[16];
+extern U64 EnPassantKeys[64];
+extern U64 SideKey;
+extern bool keysGenerated;
+
+extern void InitHashKeys();
+
+inline U64 RandU64() {
+    U64 u1, u2, u3, u4;
+    u1 = (U64) (random()) & 0xFFFF;
+    u2 = (U64) (random()) & 0xFFFF;
+    u3 = (U64) (random()) & 0xFFFF;
+    u4 = (U64) (random()) & 0xFFFF;
+    return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
+}
+
 inline int PopFirstBit(U64& bitboard) {
     int index = FirstBitIndex(bitboard);
     bitboard &= (bitboard - 1);
@@ -85,9 +104,9 @@ inline int GetRank(int square) {
     return square >> 3;
 }
 
-inline U64 GetSquareMask(int square) {
-    return 1ULL << square;
-}
+// inline U64 GetSquareMask(int square) {
+//     return 1ULL << square;
+// }
 
 extern int ToSquare(const char* square);
 extern const char* ToSquareString(int square);

@@ -81,44 +81,52 @@ void Board::GenerateMoves(MoveList& list) {
         }
     }
 
-    int piece = enemy ? Piece::WP : Piece::BP; // pawns
+    // pawns
+    int piece = enemy ? Piece::WP : Piece::BP;
     U64 bitboard = bitboards[piece];
 
     while (bitboard) {
         int fromSquare = PopFirstBit(bitboard);
         U64 moves = pawnMoves[side][fromSquare] & ~occupancy[Both];
-        U64 captures = pawnCaptures[side][fromSquare] & ~occupancy[side] & occupancy[enemy];
+        U64 captures = pawnCaptures[side][fromSquare] & occupancy[enemy];
 
         while (moves) {
             int toSquare = PopFirstBit(moves);
-            int flags = 0;
+            int flag = 0;
 
             if (GetRank(fromSquare) == promotionRank) {
-                flags |= PromotionFlag;
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 4, flags));
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 3, flags));
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 2, flags));
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 1, flags));
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 4, flag));
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 3, flag));
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 2, flag));
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 1, flag));
                 continue;
             }
 
             if (toSquare - fromSquare == direction * 2) {
-                flags |= PawnStartFlag;
+                if (IsBitSet(occupancy[Both], fromSquare + direction)) continue;
+                flag = PawnStartFlag;
             }
 
-            AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, 0, flags));
+            AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, 0, flag));
         }
 
         while (captures) {
             int toSquare = PopFirstBit(captures);
-            int flags = 0;
             int captured = captureStart;
 
             for (; captured < captureStart + 6; captured++) {
                 if (IsBitSet(bitboards[captured], toSquare)) break;
             }
 
-            AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flags));
+            if (GetRank(fromSquare) == promotionRank) {
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 4, CaptureFlag));
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 3, CaptureFlag));
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 2, CaptureFlag));
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 1, CaptureFlag));
+                continue;
+            }
+
+            AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, CaptureFlag));
         }
 
         if (enPassant != NO_SQUARE) {
@@ -128,7 +136,8 @@ void Board::GenerateMoves(MoveList& list) {
         }
     }
 
-    piece++; // knights
+    // knights
+    piece++;
     bitboard = bitboards[piece];
 
     while (bitboard) {
@@ -137,20 +146,23 @@ void Board::GenerateMoves(MoveList& list) {
 
         while (moves) {
             int toSquare = PopFirstBit(moves);
-            int flags = 0;
             int captured = 0;
+            int flag = 0;
 
             if (IsBitSet(occupancy[enemy], toSquare)) {
+                flag = CaptureFlag;
+
                 for (; captured < captureStart + 6; captured++) {
                     if (IsBitSet(bitboards[captured], toSquare)) break;
                 }
             }
 
-            AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flags));
+            AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
         }
     }
 
-    piece++; // bishops
+    // bishops
+    piece++;
     bitboard = bitboards[piece];
 
     while (bitboard) {
@@ -160,20 +172,23 @@ void Board::GenerateMoves(MoveList& list) {
 
         while (moves) {
             int toSquare = PopFirstBit(moves);
-            int flags = 0;
             int captured = 0;
+            int flag = 0;
 
             if (IsBitSet(occupancy[enemy], toSquare)) {
+                flag = CaptureFlag;
+
                 for (; captured < captureStart + 6; captured++) {
                     if (IsBitSet(bitboards[captured], toSquare)) break;
                 }
             }
 
-            AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flags));
+            AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
         }
     }
 
-    piece++; // rooks
+    // rooks
+    piece++;
     bitboard = bitboards[piece];
 
     while (bitboard) {
@@ -183,20 +198,23 @@ void Board::GenerateMoves(MoveList& list) {
 
         while (moves) {
             int toSquare = PopFirstBit(moves);
-            int flags = 0;
             int captured = 0;
+            int flag = 0;
 
             if (IsBitSet(occupancy[enemy], toSquare)) {
+                flag = CaptureFlag;
+
                 for (; captured < captureStart + 6; captured++) {
                     if (IsBitSet(bitboards[captured], toSquare)) break;
                 }
             }
 
-            AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flags));
+            AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
         }
     }
 
-    piece++; // queens
+    // queens
+    piece++;
     bitboard = bitboards[piece];
 
     while (bitboard) {
@@ -206,20 +224,23 @@ void Board::GenerateMoves(MoveList& list) {
 
         while (moves) {
             int toSquare = PopFirstBit(moves);
-            int flags = 0;
             int captured = 0;
+            int flag = 0;
 
             if (IsBitSet(occupancy[enemy], toSquare)) {
+                flag = CaptureFlag;
+
                 for (; captured < captureStart + 6; captured++) {
                     if (IsBitSet(bitboards[captured], toSquare)) break;
                 }
             }
 
-            AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flags));
+            AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
         }
     }
 
-    piece++; // king
+    // king
+    piece++;
     bitboard = bitboards[piece];
 
     while (bitboard) {
@@ -230,20 +251,18 @@ void Board::GenerateMoves(MoveList& list) {
             int toSquare = PopFirstBit(moves);
             if (IsSquareAttacked(toSquare, side)) continue;
 
-            int flags = 0;
             int captured = 0;
+            int flag = 0;
 
             if (IsBitSet(occupancy[enemy], toSquare)) {
+                flag = CaptureFlag;
+
                 for (; captured < captureStart + 6; captured++) {
                     if (IsBitSet(bitboards[captured], toSquare)) break;
                 }
             }
 
-            AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flags));
+            AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
         }
     }
-}
-
-void Board::GenerateCaptures(MoveList& list) {
-    
 }

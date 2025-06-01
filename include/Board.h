@@ -71,8 +71,9 @@ enum Square {
 };
 
 struct BoardInfo {
-    int enPassant;
-    U64 key;
+    U64 hashKey;
+    int move;
+    int enPassant = NO_SQUARE;
 };
 
 class Board {
@@ -81,7 +82,7 @@ class Board {
     Board();
 
     void Print();
-    void GeneratePositionKey();
+    void GenerateHashKey();
     void ParseFEN(const char* fen);
 
     const char* GenerateFEN();
@@ -93,8 +94,6 @@ class Board {
 
     bool MakeMove(int move);
     void TakeMove();
-
-    private:
 
     void InitAttackTables();
 
@@ -116,11 +115,11 @@ class Board {
     U64 bitboards[12];
     U64 occupancy[3];
 
-    U64 positionKey;
+    U64 hashKey;
 
     std::array<BoardInfo, MAX_GAME_MOVES> history;
 
-    int move = 0;
+    int ply = 0;
     int fiftyMoveCounter = 0;
     int enPassant = NO_SQUARE;
     int side = Side::White;

@@ -4,6 +4,10 @@
 #include "Globals.h"
 
 Board::Board() {
+    if (!keysGenerated) {
+        InitHashKeys();
+    }
+
     for (int piece = WP; piece <= BK; piece++) {
         bitboards[piece] = 0ULL;
     }
@@ -50,14 +54,13 @@ void Board::Print() {
     std::cout << "Castling permissions: " << castlingPermsStr << "\n";
     std::cout << "En passant: " << (enPassant != NO_SQUARE ? ToSquareString(enPassant) : "none") << "\n";
     std::cout << "Fifty move counter: " << fiftyMoveCounter << "\n";
+    std::cout << "Hash key: " << std::hex << hashKey << "\n";
 }
 
 
 bool Board::IsSquareAttacked(int square, int side) {
     int enemy = side ^ 1;
     int piece = enemy * 6;
-
-    U64 squareMask = GetSquareMask(square);
 
     // if (pawnCaptures[enemy][square] & bitboards[piece]) return true;
     // if (knightAttacks[square] & bitboards[piece + 1]) return true;
@@ -78,10 +81,7 @@ bool Board::IsSquareAttacked(int square, int side) {
 
 // bool Board::IsSquaresAttacked(U64 squaresMask, int side) {
 //     int enemy = side ^ 1;
-//     int piece = side * 6;
-
-//     return (pawnCaptures[enemy][square] & squaresMask) | ;
-
+//     int piece = enemy * 6;
 //     return false;
 // }
 
@@ -92,12 +92,4 @@ bool Board::CheckDraw() {
     // check three fold repetition
 
     return false;
-}
-
-void Board::GeneratePositionKey() {
-    U64 key = 0ULL;
-
-
-
-    positionKey = key;
 }

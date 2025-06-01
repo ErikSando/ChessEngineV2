@@ -155,9 +155,10 @@ void Board::ParseFEN(const char* fen) {
     enPassant = new_enPassant;
     castlingPerms = new_castlingPerms;
     side = new_side;
-    GeneratePositionKey();
     memcpy(bitboards, new_bitboards, 12 * sizeof(U64));
     memcpy(occupancy, new_occupancy, 3 * sizeof(U64));
+    
+    GenerateHashKey();
 }
 
 const char* GenerateFEN() {

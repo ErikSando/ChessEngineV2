@@ -14,16 +14,23 @@ constexpr int ToSquareMask = 0xFC0;
 constexpr int PieceMask = 0xF000;
 constexpr int CapturedPieceMask = 0xF0000;
 constexpr int PromotedPieceMask = 0xF00000;
-constexpr int PawnStartFlag = 0x1000000;
-constexpr int PromotionFlag = 0x2000000;
-constexpr int CastlingFlag = 0x4000000;
-constexpr int EnPassantFlag = 0x8000000;
+// constexpr int CaptureFlag = 0x1000000;
+// constexpr int PawnStartFlag = 0x2000000;
+// constexpr int CastlingFlag = 0x4000000;
+// constexpr int EnPassantFlag = 0x8000000;
+
+enum MoveFlags {
+    CaptureFlag = 0x100000,
+    PawnStartFlag = 0x200000,
+    CastlingFlag = 0x400000,
+    EnPassantFlag = 0x800000
+};
 
 // MOVE REPRESENTATION
-// 000000  000000  0000   0000      0000      0              0             0            0
-// from    to      piece  captured  promoted  is pawn start  is promotion  is castling  is en passant
-inline int EncodeMove(int fromSquare, int toSquare, int piece, int captured, int promoted, int flags) {
-    return (fromSquare) | (toSquare << 6) | (piece << 12) | (captured << 16) | (promoted << 20) | flags;
+// 000000  000000  0000   0000      0000      0           0              0            0
+// from    to      piece  captured  promoted  is capture  is pawn start  is castling  is en passant
+inline int EncodeMove(int fromSquare, int toSquare, int moved, int captured, int promoted, int flag) {
+    return (fromSquare) | (toSquare << 6) | (moved << 12) | (captured << 16) | (promoted << 20) | flag;
 }
 
 inline void AddMove(MoveList& list, int move) {
@@ -38,7 +45,7 @@ inline int GetToSquare(int move) {
     return (move & ToSquareMask) >> 6;
 }
 
-inline int GetPiece(int move) {
+inline int GetMovedPiece(int move) {
     return (move & PieceMask) >> 12;
 }
 
@@ -50,18 +57,22 @@ inline int GetPromotedPiece(int move) {
     return (move & PromotedPieceMask) >> 20;
 }
 
-inline int IsPawnStart(int move) {
-    return (move & PawnStartFlag) >> 24;
+inline int GetFlag(int move) {
+    return move & 0xF00000;
 }
 
-inline int IsPromotion(int move) {
-    return (move & PromotionFlag) >> 25;
-}
+// inline int IsCapture(int move) {
+//     return move & CaptureFlag;
+// }
 
-inline int IsCastling(int move) {
-    return (move & CastlingFlag) >> 26;
-}
+// inline int IsPawnStart(int move) {
+//     return move & PawnStartFlag;
+// }
 
-inline int IsEnPassant(int move) {
-    return (move & EnPassantFlag) >> 27;
-}
+// inline int IsCastling(int move) {
+//     return move & CastlingFlag;
+// }
+
+// inline int IsEnPassant(int move) {
+//     return move & EnPassantFlag;
+// }
