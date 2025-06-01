@@ -54,7 +54,7 @@ void Board::Print() {
     std::cout << "Castling permissions: " << castlingPermsStr << "\n";
     std::cout << "En passant: " << (enPassant != NO_SQUARE ? ToSquareString(enPassant) : "none") << "\n";
     std::cout << "Fifty move counter: " << fiftyMoveCounter << "\n";
-    std::cout << "Hash key: " << std::hex << hashKey << "\n";
+    std::cout << "Hash key: " << std::hex << hashKey << std::dec << "\n";
 }
 
 

@@ -87,6 +87,8 @@ class Board {
 
     const char* GenerateFEN();
 
+    void PerftTest(int depth);
+
     bool CheckDraw();
 
     void GenerateMoves(MoveList& list);
@@ -94,6 +96,8 @@ class Board {
 
     bool MakeMove(int move);
     void TakeMove();
+
+    private:
 
     void InitAttackTables();
 
@@ -103,6 +107,8 @@ class Board {
     U64 GetBishopAttacks(int square, U64 occupancy);
     U64 GetRookAttacks(int square, U64 occupancy);
     U64 GetQueenAttacks(int square, U64 occupancy);
+
+    U64 Perft(int depth);
 
     U64 pawnMoves[2][64];
     U64 pawnCaptures[2][64];

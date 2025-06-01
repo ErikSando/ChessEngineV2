@@ -2,7 +2,9 @@
 #include <cassert>
 #include <stdlib.h>
 
+#include "Board.h"
 #include "Globals.h"
+#include "Moves.h"
 
 int ToSquare(const char* square) {
     assert(square[0] >= 'a' && square[0] <= 'h');
@@ -18,20 +20,31 @@ const char* ToSquareString(int square) {
     int file = GetFile(square);
     int rank = GetRank(square);
 
-    char fileChar = 'a' + file;
-    char rankChar = '1' + rank;
+    static char squareString[3];
 
-    static char* squareString = new char[3];
-
-    squareString[0] = fileChar;
-    squareString[1] = rankChar;
-    squareString[2] = '\0';
+    sprintf(squareString, "%c%c", 'a' + file, '1' + rank);
 
     return squareString;
 }
 
 const char* ToMoveString(int move) {
-    return "";
+    static char moveString[6];
+
+    int fromSquare = GetFromSquare(move);
+    int toSquare = GetToSquare(move);
+    int promoted = GetPromotedPiece(move);
+
+    char fromF = 'a' + GetFile(fromSquare);
+    char fromR = '1' + GetRank(fromSquare);
+    char toF = 'a' + GetFile(toSquare);
+    char toR = '1' + GetRank(toSquare);
+
+    char promotedChar = '\0';
+    if (promoted) promotedChar = PIECE_CHAR[promoted];
+
+    sprintf(moveString, "%c%c%c%c%c", fromF, fromR, toF, toR, promotedChar);
+
+    return moveString;
 }
 
 void PrintBitboard(U64 bitboard) {

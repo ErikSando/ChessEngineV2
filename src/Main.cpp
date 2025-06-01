@@ -15,6 +15,19 @@ int main() {
     // MoveList list;
     // board.GenerateMoves(list);
 
+    // for (int i = 0; i < 10; i++) {
+    //     MoveList list;
+    //     board.GenerateMoves(list);
+    //     board.MakeMove(list.moves[15]);
+    //     board.Print();
+    //     std::cout << "\n";
+    // }
+    // for (int i = 0; i < 10; i++) {
+    //     board.TakeMove();
+    //     board.Print();
+    //     std::cout << "\n";
+    // }
+
     // for (int i = 0; i < list.length; i++) {
     //     int move = list.moves[i];
     //     int from = GetFromSquare(move);
@@ -22,7 +35,16 @@ int main() {
     //     std::cout << ToSquareString(from) << ToSquareString(to) << "\n";
     // }
 
+    // board.MakeMove(list.moves[1]);
     // board.Print();
+    // board.TakeMove();
+    // board.Print();
+
+    // board.Print();
+
+    //std::cout << "About to run perft" << std::endl;
+
+    board.PerftTest(2);
 
     return 0;
 }

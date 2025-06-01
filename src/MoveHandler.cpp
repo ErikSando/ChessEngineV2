@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "Board.h"
 #include "Moves.h"
 
@@ -38,15 +40,23 @@ constexpr int CastlingPermsUpdate[64] = {
 };
 
 bool Board::MakeMove(int move) {
+    // std::cout << "Making move\n";
+
+   // std::cout << "\nMaking move: " << move << "\n\n";
+
     history[ply].hashKey = hashKey;
     history[ply].move = move;
     history[ply++].enPassant = enPassant;
+
+    // std::cout << "Updated undo info\n";
 
     int fromSquare = GetFromSquare(move);
     int toSquare = GetToSquare(move);
     int piece = GetMovedPiece(move);
     int promoted = GetPromotedPiece(move);
-    
+
+    // std::cout << "Got move info\n";
+
     if (enPassant != NO_SQUARE) {
         HashEnPassant(hashKey, enPassant);
         enPassant = NO_SQUARE;
@@ -56,9 +66,13 @@ bool Board::MakeMove(int move) {
     castlingPerms &= CastlingPermsUpdate[fromSquare] & CastlingPermsUpdate[toSquare];
     HashCastling(hashKey, castlingPerms);
 
+    // std::cout << "Updated castling perms\n";
+
     ClearBit(bitboards[piece], fromSquare);
     ClearBit(occupancy[side], fromSquare);
     HashPiece(hashKey, piece, fromSquare);
+
+    // std::cout << "Removed moving piece\n";
 
     if (promoted) {
         SetBit(bitboards[promoted], toSquare);
@@ -69,13 +83,17 @@ bool Board::MakeMove(int move) {
         HashPiece(hashKey, piece, toSquare);
     }
 
+    // std::cout << "Replaced moving piece\n";
+
     SetBit(occupancy[side], toSquare);
 
     int flag = GetFlag(move);
+    // std::cout << "Got flag\n";
 
     switch (flag) {
         case CaptureFlag:
             HashPiece(hashKey, GetCapturedPiece(move), toSquare);
+            // std::cout << "Unhashed captured piece\n";
         break;
 
         case PawnStartFlag:
@@ -87,6 +105,7 @@ bool Board::MakeMove(int move) {
                 enPassant = toSquare + 8;
                 HashEnPassant(hashKey, enPassant);
             }
+            // std::cout << "Set en passant\n";
         break;
 
         case EnPassantFlag:
@@ -100,6 +119,7 @@ bool Board::MakeMove(int move) {
                 ClearBit(bitboards[White], enPassant);
                 HashPiece(hashKey, WP, enPassant);
             }
+            // std::cout << "Removed pawn from en passant\n";
         break;
 
         case CastlingFlag:
@@ -126,6 +146,7 @@ bool Board::MakeMove(int move) {
                     MoveRook(hashKey, bitboards[BR], occupancy[Black], BR, B8, D8);
                 break;
             }
+            // std::cout << "Moved rook in castling\n";
         break;
     }
 
@@ -137,17 +158,24 @@ bool Board::MakeMove(int move) {
     HashSide(hashKey);
 
     if (IsSquareAttacked(kingSquare, side ^ 1)) {
+        // std::cout << "Illegal, taking\n";
+        TakeMove();
         return false;
     }
+
+    // std::cout << "Made move\n";
 
     return true;
 }
 
 void Board::TakeMove() {
+    // std::cout << "Taking move\n";
     int enemy = side;
 
-    BoardInfo info = history[ply--];
+    BoardInfo info = history[--ply];
     //hashKey = info.hashKey;
+
+    //std::cout << "\nTaking move: " << info.move << "\n\n";
 
     if (enPassant != NO_SQUARE) HashEnPassant(hashKey, enPassant);
     enPassant = info.enPassant;
@@ -224,4 +252,6 @@ void Board::TakeMove() {
     // }
 
     occupancy[Both] = occupancy[White] | occupancy[Black];
+
+    // std::cout << "Took move\n";
 }

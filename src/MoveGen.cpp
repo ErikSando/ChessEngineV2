@@ -4,6 +4,8 @@
 #include "Board.h"
 
 void Board::GenerateMoves(MoveList& list) {
+    //std::cout << "Generating moves\n";
+
     // test this out, probably slower with optimisations
     // int enemy = side ^ 1;
     // int direction = side * -16 + 8;
@@ -11,6 +13,8 @@ void Board::GenerateMoves(MoveList& list) {
     // int captureStart = enemy * 6;
 
     // int piece = side * 6; // pawns
+
+    list.length = 0;
 
     int enemy = side ^ 1;
     int direction = enemy ? 8 : -8;
@@ -20,7 +24,9 @@ void Board::GenerateMoves(MoveList& list) {
     // castling
     if (enemy) { // equivalent to if side == White
         if (castlingPerms & Castling::WKC) {
-            if (!IsSquareAttacked(E1, side) &&
+            if (!IsBitSet(occupancy[Both], F1) &&
+                !IsBitSet(occupancy[Both], G1) &&
+                !IsSquareAttacked(E1, side) &&
                 !IsSquareAttacked(F1, side) &&
                 !IsSquareAttacked(G1, side)
             ) {
@@ -35,7 +41,9 @@ void Board::GenerateMoves(MoveList& list) {
         }
 
         if (castlingPerms & Castling::WQC) {
-            if (!IsSquareAttacked(E1, side) &&
+            if (!IsBitSet(occupancy[Both], D1) &&
+                !IsBitSet(occupancy[Both], C1) &&
+                !IsSquareAttacked(E1, side) &&
                 !IsSquareAttacked(D1, side) &&
                 !IsSquareAttacked(C1, side)
             ) {
@@ -51,7 +59,9 @@ void Board::GenerateMoves(MoveList& list) {
     }
     else {
         if (castlingPerms & Castling::BKC) {
-            if (!IsSquareAttacked(E8, side) &&
+            if (!IsBitSet(occupancy[Both], F8) &&
+                !IsBitSet(occupancy[Both], G8) &&
+                !IsSquareAttacked(E8, side) &&
                 !IsSquareAttacked(F8, side) &&
                 !IsSquareAttacked(G8, side)
             ) {
@@ -66,7 +76,9 @@ void Board::GenerateMoves(MoveList& list) {
         }
 
         if (castlingPerms & Castling::BQC) {
-            if (!IsSquareAttacked(E8, side) &&
+            if (!IsBitSet(occupancy[Both], D8) &&
+                !IsBitSet(occupancy[Both], C8) &&
+                !IsSquareAttacked(E8, side) &&
                 !IsSquareAttacked(D8, side) &&
                 !IsSquareAttacked(C8, side)
             ) {
@@ -92,15 +104,16 @@ void Board::GenerateMoves(MoveList& list) {
 
         while (moves) {
             int toSquare = PopFirstBit(moves);
-            int flag = 0;
 
             if (GetRank(fromSquare) == promotionRank) {
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 4, flag));
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 3, flag));
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 2, flag));
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 1, flag));
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 4, 0));
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 3, 0));
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 2, 0));
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 1, 0));
                 continue;
             }
+
+            int flag = 0;
 
             if (toSquare - fromSquare == direction * 2) {
                 if (IsBitSet(occupancy[Both], fromSquare + direction)) continue;
@@ -142,7 +155,7 @@ void Board::GenerateMoves(MoveList& list) {
 
     while (bitboard) {
         int fromSquare = PopFirstBit(bitboard);
-        U64 moves = knightAttacks[fromSquare] & ~occupancy[White];
+        U64 moves = knightAttacks[fromSquare] & ~occupancy[side];
 
         while (moves) {
             int toSquare = PopFirstBit(moves);
@@ -265,4 +278,6 @@ void Board::GenerateMoves(MoveList& list) {
             AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
         }
     }
+
+    //std::cout << "Generated moves\n";
 }
