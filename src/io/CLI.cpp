@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "CLI.h"
+#include "Evaluation.h"
 #include "Perft.h"
 #include "Utils.h"
 
@@ -142,11 +143,12 @@ void CommandLoop() {
                 info.stopTime = info.startTime + time * 1000;
             }
 
-            std::cout << info.timeSet << ", " << info.startTime << ", " << info.stopTime << "\n";
-
             searcher.Search(board, info);
         }
         else if (cmd == "eval") {
+            int eval = Evaluation::Evaluate(board);
+
+            std::cout << "Static evaluation: " << eval << "\n";
         }
         else if (cmd == "uci") {
             UCILoop(board, ttable, searcher);

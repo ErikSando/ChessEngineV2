@@ -3,73 +3,60 @@
 // Based on https://www.chessprogramming.org/PeSTO%27s_Evaluation_Function
 
 namespace Evaluation {
+    const int* PieceMgTables[6] = {
+        PawnMgTable, KnightMgTable, BishopMgTable, RookMgTable, QueenMgTable, KingMgTable
+    };
+
+    const int* PieceEgTables[6] = {
+        PawnEgTable, KnightEgTable, BishopEgTable, RookEgTable, QueenEgTable, KingEgTable
+    };
+
+    int MgTables[12][64];
+    int EgTables[12][64];
+
     void Init() {
-        
+        for (int piece = WP; piece <= WK; piece++) {
+            for (int square = 0; square < 64; square++) {
+                MgTables[piece][square] = MgValues[piece] + PieceMgTables[piece][square];
+                EgTables[piece][square] = EgValues[piece] + PieceEgTables[piece][square];
+            }
+        }
+
+        for (int piece = BP; piece <= BK; piece++) {
+            for (int square = 0; square < 64; square++) {
+                MgTables[piece][square] = MgValues[piece - 6] + PieceMgTables[piece - 6][MirrorSquare(square)];
+                EgTables[piece][square] = EgValues[piece - 6] + PieceEgTables[piece - 6][MirrorSquare(square)];
+            }
+        }
     }
 
     int Evaluate(Board& board) {
-        return 0;
-
-        int pawns[2] = { 0, 0 };
-        int knights[2] = { 0, 0 };
-        int bishops[2] = { 0, 0 };
-        int rooks[2] = { 0, 0 };
-        int queens[2] = { 0, 0 };
-
-        int tPawns = 0, tKnights = 0, tBishops = 0, tRooks = 0, tQueens = 0;
-
         int mg[2] = { 0, 0 };
         int eg[2] = { 0, 0 };
-        int phase = 0;
+        int mgPhase = 0;
 
-        int piece = WP;
-        U64 bitboard = board.bitboards[piece];
+        for (int piece = WP; piece <= BK; piece++) {
+            U64 bitboard = board.bitboards[piece];
+            int side = PIECE_SIDE[piece];
 
-        while (bitboard) {
-            int square = PopFirstBit(bitboard);
-            
-            pawns[WHITE]++;
+            while (bitboard) {
+                int square = PopFirstBit(bitboard);
 
-            mg[WHITE] += PieceMgTables[WP][square];
-            eg[WHITE] += PieceEgTables[WP][square];
+                mg[side] += MgTables[piece][square];
+                eg[side] += EgTables[piece][square];
 
-            tPawns++;
-        }
-
-        piece = BP;
-        bitboard = board.bitboards[piece];
-
-        while (bitboard) {
-            int square = PopFirstBit(bitboard);
-            
-            pawns[BLACK]++;
-
-            tPawns++;
-        }
-
-        piece = WN;
-        bitboard = board.bitboards[piece];
-
-        while (bitboard) {
-            int square = PopFirstBit(bitboard);
-            
-            knights[WHITE]++;
-
-            tKnights++;
-        }
-
-        piece = BN;
-        bitboard = board.bitboards[piece];
-
-        while (bitboard) {
-            int square = PopFirstBit(bitboard);
-            
-            knights[BLACK]++;
-
-            tKnights++;
+                mgPhase += PhaseInc[piece];
+            }
         }
 
         int mgEval = mg[WHITE] - mg[BLACK];
         int egEval = eg[WHITE] - eg[BLACK];
+
+        if (mgPhase > 24) mgPhase = 24;
+        int egPhase = 24 - mgPhase;
+
+        int eval = (mgEval * mgPhase + egEval + egPhase) / 24;
+
+        return board.side == WHITE ? eval : -eval;
     }
 }
