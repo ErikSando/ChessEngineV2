@@ -3,15 +3,10 @@
 #include <stdlib.h>
 
 constexpr const char* ENGINE_NAME = "ErikEngine";
+constexpr const char* ENGINE_AUTHOR = "Erik";
 constexpr const char* ENGINE_VERSION = "2.0";
 
 typedef unsigned long long U64;
-
-#ifdef NDEBUG
-    #define debug(x)
-#else
-    #define debug(x) x
-#endif
 
 #if defined(__GNUC__) || defined(__clang__)
     inline int CountBits(U64 bitboard) {
@@ -59,14 +54,6 @@ typedef unsigned long long U64;
     }
 #endif
 
-extern U64 PieceKeys[12][64];
-extern U64 CastlingKeys[16];
-extern U64 EnPassantKeys[64];
-extern U64 SideKey;
-extern bool keysGenerated;
-
-extern void InitHashKeys();
-
 inline U64 RandU64() {
     U64 u1, u2, u3, u4;
     u1 = (U64) (random()) & 0xFFFF;
@@ -113,8 +100,3 @@ inline int GetRank(int square) {
 // inline U64 GetSquareMask(int square) {
 //     return 1ULL << square;
 // }
-
-extern int ToSquare(const char* square);
-extern const char* ToSquareString(int square);
-extern const char* ToMoveString(int move);
-extern void PrintBitboard(U64 bitboard);

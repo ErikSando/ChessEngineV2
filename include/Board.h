@@ -1,13 +1,7 @@
 #pragma once
 
-#include <array>
-#include <cstdint>
-#include <iostream>
-
 #include "Data.h"
 #include "Globals.h"
-#include "Moves.h"
-#include "Search.h"
 
 struct BoardInfo {
     U64 hashKey;
@@ -23,61 +17,31 @@ class Board {
     Board();
 
     void Print();
-    void GenerateHashKey();
     void ParseFEN(const char* fen);
 
     const char* GenerateFEN();
 
-    void PerftTest(int depth);
+    void CheckValid();
+    bool CheckValidQuiet(); // no asserts
 
-    void Check(); // debugging function
-    bool CheckDraw();
-
-    void GenerateMoves(MoveList& list);
-    void GenerateCaptures(MoveList& list);
+    //bool CheckDraw(); // dont think I need this here
 
     bool MakeMove(const int move);
-    bool ParseMove(const int fromSquare, const int toSquare, const char promoted);
-    bool ParseMove(const char* move);
-    bool ParseMove(const std::string move);
     void TakeMove();
-
-    int Evaluate();
-    int Quiescence();
-    void Search(const SearchInfo& info);
-
-    // below here could be private
-
-    void InitAttackTables();
 
     bool IsSquareAttacked(int square);
     bool IsSquareAttacked(int square, int side);
-    // bool IsSquaresAttacked(U64 squaresMask, int side);
-
-    U64 GetBishopAttacks(int square, U64 occupancy);
-    U64 GetRookAttacks(int square, U64 occupancy);
-    U64 GetQueenAttacks(int square, U64 occupancy);
-
-    U64 Perft(int depth);
-
-    U64 pawnMoves[2][64];
-    U64 pawnCaptures[2][64];
-    U64 knightAttacks[64];
-    U64 bishopAttacks[64][512];
-    U64 rookAttacks[64][4096];
-    U64 queenAttacks[64]; // not sure how to deal with this yet
-    U64 kingAttacks[64];
 
     U64 bitboards[12];
     U64 occupancy[3];
 
     U64 hashKey;
 
-    std::array<BoardInfo, MAX_GAME_MOVES> history;
+    BoardInfo history[MAX_GAME_MOVES];
 
     int ply = 0;
     int fiftyMoveCount = 0;
     int enPassant = NO_SQUARE;
-    int side = Side::White;
+    int side = WHITE;
     int castlingPerms = 0;
 };

@@ -1,0 +1,150 @@
+#include "Attacks.h"
+#include "Board.h"
+#include "Globals.h"
+#include "Move.h"
+#include "MoveGen.h"
+
+namespace MoveGen {
+    void GenerateCaptures(Board& board, MoveList& list) {
+        int side = board.side;
+        int enemy = side ^ 1;
+        int direction = enemy ? 8 : -8;
+        int promotionRank = enemy ? RANK_8 : RANK_1;
+        int captureStart = enemy ? BP : WP;
+
+        // pawns
+        int piece = enemy ? WP : BP;
+        U64 bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int fromSquare = PopFirstBit(bitboard);
+            U64 captures = Attacks::PawnCaptures[side][fromSquare] & board.occupancy[enemy];
+
+            if (board.enPassant != NO_SQUARE) {
+                if (IsBitSet(Attacks::PawnCaptures[side][fromSquare], board.enPassant)) {
+                    AddMove(list, EncodeMove(fromSquare, board.enPassant, piece, 0, 0, ENPASSANT_FLAG));
+                }
+            }
+
+            while (captures) {
+                int toSquare = PopFirstBit(captures);
+                int captured = captureStart;
+
+                for (; captured < captureStart + 6; captured++) {
+                    if (IsBitSet(board.bitboards[captured], toSquare)) break;
+                }
+
+                if (GetRank(toSquare) == promotionRank) {
+                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 4, CAPTURE_FLAG));
+                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 3, CAPTURE_FLAG));
+                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 2, CAPTURE_FLAG));
+                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 1, CAPTURE_FLAG));
+                    continue;
+                }
+
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
+            }
+        }
+
+        // knights
+        piece++;
+        bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int fromSquare = PopFirstBit(bitboard);
+            U64 moves = Attacks::KnightAttacks[fromSquare] & board.occupancy[enemy];
+
+            while (moves) {
+                int toSquare = PopFirstBit(moves);
+                int captured = captureStart;
+
+                for (; captured < captureStart + 6; captured++) {
+                    if (IsBitSet(board.bitboards[captured], toSquare)) break;
+                }
+
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
+            }
+        }
+
+        // bishops
+        piece++;
+        bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int fromSquare = PopFirstBit(bitboard);
+            U64 moves = Attacks::GetBishopAttacks(fromSquare, board.occupancy[BOTH]) & board.occupancy[enemy];
+
+            while (moves) {
+                int toSquare = PopFirstBit(moves);
+                int captured = captureStart;
+
+                for (; captured < captureStart + 6; captured++) {
+                    if (IsBitSet(board.bitboards[captured], toSquare)) break;
+                }
+
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
+            }
+        }
+        // rooks
+        piece++;
+        bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int fromSquare = PopFirstBit(bitboard);
+            U64 moves = Attacks::GetRookAttacks(fromSquare, board.occupancy[BOTH]) & board.occupancy[enemy];
+
+            while (moves) {
+                int toSquare = PopFirstBit(moves);
+                int captured = captureStart;
+
+                for (; captured < captureStart + 6; captured++) {
+                    if (IsBitSet(board.bitboards[captured], toSquare)) break;
+                }
+
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
+            }
+        }
+
+        // queens
+        piece++;
+        bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int fromSquare = PopFirstBit(bitboard);
+            U64 moves = Attacks::GetQueenAttacks(fromSquare, board.occupancy[BOTH]) & board.occupancy[enemy];
+
+            while (moves) {
+                int toSquare = PopFirstBit(moves);
+                int captured = captureStart;
+
+                for (; captured < captureStart + 6; captured++) {
+                    if (IsBitSet(board.bitboards[captured], toSquare)) break;
+                }
+
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
+            }
+        }
+
+        // king
+        piece++;
+        bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int fromSquare = PopFirstBit(bitboard);
+            U64 moves = Attacks::KingAttacks[fromSquare] & board.occupancy[enemy];
+
+            while (moves) {
+                int toSquare = PopFirstBit(moves);
+                if (board.IsSquareAttacked(toSquare, side)) continue;
+
+                int captured = captureStart;
+
+                for (; captured < captureStart + 6; captured++) {
+                    if (IsBitSet(board.bitboards[captured], toSquare)) break;
+                }
+
+                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
+            }
+        }
+    }
+}

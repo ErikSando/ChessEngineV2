@@ -2,25 +2,15 @@
 #include <sstream>
 #include <vector>
 
-#include "Board.h"
 #include "CLI.h"
+#include "Perft.h"
+#include "Utils.h"
 
 void CommandLoop() {
     Board board;
+    TTable ttable(64);
+    Searcher searcher(ttable);
 
-    // board.ParseFEN("rnbq2nr/ppppk1pp/8/4pP2/P7/P7/2PPKPPP/RNBQ1BNR b - - 0 0");
-    // board.ParseFEN("rnbq2nr/ppppk2p/8/4/pPp1/P7/P7/2PPKPPP/RNBQ1BNR w - g6 0 0");
-    // board.ParseFEN("rnbqkbnr/pppp1ppp/8/8/5p2/7N/PPPPP1PP/RNBQKB1R w KQkq - 0 0");
-    // board.ParseFEN("rnbqkbnr/ppppppp1/7p/8/8/3P4/PPP1PPPP/RNBQKBNR w KQkq - 0 0");
-    // board.ParseFEN("rnbqkbnr/p1pppppp/8/1P6/8/8/1PPPPPPP/RNBQKBNR b KQkq - 0 0");
-    // board.Print();
-    // // PrintBitboard(board.knightAttacks[G8] & ~board.occupancy[Black]);
-    // // PrintBitboard(board.GetRookAttacks(H8, board.occupancy[Both]) & ~board.occupancy[Black]);
-    // board.ParseMove("c1h6");
-    // PrintBitboard(board.bitboards[BP]);
-    // board.Print();
-
-    std::istream input();
     std::string command;
 
     for (;;) {
@@ -59,27 +49,27 @@ void CommandLoop() {
         else if (cmd == "print") {
             board.Print();
         }
-        else if (cmd == "make" || cmd == "play") {
-            if (args.size() < 2) {
-                std::cout << "Insufficient arguments" << std::endl;
-                std::cout << "Usage: " << cmd << " [move]" << std::endl;
-                continue;
-            }
+        // else if (cmd == "make" || cmd == "play") {
+        //     if (args.size() < 2) {
+        //         std::cout << "Insufficient arguments" << std::endl;
+        //         std::cout << "Usage: " << cmd << " [move]" << std::endl;
+        //         continue;
+        //     }
 
-            std::string move = args.at(1);
+        //     std::string move = args.at(1);
 
-            if (move.size() < 4) {
-                std::cout << "Invalid move: not enough characters.\n";
-                continue;
-            }
+        //     if (move.size() < 4) {
+        //         std::cout << "Invalid move: not enough characters.\n";
+        //         continue;
+        //     }
 
-            if (!board.ParseMove(move)) {
-                std::cout << "Invalid/illegal move.\n";
-                continue;
-            }
+        //     if (!board.ParseMove(move)) {
+        //         std::cout << "Invalid/illegal move.\n";
+        //         continue;
+        //     }
 
-            board.Print();
-        }
+        //     board.Print();
+        // }
         else if (cmd == "take" || cmd == "undo") {
             if (board.ply <= 0) {
                 std::cout << "Cannot take move: no previous board states to revert to.\n";
@@ -112,17 +102,17 @@ void CommandLoop() {
 
             int depth = std::stoi(args.at(1));
 
-            board.PerftTest(depth);
+            Perft::PerftTest(board, depth);
         }
         else if (cmd == "search" || cmd == "go") {
+            int time = 5;
+            int depth = 0;
+
+            bool timeSet = false;
+            bool useDefault = true;
+
             for (int i = 1; i < args.size(); i++) {
                 std::string arg = args.at(i);
-                
-                int time = 5;
-                int depth = -1;
-
-                bool timeSet = false;
-                bool useDefault = true;
 
                 if (arg.at(0) == '-') {
                     if (arg == "-time") {
@@ -141,20 +131,43 @@ void CommandLoop() {
                         }
                     }
                 }
-
-                SearchInfo info{ .depth = depth, .timeSet = timeSet };
-
-                if (timeSet) {
-                    info.startTime = GetTimeMS();
-                    info.stopTime = info.startTime + time * 1000;
-                }
             }
+
+            SearchInfo info;
+
+            if (depth > 0) info.depth = depth;
+
+            if (timeSet || useDefault) {
+                info.timeSet = true;
+                info.startTime = Utils::GetTimeMS();
+                info.stopTime = info.startTime + time * 1000;
+            }
+
+            searcher.Search(board, info);
         }
         else if (cmd == "eval") {
         }
         else if (cmd == "uci") {
-            UCILoop(board);
+            UCILoop(board, ttable, searcher);
         }
+        // debug commands
+        #ifndef NDEBUG
+
+        else if (cmd == "sqatt") {
+            if (args.size() < 2) {
+                std::cout << "Insufficient arguments" << std::endl;
+                std::cout << "Usage: sqatt [square]" << std::endl;
+                continue;
+            }
+
+            std::string squarestr = args.at(1);
+            int square = Utils::ToSquare(squarestr);
+
+            std::cout << (board.IsSquareAttacked(square) ? "True" : "False") << "\n";
+        }
+
+        #endif
+        
         else {
             // if (cmd.size() > 0) {
             //     std::cout << "Unknown command: '" << cmd << "'. Use 'help' for a list of commands.\n";
@@ -167,8 +180,8 @@ void CommandLoop() {
                 continue;
             }
 
-            if (!board.ParseMove(move)) {
-                std::cout << "Invalid/illegal move.\n";
+            if (!Utils::ParseMove(board, move)) {
+                //std::cout << "Invalid/illegal move.\n";
                 continue;
             }
 

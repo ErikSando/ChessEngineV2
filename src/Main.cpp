@@ -1,17 +1,14 @@
 #include <iostream>
 
+#include "Attacks.h"
 #include "CLI.h"
+#include "Evaluation.h"
+#include "HashKeys.h"
 
 int main() {
-    // int repeat = 200000000;
-    // int start = GetTimeMS();
-
-    // for (int i = 0; i < repeat - 2; i++) {
-    //     GetTimeMS();
-    // }
-
-    // int end = GetTimeMS();
-    // std::cout << "Called GetTimeMS() " << repeat << " times in " << (end - start) << " ms.\n";
+    Attacks::Init();
+    Evaluation::Init();
+    HashKeys::Init();
 
     CommandLoop();
 

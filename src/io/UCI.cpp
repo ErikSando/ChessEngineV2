@@ -2,16 +2,11 @@
 #include <sstream>
 #include <vector>
 
-#include "Board.h"
 #include "CLI.h"
-#include "Globals.h"
+#include "Utils.h"
 
-void UCILoop(Board& board) {
-    // board.ParseFEN(START_FEN);
-
+void UCILoop(Board& board, TTable& ttable, Searcher& searcher) {
     std::cout << "uciok\n";
-
-    std::istream input();
     std::string command;
 
     for (;;) {
@@ -41,6 +36,7 @@ void UCILoop(Board& board) {
         }
         else if (cmd == "info") {
             std::cout << "info name " << ENGINE_NAME << " v" << ENGINE_VERSION << "\n";
+            std::cout << "info author " << ENGINE_AUTHOR << "\n";
         }
         else if (cmd == "ready") {
             std::cout << "readyok\n";

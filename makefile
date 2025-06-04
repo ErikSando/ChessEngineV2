@@ -1,10 +1,18 @@
-NAME = Main
+CXX := g++
+CXXFLAGS := -I include
+
+SRCDIR := src
+BINDIR := bin
+
+SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
+
+NAME := Main
 
 all:
-	g++ -Ofast -o bin/$(NAME).exe src/*.cpp -I include -D NDEBUG
+	$(CXX) -Ofast -o $(BINDIR)/$(NAME) $(SRCS) $(CXXFLAGS) -D NDEBUG
 
 debug:
-	g++ -o bin/$(NAME)Debug.exe src/*.cpp -I include
+	$(CXX) -o $(BINDIR)/$(NAME)Debug $(SRCS) $(CXXFLAGS)
 
 win:
-	g++ -o bin/$(NAME)Windows.exe src/*.cpp -I include -D NDEBUG
+	$(CXX) -o $(BINDIR)/$(NAME)Windows.exe $(SRCS) $(CXXFLAGS) -D NDEBUG

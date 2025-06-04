@@ -1,6 +1,6 @@
 #include "Board.h"
+#include "Move.h"
 #include "MoveHandling.h"
-#include "Moves.h"
 
 void Board::TakeMove() {
     int enemy = side;
@@ -9,13 +9,8 @@ void Board::TakeMove() {
     hashKey = info.hashKey;
     castlingPerms = info.castlingPerms;
     fiftyMoveCount = info.fiftyMoveCount;
-
-    // if (enPassant != NO_SQUARE) HashEnPassant(hashKey, enPassant);
     enPassant = info.enPassant;
-    // if (enPassant != NO_SQUARE) HashEnPassant(hashKey, enPassant);
-
     side ^= 1;
-    // HashSide(hashKey);
 
     int move = info.move;
 
@@ -26,52 +21,46 @@ void Board::TakeMove() {
 
     if (promoted) {
         ClearBit(bitboards[promoted], toSquare);
-        //HashPiece(hashKey, piece, toSquare);
     }
     else {
         ClearBit(bitboards[piece], toSquare);
-        //HashPiece(hashKey, piece, toSquare);
     }
 
     ClearBit(occupancy[side], toSquare);
 
     SetBit(bitboards[piece], fromSquare);
     SetBit(occupancy[side], fromSquare);
-    //HashPiece(hashKey, piece, fromSquare);
 
     int flag = GetFlag(move);
 
     switch (flag) {
-        case CaptureFlag: {
+        case CAPTURE_FLAG: {
             int captured = GetCapturedPiece(move);
             SetBit(bitboards[captured], toSquare);
             SetBit(occupancy[enemy], toSquare);
-            //HashPiece(hashKey, captured, toSquare);
             break;
         }
 
-        case EnPassantFlag:
-            if (side == White) {
+        case ENPASSANT_FLAG:
+            if (side == WHITE) {
                 SetBit(bitboards[BP], toSquare - 8);
-                SetBit(occupancy[Black], toSquare - 8);
-                //HashPiece(hashKey, BP, toSquare - 8);
+                SetBit(occupancy[BLACK], toSquare - 8);
             }
             else {
                 SetBit(bitboards[WP], toSquare + 8);
-                SetBit(occupancy[White], toSquare + 8);
-                //HashPiece(hashKey, WP, toSquare + 8);
+                SetBit(occupancy[WHITE], toSquare + 8);
             }
         break;
 
-        case CastlingFlag:
+        case CASTLING_FLAG:
             switch (toSquare) {
-                case G1: MoveRook(hashKey, bitboards[WR], occupancy[White], WR, F1, H1); break;
-                case C1: MoveRook(hashKey, bitboards[WR], occupancy[White], WR, D1, A1); break;
-                case G8: MoveRook(hashKey, bitboards[BR], occupancy[Black], BR, F8, H8); break;
-                case C8: MoveRook(hashKey, bitboards[BR], occupancy[Black], BR, D8, A8); break;
+                case g1: MoveRook(hashKey, bitboards[WR], occupancy[WHITE], WR, f1, h1); break;
+                case c1: MoveRook(hashKey, bitboards[WR], occupancy[WHITE], WR, d1, a1); break;
+                case g8: MoveRook(hashKey, bitboards[BR], occupancy[BLACK], BR, f8, h8); break;
+                case c8: MoveRook(hashKey, bitboards[BR], occupancy[BLACK], BR, d8, a8); break;
             }
         break;
     }
 
-    occupancy[Both] = occupancy[White] | occupancy[Black];
+    occupancy[BOTH] = occupancy[WHITE] | occupancy[BLACK];
 }

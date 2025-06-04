@@ -2,10 +2,11 @@
 #include <string.h>
 
 #include "Board.h"
+#include "HashKeys.h"
 
 void Board::ParseFEN(const char* fen) {
-    int file = FileA;
-    int rank = Rank8;
+    int file = FILE_A;
+    int rank = RANK_8;
     // int numKings[2] = { 0, 0 };
 
     U64 new_bitboards[12]{};
@@ -31,8 +32,8 @@ void Board::ParseFEN(const char* fen) {
 
         file++;
 
-        if (file > FileH) {
-            file = FileA;
+        if (file > FILE_H) {
+            file = FILE_A;
             rank--;
         }
 
@@ -47,8 +48,8 @@ void Board::ParseFEN(const char* fen) {
             case '8':
                 file += c - '1'; // file is always incremented, so here it is incremented by 1 less than the jump
                 
-                if (file > FileH) {
-                    file = FileA;
+                if (file > FILE_H) {
+                    file = FILE_A;
                     rank--;
                 }
 
@@ -85,7 +86,7 @@ void Board::ParseFEN(const char* fen) {
         }
     }
 
-    new_occupancy[Both] = new_occupancy[White] | new_occupancy[Black];
+    new_occupancy[BOTH] = new_occupancy[WHITE] | new_occupancy[BLACK];
 
     // if (numKings[White] != 1 || numKings[Black] != 1) {
     //     std::cout << "Invalid FEN string: invalid number of king pieces\n";
@@ -95,8 +96,8 @@ void Board::ParseFEN(const char* fen) {
     char sideChar = *ptr;
 
     switch (sideChar) {
-        case 'w': new_side = White; break;
-        case 'b': new_side = Black; break;
+        case 'w': new_side = WHITE; break;
+        case 'b': new_side = BLACK; break;
 
         default:
             std::cout << "Invalid FEN string: invalid side\n";
@@ -111,16 +112,17 @@ void Board::ParseFEN(const char* fen) {
         if (c == ' ') break;
 
         if (c == '-') {
-            ptr++; break;
+            ptr++;
+            break;
         }
 
         ptr++;
 
         switch (c) {
-            case 'K': new_castlingPerms |= Castling::WKC; break;
-            case 'Q': new_castlingPerms |= Castling::WQC; break;
-            case 'k': new_castlingPerms |= Castling::BKC; break;
-            case 'q': new_castlingPerms |= Castling::BQC; break;
+            case 'K': new_castlingPerms |= WKC; break;
+            case 'Q': new_castlingPerms |= WQC; break;
+            case 'k': new_castlingPerms |= BKC; break;
+            case 'q': new_castlingPerms |= BQC; break;
 
             default:
                 std::cout << "Invalid FEN string: invalid castling permissions\n";
@@ -158,7 +160,11 @@ void Board::ParseFEN(const char* fen) {
     memcpy(bitboards, new_bitboards, 12 * sizeof(U64));
     memcpy(occupancy, new_occupancy, 3 * sizeof(U64));
 
-    GenerateHashKey();
+    if (!CheckValidQuiet()) {
+        std::cout << "Invalid FEN string: failed validity check\n";
+    }
+
+    HashKeys::GenerateHashKey(this);
 }
 
 const char* GenerateFEN() {
