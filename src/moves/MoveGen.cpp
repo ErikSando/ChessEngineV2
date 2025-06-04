@@ -29,7 +29,7 @@ namespace MoveGen {
                     !IsBitSet(board.occupancy[BOTH], g1) &&
                     !board.IsSquareAttacked(e1, side) &&
                     !board.IsSquareAttacked(f1, side) &&
-                    !board.IsSquareAttacked(g2, side)
+                    !board.IsSquareAttacked(g1, side)
                 ) {
                     AddMove(list, EncodeMove(e1, g1, WK, 0, 0, CASTLING_FLAG));
                 }

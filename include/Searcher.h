@@ -10,6 +10,8 @@ struct SearchInfo {
     int startTime;
     int stopTime;
     bool timeSet = false;
+    bool stopped = false;
+    int nodes = 0;
 };
 
 class Searcher {
@@ -19,5 +21,5 @@ class Searcher {
 
     TTable& ttable;
 
-    void Search(Board& board, const SearchInfo& info);
+    void Search(Board& board, SearchInfo& options);
 };

@@ -6,7 +6,14 @@
 #include "Searcher.h"
 #include "Utils.h"
 
-inline int Quiescence(Board& board, int alpha, int beta) {
+inline void CheckTimeUp(SearchInfo& info) {
+    info.stopped = info.timeSet && (Utils::GetTimeMS() > info.stopTime);
+    // check if stop command was written here
+}
+
+int Quiescence(Board& board, SearchInfo& info, int alpha, int beta) {
+    info.nodes++;
+
     MoveList list;
     MoveGen::GenerateCaptures(board, list);
 
@@ -15,7 +22,7 @@ inline int Quiescence(Board& board, int alpha, int beta) {
     }
 
     for (int i = 0; i < list.length; i++) {
-        int score = -Quiescence(board, -beta, -alpha);
+        int score = -Quiescence(board, info, -beta, -alpha);
 
         if (score > alpha) {
             if (score >= beta) {
@@ -29,8 +36,12 @@ inline int Quiescence(Board& board, int alpha, int beta) {
     return alpha;
 }
 
-inline int AlphaBeta(Board& board, int alpha, int beta, int depth) {
-    if (depth == 0) return Quiescence(board, -INFINITY, INFINITY);
+int AlphaBeta(Board& board, SearchInfo& info, int alpha, int beta, int depth) {
+    if (info.nodes & 4095 == 0) CheckTimeUp(info);
+    if (info.stopped) return 0;
+    if (depth == 0) return Quiescence(board, info, -INFINITY, INFINITY);
+
+    info.nodes++;
 
     MoveList list;
     MoveGen::GenerateMoves(board, list);
@@ -42,7 +53,7 @@ inline int AlphaBeta(Board& board, int alpha, int beta, int depth) {
     }
 
     for (int i = 0; i < list.length; i++) {
-        int score = -AlphaBeta(board, -beta, -alpha, depth - 1);
+        int score = -AlphaBeta(board, info, -beta, -alpha, depth - 1);
     
         if (score > alpha) {
             if (score >= beta) {
@@ -56,14 +67,19 @@ inline int AlphaBeta(Board& board, int alpha, int beta, int depth) {
     return alpha;
 }
 
-void Searcher::Search(Board& board, const SearchInfo& info) {
+void Searcher::Search(Board& board, SearchInfo& info) {
     int alpha = -INFINITY;
     int beta = INFINITY;
 
     for (int depth = 1; depth <= info.depth; depth++) {
-        int value = AlphaBeta(board, alpha, beta, depth);
+        int value = AlphaBeta(board, info, alpha, beta, depth);
 
-        std::cout << "info depth " << depth << " cp " << value << "\n";
+        if (info.stopped) break;
+
+        int now = Utils::GetTimeMS();
+        int time = now - info.startTime;
+
+        std::cout << "info depth " << depth << " cp " << value << " nodes " << info.nodes << " time " << time << "\n";
     }
 
     std::cout << "bestmove " << "\n";

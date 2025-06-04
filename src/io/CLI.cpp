@@ -114,21 +114,19 @@ void CommandLoop() {
             for (int i = 1; i < args.size(); i++) {
                 std::string arg = args.at(i);
 
-                if (arg.at(0) == '-') {
-                    if (arg == "-time") {
-                        timeSet = true;
-                        useDefault = false;
+                if (arg == "time") {
+                    timeSet = true;
+                    useDefault = false;
 
-                        if (i < args.size() - 1) {
-                            time = std::stoi(args.at(i + 1));
-                        }
+                    if (i < args.size() - 1) {
+                        time = std::stoi(args.at(i + 1));
                     }
-                    else if (arg == "-depth") {
-                        useDefault = false;
+                }
+                else if (arg == "depth") {
+                    useDefault = false;
 
-                        if (i < args.size() - 1) {
-                            depth = std::stoi(args.at(i + 1));
-                        }
+                    if (i < args.size() - 1) {
+                        depth = std::stoi(args.at(i + 1));
                     }
                 }
             }
@@ -137,11 +135,14 @@ void CommandLoop() {
 
             if (depth > 0) info.depth = depth;
 
+            info.startTime = Utils::GetTimeMS();
+
             if (timeSet || useDefault) {
                 info.timeSet = true;
-                info.startTime = Utils::GetTimeMS();
                 info.stopTime = info.startTime + time * 1000;
             }
+
+            std::cout << info.timeSet << ", " << info.startTime << ", " << info.stopTime << "\n";
 
             searcher.Search(board, info);
         }
@@ -167,7 +168,7 @@ void CommandLoop() {
         }
 
         #endif
-        
+
         else {
             // if (cmd.size() > 0) {
             //     std::cout << "Unknown command: '" << cmd << "'. Use 'help' for a list of commands.\n";

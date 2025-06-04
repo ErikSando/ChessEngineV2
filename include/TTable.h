@@ -11,10 +11,11 @@ class TTable {
     public:
 
     TTable(const int MB);
+    ~TTable();
 
     void Reset();
-    void StoreEntry();
-    
+
+    void StoreEntry(U64 hashKey);
     int GetEntry(U64 positionKey);
 
     private:
