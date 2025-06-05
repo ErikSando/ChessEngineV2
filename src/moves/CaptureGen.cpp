@@ -5,7 +5,7 @@
 #include "MoveGen.h"
 
 namespace MoveGen {
-    void GenerateCaptures(Board& board, MoveList& list) {
+    void GenerateCaptures(const Board& board, MoveList& list) {
         int side = board.side;
         int enemy = side ^ 1;
         int direction = enemy ? 8 : -8;
@@ -22,7 +22,7 @@ namespace MoveGen {
 
             if (board.enPassant != NO_SQUARE) {
                 if (IsBitSet(Attacks::PawnCaptures[side][fromSquare], board.enPassant)) {
-                    AddMove(list, EncodeMove(fromSquare, board.enPassant, piece, 0, 0, ENPASSANT_FLAG));
+                    AddMove(list, 0, EncodeMove(fromSquare, board.enPassant, piece, 0, 0, ENPASSANT_FLAG));
                 }
             }
 
@@ -35,14 +35,14 @@ namespace MoveGen {
                 }
 
                 if (GetRank(toSquare) == promotionRank) {
-                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 4, CAPTURE_FLAG));
-                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 3, CAPTURE_FLAG));
-                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 2, CAPTURE_FLAG));
-                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 1, CAPTURE_FLAG));
+                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, piece + 4, CAPTURE_FLAG));
+                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, piece + 3, CAPTURE_FLAG));
+                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, piece + 2, CAPTURE_FLAG));
+                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, piece + 1, CAPTURE_FLAG));
                     continue;
                 }
 
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
+                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
             }
         }
 
@@ -62,7 +62,7 @@ namespace MoveGen {
                     if (IsBitSet(board.bitboards[captured], toSquare)) break;
                 }
 
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
+                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
             }
         }
 
@@ -82,7 +82,7 @@ namespace MoveGen {
                     if (IsBitSet(board.bitboards[captured], toSquare)) break;
                 }
 
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
+                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
             }
         }
         // rooks
@@ -101,7 +101,7 @@ namespace MoveGen {
                     if (IsBitSet(board.bitboards[captured], toSquare)) break;
                 }
 
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
+                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
             }
         }
 
@@ -121,7 +121,7 @@ namespace MoveGen {
                     if (IsBitSet(board.bitboards[captured], toSquare)) break;
                 }
 
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
+                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
             }
         }
 
@@ -143,7 +143,7 @@ namespace MoveGen {
                     if (IsBitSet(board.bitboards[captured], toSquare)) break;
                 }
 
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
+                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
             }
         }
     }

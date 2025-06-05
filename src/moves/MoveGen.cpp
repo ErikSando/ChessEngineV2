@@ -5,7 +5,7 @@
 #include "MoveGen.h"
 
 namespace MoveGen {
-    void GenerateMoves(Board& board, MoveList& list) {
+    void GenerateMoves(const Board& board, MoveList& list) {
         //std::cout << "Generating moves\n";
 
         int side = board.side;
@@ -31,7 +31,7 @@ namespace MoveGen {
                     !board.IsSquareAttacked(f1, side) &&
                     !board.IsSquareAttacked(g1, side)
                 ) {
-                    AddMove(list, EncodeMove(e1, g1, WK, 0, 0, CASTLING_FLAG));
+                    AddMove(list, 0, EncodeMove(e1, g1, WK, 0, 0, CASTLING_FLAG));
                 }
             }
 
@@ -43,7 +43,7 @@ namespace MoveGen {
                     !board.IsSquareAttacked(d1, side) &&
                     !board.IsSquareAttacked(c1, side)
                 ) {
-                    AddMove(list, EncodeMove(e1, c1, WK, 0, 0, CASTLING_FLAG));
+                    AddMove(list, 0, EncodeMove(e1, c1, WK, 0, 0, CASTLING_FLAG));
                 }
             }
         }
@@ -55,7 +55,7 @@ namespace MoveGen {
                     !board.IsSquareAttacked(f8, side) &&
                     !board.IsSquareAttacked(g8, side)
                 ) {
-                    AddMove(list, EncodeMove(e8, g8, BK, 0, 0, CASTLING_FLAG));
+                    AddMove(list, 0, EncodeMove(e8, g8, BK, 0, 0, CASTLING_FLAG));
                 }
             }
 
@@ -67,7 +67,7 @@ namespace MoveGen {
                     !board.IsSquareAttacked(d8, side) &&
                     !board.IsSquareAttacked(c8, side)
                 ) {
-                    AddMove(list, EncodeMove(e8, c8, BK, 0, 0, CASTLING_FLAG));
+                    AddMove(list, 0, EncodeMove(e8, c8, BK, 0, 0, CASTLING_FLAG));
                 }
             }
         }
@@ -84,7 +84,7 @@ namespace MoveGen {
 
             if (board.enPassant != NO_SQUARE) {
                 if (IsBitSet(Attacks::PawnCaptures[side][fromSquare], board.enPassant)) {
-                    AddMove(list, EncodeMove(fromSquare, board.enPassant, piece, 0, 0, ENPASSANT_FLAG));
+                    AddMove(list, 0, EncodeMove(fromSquare, board.enPassant, piece, 0, 0, ENPASSANT_FLAG));
                 }
             }
 
@@ -92,10 +92,10 @@ namespace MoveGen {
                 int toSquare = PopFirstBit(moves);
 
                 if (GetRank(toSquare) == promotionRank) {
-                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 4, 0));
-                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 3, 0));
-                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 2, 0));
-                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, piece + 1, 0));
+                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, 0, piece + 4, 0));
+                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, 0, piece + 3, 0));
+                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, 0, piece + 2, 0));
+                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, 0, piece + 1, 0));
                     continue;
                 }
 
@@ -106,7 +106,7 @@ namespace MoveGen {
                     flag = PAWNSTART_FLAG;
                 }
 
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, 0, 0, flag));
+                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, 0, 0, flag));
             }
 
             while (captures) {
@@ -118,14 +118,14 @@ namespace MoveGen {
                 }
 
                 if (GetRank(toSquare) == promotionRank) {
-                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 4, CAPTURE_FLAG));
-                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 3, CAPTURE_FLAG));
-                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 2, CAPTURE_FLAG));
-                    AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, piece + 1, CAPTURE_FLAG));
+                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, piece + 4, CAPTURE_FLAG));
+                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, piece + 3, CAPTURE_FLAG));
+                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, piece + 2, CAPTURE_FLAG));
+                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, piece + 1, CAPTURE_FLAG));
                     continue;
                 }
 
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
+                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
             }
         }
 
@@ -150,7 +150,7 @@ namespace MoveGen {
                     }
                 }
 
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
+                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
             }
         }
 
@@ -175,7 +175,7 @@ namespace MoveGen {
                     }
                 }
 
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
+                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
             }
         }
 
@@ -200,7 +200,7 @@ namespace MoveGen {
                     }
                 }
 
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
+                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
             }
         }
 
@@ -225,7 +225,7 @@ namespace MoveGen {
                     }
                 }
 
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
+                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
             }
         }
 
@@ -252,7 +252,7 @@ namespace MoveGen {
                     }
                 }
 
-                AddMove(list, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
+                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
             }
         }
     }

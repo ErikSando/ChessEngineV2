@@ -254,7 +254,5 @@ namespace Attacks {
                 RookAttacks[square][magicIndex] = GenerateRookAttacks(square, occupancy);
             }
         }
-
-        // FindMagics();
     }
 }

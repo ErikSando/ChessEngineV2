@@ -18,7 +18,7 @@ namespace Utils {
         MoveGen::GenerateMoves(board, list);
     
         for (int i = 0; i < list.length; i++) {
-            int move = list.moves[i];
+            int move = list.moves[i].move;
     
             int _fromSquare = GetFromSquare(move);
             int _toSquare = GetToSquare(move);

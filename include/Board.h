@@ -29,8 +29,8 @@ class Board {
     bool MakeMove(const int move);
     void TakeMove();
 
-    bool IsSquareAttacked(int square);
-    bool IsSquareAttacked(int square, int side);
+    bool IsSquareAttacked(int square) const;
+    bool IsSquareAttacked(int square, int side) const;
 
     U64 bitboards[12];
     U64 occupancy[3];

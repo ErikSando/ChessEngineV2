@@ -21,5 +21,9 @@ class Searcher {
 
     TTable& ttable;
 
-    void Search(Board& board, SearchInfo& options);
+    void Search(Board& board, SearchInfo& info);
+
+    private:
+
+    int AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, int beta);
 };

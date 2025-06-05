@@ -22,7 +22,7 @@ namespace Perft {
         U64 n = 0;
 
         for (int i = 0; i < list.length; i++) {
-            if (!board.MakeMove(list.moves[i])) continue;
+            if (!board.MakeMove(list.moves[i].move)) continue;
             n += Perft(board, depth - 1);
             board.TakeMove();
         }
@@ -41,7 +41,7 @@ namespace Perft {
         auto start = std::chrono::high_resolution_clock::now();
 
         for (int i = 0; i < list.length; i++) {
-            int move = list.moves[i];
+            int move = list.moves[i].move;
 
             U64 newNodes = 0;
 

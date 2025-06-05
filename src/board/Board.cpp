@@ -38,13 +38,12 @@ void Board::Print() {
 
     std::cout << "\n     a b c d e f g h\n";
 
-    char castlingPermsStr[5] = { '-', '\0', '\0', '\0', '\0' };
-    int i = 0;
+    std::string castlingPermsStr = "----";
 
-    if (castlingPerms & WKC) castlingPermsStr[i++] = 'K';
-    if (castlingPerms & WQC) castlingPermsStr[i++] = 'Q';
-    if (castlingPerms & BKC) castlingPermsStr[i++] = 'k';
-    if (castlingPerms & BQC) castlingPermsStr[i++] = 'q';
+    if (castlingPerms & WKC) castlingPermsStr[0] = 'K';
+    if (castlingPerms & WQC) castlingPermsStr[1] = 'Q';
+    if (castlingPerms & BKC) castlingPermsStr[2] = 'k';
+    if (castlingPerms & BQC) castlingPermsStr[3] = 'q';
 
     std::cout << "Side to move:       " << (side == WHITE ? "white" : "black") << "\n";
     std::cout << "Castling:           " << castlingPermsStr << "\n";
@@ -53,8 +52,7 @@ void Board::Print() {
     std::cout << "Hash key:           " << std::hex << hashKey << std::dec << "\n";
 }
 
-
-bool Board::IsSquareAttacked(int square, int side) {
+bool Board::IsSquareAttacked(int square, int side) const {
     int enemy = side ^ 1;
     int piece = enemy * 6;
 
@@ -72,7 +70,7 @@ bool Board::IsSquareAttacked(int square, int side) {
     return false;
 }
 
-bool Board::IsSquareAttacked(int square) {
+bool Board::IsSquareAttacked(int square) const {
     return IsSquareAttacked(square, side);
 }
 

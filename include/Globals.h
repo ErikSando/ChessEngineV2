@@ -18,10 +18,10 @@ typedef unsigned long long U64;
     }
 #elif defined(_MSC_VER) && defined(_M_X64)
     #include <intrin.h>
-    #pragma intrinsic(_popcnt64)
+    #pragma intrinsic(__popcnt64)
 
     inline int CountBits(U64 bitboard) {
-        return static_cast<int>(_popcnt64(bitboard));
+        return static_cast<int>(__popcnt64(bitboard));
     }
 
     inline int FirstBitIndex(U64 bitboard) {

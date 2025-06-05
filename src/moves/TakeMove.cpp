@@ -1,11 +1,17 @@
+#include <cassert>
+
 #include "Board.h"
 #include "Move.h"
 #include "MoveHandling.h"
 
 void Board::TakeMove() {
+    ply--;
+
+    assert(ply >= 0);
+
     int enemy = side;
 
-    BoardInfo info = history[--ply];
+    BoardInfo info = history[ply];
     hashKey = info.hashKey;
     castlingPerms = info.castlingPerms;
     fiftyMoveCount = info.fiftyMoveCount;

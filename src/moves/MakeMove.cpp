@@ -22,7 +22,9 @@ bool Board::MakeMove(const int move) {
     history[ply].move = move;
     history[ply].castlingPerms = castlingPerms;
     history[ply].fiftyMoveCount = fiftyMoveCount++;
-    history[ply++].enPassant = enPassant;
+    history[ply].enPassant = enPassant;
+
+    ply++;
 
     int fromSquare = GetFromSquare(move);
     int toSquare = GetToSquare(move);

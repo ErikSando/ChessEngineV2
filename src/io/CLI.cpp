@@ -9,13 +9,12 @@
 
 void CommandLoop() {
     Board board;
-    TTable ttable(64);
+    TTable ttable(0);
     Searcher searcher(ttable);
 
     std::string command;
 
     for (;;) {
-        std::cout << "> ";
         std::getline(std::cin, command);
 
         std::istringstream iss(command);
