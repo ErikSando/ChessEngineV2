@@ -18,8 +18,7 @@ namespace Evaluation {
     extern int MgTables[12][64];
     extern int EgTables[12][64];
 
-    constexpr int PhaseInc[6] = { 0, 1, 1, 2, 4, 0 };
-    constexpr int TotalPhaseVal = 2 * (PhaseInc[0] * 8 + 2 * (PhaseInc[1] + PhaseInc[2] + PhaseInc[3]) + PhaseInc[4]);
+    constexpr int PhaseInc[12] = { 0, 1, 1, 2, 4, 0, 0, 1, 1, 2, 4, 0 };
 
     constexpr int MgValues[6] = { 100, 320, 330, 500, 950, 0 };
     constexpr int EgValues[6] = { 110, 290, 330, 550, 900, 0 };

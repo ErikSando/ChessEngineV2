@@ -43,6 +43,7 @@ inline void OrderMoves(MoveList& list) {
 }
 
 int Quiescence(Board& board, SearchInfo& info, int alpha, int beta) {
+    if (info.nodes & 4095 == 0) CheckTimeUp(info);
     if (info.stopped) return 0;
 
     info.nodes++;
