@@ -30,9 +30,9 @@ class Board {
     void MakeNullMove();
     void TakeNullMove();
 
-    bool IsSquareAttacked(int square, int side) const;
+    bool IsSquareAttacked(const int square, const int attacker_side) const;
 
-    inline bool IsSquareAttacked(int square) const {
+    inline bool IsSquareAttacked(const int square) const {
         return IsSquareAttacked(square, side ^ 1);
     }
 

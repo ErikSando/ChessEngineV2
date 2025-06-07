@@ -1,10 +1,14 @@
+#include <algorithm>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string.h>
 
 #include "Board.h"
 #include "Evaluation.h"
+#include "Move.h"
 #include "MoveGen.h"
+#include "MoveScoring.h"
 #include "Searcher.h"
 #include "Utils.h"
 
@@ -31,6 +35,12 @@ inline bool ThreeFoldRepetition(Board& board) {
 }
 
 inline void OrderMoves(MoveList& list) {
+    // for (int i = 0; i < list.length; i++) {
+    //     std::cout << Utils::ToMoveString(list.moves[i].move) << ": " << list.moves[i].score << "\n";
+    // }
+
+    // std::cout << "\n";
+
     for (int startidx = 0; startidx < list.length - 1; startidx++) {
         int bestScore = list.moves[startidx].score;
         int bestIndex = startidx;
@@ -46,6 +56,12 @@ inline void OrderMoves(MoveList& list) {
         list.moves[bestIndex] = list.moves[startidx];
         list.moves[startidx] = temp;
     }
+
+    // for (int i = 0; i < list.length; i++) {
+    //     std::cout << Utils::ToMoveString(list.moves[i].move) << ": " << list.moves[i].score << "\n";
+    // }
+
+    // std::cout << "\n";
 }
 
 int Searcher::Quiescence(Board& board, SearchInfo& info, int alpha, int beta) {
@@ -57,6 +73,8 @@ int Searcher::Quiescence(Board& board, SearchInfo& info, int alpha, int beta) {
     if (board.fiftyMoveCount >= 100 || ThreeFoldRepetition(board)) return 0;
 
     int eval = Evaluation::Evaluate(board);
+
+    if (board.ply >= MAX_DEPTH) return eval;
 
     if (eval >= beta) return eval;
     if (eval > alpha) alpha = eval;
@@ -92,14 +110,16 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
 
     if (score != NO_SCORE && board.ply && !pvNode) return score;
 
+    if (board.ply >= MAX_DEPTH) return Evaluation::Evaluate(board);
+
     int kingSquare = FirstBitIndex(board.bitboards[board.side == WHITE ? WK : BK]);
     bool inCheck = board.IsSquareAttacked(kingSquare);
 
-    int R = NULL_MOVE_REDUCTION + (depth > 6);
+    int nullMoveR = NULL_MOVE_REDUCTION + (depth > 6);
 
-    if (doNull && !inCheck && depth > R + 1 && board.bigPieces[board.side] > 1) { // null move pruning
+    if (doNull && !inCheck && depth > nullMoveR + 1 && board.bigPieces[board.side] > 1) { // null move pruning
         board.MakeNullMove();
-        int score = -AlphaBeta(board, info, depth - 1 - R, beta - 1, beta, false);
+        int score = -AlphaBeta(board, info, depth - 1 - nullMoveR, beta - 1, beta, false);
         board.TakeNullMove();
 
         if (score >= beta && std::abs(score) < MATE_SCORE) return beta;
@@ -140,7 +160,10 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
             score = -AlphaBeta(board, info, depth - 1 + extension, -beta, -alpha, true);
         }
         else if (!inCheck && legalMoves >= FULL_DEPTH_MOVES && depth >= MIN_REDUCTION_DEPTH && list.moves[i].score == 0) { // late move reductions
-            score = -AlphaBeta(board, info, depth - 2 + extension, -alpha - 1, -alpha, true);
+            int reduction = std::clamp((legalMoves - 4) / 3, 0, MAX_REDUCTION); // reduce depth by 1 for every 3 moves searched until the maximum is hit
+            int newDepth = std::max(1, depth - 1 - reduction) + extension;
+
+            score = -AlphaBeta(board, info, newDepth, -alpha - 1, -alpha, true);
         }
         else {
             score = -AlphaBeta(board, info, depth - 1 + extension, -alpha - 1, -alpha, true);
@@ -152,11 +175,20 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
 
         legalMoves++;
 
-        //int score = -AlphaBeta(board, info, depth - 1 + extension, -beta, -alpha, true);
         board.TakeMove();
 
         if (score >= beta) { // beta cut off
             ttable.StoreEntry(board.hashKey, move, score, BETA_FLAG, depth);
+
+            if (GetFlag(move) != CAPTURE_FLAG) {
+                MoveScoring::KillerMoves[1][board.ply] = MoveScoring::KillerMoves[0][board.ply];
+                MoveScoring::KillerMoves[0][board.ply] = move;
+
+                int previousMove = board.history[board.ply - 1].move;
+
+                MoveScoring::CounterMoves[GetFromSquare(previousMove)][GetToSquare(previousMove)] = move;
+            }
+
             return beta;
         }
 
@@ -164,6 +196,11 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
             alpha = score;
             bestMove = move;
             hashFlag = EXACT_FLAG;
+
+            if (GetFlag(move) != CAPTURE_FLAG) {
+                MoveScoring::UpdateHistory(MoveScoring::HistoryMoves[GetMovedPiece(move)][GetToSquare(move)], depth);
+                //MoveScoring::HistoryMoves[GetMovedPiece(move)][GetToSquare(move)] += depth;
+            }
         }
     }
 
@@ -179,9 +216,9 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
 void Searcher::Search(Board& board, SearchInfo& info) {
     board.ply = 0;
     ttable.age++;
-
     info.nodes = 0ULL;
     info.stopped = false;
+    MoveScoring::Reset();
 
     int alpha = -INF;
     int beta = INF;
@@ -234,15 +271,28 @@ void Searcher::Search(Board& board, SearchInfo& info) {
                     knps = info.nodes / seconds / 1000;
                 }
 
-                std::cout << "Depth: " << depth << ", eval: " << score << ", nodes: " << info.nodes;
-                std::cout << ", time: " << time << ", knps: ";
+                std::cout << "Depth: " << depth << ", eval: ";
+
+                if (score > MATE_SCORE) std::cout << "+M" << (int) ((INF - score) / 2 + 1); // int cast rounds down
+                else if (score < -MATE_SCORE) std::cout << "-M" << (int) (-(INF + score) / 2 - 1);
+                else {
+                    std::cout << std::fixed << std::setprecision(2) << std::showpos;
+                    std::cout << ((double) score / 100) << std::noshowpos << std::defaultfloat;
+                }
+
+                std::cout<< ", nodes: " << info.nodes << ", time: " << time << ", knps: ";
                 knps != 0 ? std::cout << knps : std::cout << "undef";
-                std::cout << ", moves:" << pvString.str();
+                std::cout  << ", moves:" << pvString.str();
                 break;
             }
 
             case UCI:
-                std::cout << "info depth " << depth << " score cp " << score;
+                std::cout << "info depth " << depth << " score ";
+
+                if (score > MATE_SCORE) std::cout << "mate " << (int) ((INF - score) / 2 + 1);
+                else if (score < -MATE_SCORE) std::cout << "mate " << (int) (-(INF + score) / 2 - 1);
+                else std::cout << "cp " << score;
+
                 std::cout << " nodes " << info.nodes << " time " << time;
                 std::cout << " pv" << pvString.str();
             break;

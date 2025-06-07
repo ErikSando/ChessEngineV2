@@ -52,8 +52,8 @@ void Board::Print() {
     std::cout << "Hash key:           " << std::hex << hashKey << std::dec << "\n";
 }
 
-bool Board::IsSquareAttacked(int square, int side) const {
-    int piece = side * 6;
+bool Board::IsSquareAttacked(const int square, const int attacker_side) const {
+    int piece = attacker_side * 6;
 
     U64 bishopAttacks = Attacks::GetBishopAttacks(square, occupancy[BOTH]);
     U64 rookAttacks = Attacks::GetRookAttacks(square, occupancy[BOTH]);
@@ -63,7 +63,7 @@ bool Board::IsSquareAttacked(int square, int side) const {
     if (rookAttacks & bitboards[piece + 3]) return true;
 
     if (Attacks::KnightAttacks[square] & bitboards[piece + 1]) return true;
-    if (Attacks::PawnCaptures[side][square] & bitboards[piece]) return true;
+    if (Attacks::PawnCaptures[attacker_side ^ 1][square] & bitboards[piece]) return true;
     if (Attacks::KingAttacks[square] & bitboards[piece + 5]) return true;
 
     return false;
