@@ -33,7 +33,7 @@ class Board {
     bool IsSquareAttacked(int square, int side) const;
 
     inline bool IsSquareAttacked(int square) const {
-        return IsSquareAttacked(square, side);
+        return IsSquareAttacked(square, side ^ 1);
     }
 
     U64 bitboards[12];
@@ -48,6 +48,6 @@ class Board {
     int enPassant = NO_SQUARE;
     int side = WHITE;
     int castlingPerms;
-    
+
     int bigPieces[2];
 };

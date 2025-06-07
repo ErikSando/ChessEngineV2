@@ -48,7 +48,7 @@ void CommandLoop() {
 
         if (args.size() < 1) continue;
 
-        std::string cmd = args.at(0);
+        std::string cmd = args[0];
 
         if (cmd == "exit" || cmd == "quit") {
             engine_running = false;

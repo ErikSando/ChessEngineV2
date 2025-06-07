@@ -167,9 +167,13 @@ void Board::ParseFEN(const char* fen) {
     memcpy(bitboards, new_bitboards, 12 * sizeof(U64));
     memcpy(occupancy, new_occupancy, 3 * sizeof(U64));
 
-    if (!CheckValidQuiet()) {
-        std::cout << "Invalid FEN string: failed validity check\n";
-    }
+    #ifdef NDEBUG
+        if (!CheckValidQuiet()) {
+            std::cout << "Invalid FEN string: failed validity check\n";
+        }
+    #else
+        CheckValid();
+    #endif
 
     HashKeys::GenerateHashKey(this);
 }

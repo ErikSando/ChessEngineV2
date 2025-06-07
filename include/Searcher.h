@@ -5,6 +5,8 @@
 #include "TTable.h"
 
 constexpr int NULL_MOVE_REDUCTION = 2;
+constexpr int FULL_DEPTH_MOVES = 5;
+constexpr int MIN_REDUCTION_DEPTH = 3;
 constexpr int ASPIRATION_WINDOW = 50;
 constexpr int WINDOW_EXPANSION_FACTOR = 30;
 

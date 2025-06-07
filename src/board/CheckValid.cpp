@@ -21,8 +21,8 @@ void Board::CheckValid() {
     // int ekpos = FirstBitIndex(bitboards[side == WHITE ? BK : WK]);
     int ekpos = side == WHITE ? bkpos : wkpos;
 
-    if (IsSquareAttacked(ekpos, side ^ 1)) Print();
-    assert(!IsSquareAttacked(ekpos, side ^ 1));
+    if (IsSquareAttacked(ekpos, side)) Print();
+    assert(!IsSquareAttacked(ekpos, side));
 
     int nWP = CountBits(bitboards[WP]);
     int nBP = CountBits(bitboards[BP]);
@@ -78,7 +78,7 @@ bool Board::CheckValidQuiet() {
 
     int ekpos = side == WHITE ? bkpos : wkpos;
 
-    if (IsSquareAttacked(ekpos, side ^ 1)) return false;
+    if (IsSquareAttacked(ekpos, side)) return false;
 
     int nWP = CountBits(bitboards[WP]);
     int nBP = CountBits(bitboards[BP]);

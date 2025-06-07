@@ -22,6 +22,7 @@ class TTable {
     TTable(const int MB);
     ~TTable();
 
+    void Resize(const int MB);
     void Clear();
 
     void StoreEntry(U64 hashKey, int move, int score, int flag, int depth);
@@ -34,7 +35,7 @@ class TTable {
     private:
 
     int GetPVMove(U64 hashKey) const;
-    
+
     int size;
     TTEntry* entries;
 };

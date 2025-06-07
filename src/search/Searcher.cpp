@@ -90,21 +90,27 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
     int pvMove = 0;
     int score = ttable.GetEntry(board.hashKey, pvMove, alpha, beta, depth);
 
-    if (board.ply && !pvNode && score != NO_SCORE) return score;
+    if (score != NO_SCORE && board.ply && !pvNode) return score;
 
-    int kingPiece = board.side == WHITE ? WK : BK;
-    int kingSquare = FirstBitIndex(board.bitboards[kingPiece]);
+    int kingSquare = FirstBitIndex(board.bitboards[board.side == WHITE ? WK : BK]);
     bool inCheck = board.IsSquareAttacked(kingSquare);
 
     int R = NULL_MOVE_REDUCTION + (depth > 6);
 
-    if (doNull && !inCheck && depth > R + 1 && board.bigPieces[board.side] > 1) {
+    if (doNull && !inCheck && depth > R + 1 && board.bigPieces[board.side] > 1) { // null move pruning
         board.MakeNullMove();
         int score = -AlphaBeta(board, info, depth - 1 - R, beta - 1, beta, false);
         board.TakeNullMove();
 
         if (score >= beta && std::abs(score) < MATE_SCORE) return beta;
     }
+
+    int enemyKingSquare = FirstBitIndex(board.bitboards[board.side == WHITE ? BK : WK]);
+    int enemyInCheck = board.IsSquareAttacked(enemyKingSquare, board.side);
+
+    int extension = 0;
+
+    if (inCheck || enemyInCheck) extension = 1; // check extension
 
     MoveList list;
     MoveGen::GenerateMoves(board, list);
@@ -126,13 +132,30 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
 
     for (int i = 0; i < list.length; i++) {
         int move = list.moves[i].move;
-
         if (!board.MakeMove(move)) continue;
-        int score = -AlphaBeta(board, info, depth - 1, -beta, -alpha, doNull);
+
+        int score;
+
+        if (legalMoves == 0) { // legalMoves is considered "moves searched so far" in this context
+            score = -AlphaBeta(board, info, depth - 1 + extension, -beta, -alpha, true);
+        }
+        else if (!inCheck && legalMoves >= FULL_DEPTH_MOVES && depth >= MIN_REDUCTION_DEPTH && list.moves[i].score == 0) { // late move reductions
+            score = -AlphaBeta(board, info, depth - 2 + extension, -alpha - 1, -alpha, true);
+        }
+        else {
+            score = -AlphaBeta(board, info, depth - 1 + extension, -alpha - 1, -alpha, true);
+
+            if (score > alpha && score < beta) {
+                score = -AlphaBeta(board, info, depth - 1 + extension, -beta, -alpha, true);
+            }
+        }
+
         legalMoves++;
+
+        //int score = -AlphaBeta(board, info, depth - 1 + extension, -beta, -alpha, true);
         board.TakeMove();
 
-        if (score >= beta) {
+        if (score >= beta) { // beta cut off
             ttable.StoreEntry(board.hashKey, move, score, BETA_FLAG, depth);
             return beta;
         }

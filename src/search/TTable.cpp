@@ -6,9 +6,18 @@
 #include "TTable.h"
 
 TTable::TTable(const int MB) {
+    Resize(MB);
+}
+
+TTable::~TTable() {
+    free(entries);
+}
+
+void TTable::Resize(const int MB) {
     size_t bytes = MB * 0x100000;
     size = bytes / sizeof(TTEntry);
 
+    free(entries);
     entries = static_cast<TTEntry*>(malloc(bytes));
     
     if (!entries) {
@@ -20,10 +29,6 @@ TTable::TTable(const int MB) {
     Clear();
 
     std::cout << "Initialised transposition table with " << size << " entries.\n";
-}
-
-TTable::~TTable() {
-    free(entries);
 }
 
 void TTable::Clear() {

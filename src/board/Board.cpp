@@ -53,8 +53,7 @@ void Board::Print() {
 }
 
 bool Board::IsSquareAttacked(int square, int side) const {
-    int enemy = side ^ 1;
-    int piece = enemy * 6;
+    int piece = side * 6;
 
     U64 bishopAttacks = Attacks::GetBishopAttacks(square, occupancy[BOTH]);
     U64 rookAttacks = Attacks::GetRookAttacks(square, occupancy[BOTH]);

@@ -27,9 +27,9 @@ namespace MoveGen {
             if (board.castlingPerms & WKC) {
                 if (!IsBitSet(board.occupancy[BOTH], f1) &&
                     !IsBitSet(board.occupancy[BOTH], g1) &&
-                    !board.IsSquareAttacked(e1, side) &&
-                    !board.IsSquareAttacked(f1, side) &&
-                    !board.IsSquareAttacked(g1, side)
+                    !board.IsSquareAttacked(e1) &&
+                    !board.IsSquareAttacked(f1) &&
+                    !board.IsSquareAttacked(g1)
                 ) {
                     AddMove(list, 0, EncodeMove(e1, g1, WK, 0, 0, CASTLING_FLAG));
                 }
@@ -39,9 +39,9 @@ namespace MoveGen {
                 if (!IsBitSet(board.occupancy[BOTH], d1) &&
                     !IsBitSet(board.occupancy[BOTH], c1) &&
                     !IsBitSet(board.occupancy[BOTH], b1) &&
-                    !board.IsSquareAttacked(e1, side) &&
-                    !board.IsSquareAttacked(d1, side) &&
-                    !board.IsSquareAttacked(c1, side)
+                    !board.IsSquareAttacked(e1) &&
+                    !board.IsSquareAttacked(d1) &&
+                    !board.IsSquareAttacked(c1)
                 ) {
                     AddMove(list, 0, EncodeMove(e1, c1, WK, 0, 0, CASTLING_FLAG));
                 }
@@ -51,9 +51,9 @@ namespace MoveGen {
             if (board.castlingPerms & BKC) {
                 if (!IsBitSet(board.occupancy[BOTH], f8) &&
                     !IsBitSet(board.occupancy[BOTH], g8) &&
-                    !board.IsSquareAttacked(e8, side) &&
-                    !board.IsSquareAttacked(f8, side) &&
-                    !board.IsSquareAttacked(g8, side)
+                    !board.IsSquareAttacked(e8) &&
+                    !board.IsSquareAttacked(f8) &&
+                    !board.IsSquareAttacked(g8)
                 ) {
                     AddMove(list, 0, EncodeMove(e8, g8, BK, 0, 0, CASTLING_FLAG));
                 }
@@ -63,9 +63,9 @@ namespace MoveGen {
                 if (!IsBitSet(board.occupancy[BOTH], d8) &&
                     !IsBitSet(board.occupancy[BOTH], c8) &&
                     !IsBitSet(board.occupancy[BOTH], b8) &&
-                    !board.IsSquareAttacked(e8, side) &&
-                    !board.IsSquareAttacked(d8, side) &&
-                    !board.IsSquareAttacked(c8, side)
+                    !board.IsSquareAttacked(e8) &&
+                    !board.IsSquareAttacked(d8) &&
+                    !board.IsSquareAttacked(c8)
                 ) {
                     AddMove(list, 0, EncodeMove(e8, c8, BK, 0, 0, CASTLING_FLAG));
                 }
@@ -252,7 +252,7 @@ namespace MoveGen {
 
             while (moves) {
                 int toSquare = PopFirstBit(moves);
-                if (board.IsSquareAttacked(toSquare, side)) continue;
+                if (board.IsSquareAttacked(toSquare)) continue;
 
                 int captured = captureStart;
                 int flag = 0;

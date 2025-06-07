@@ -116,7 +116,7 @@ bool Board::MakeMove(const int move) {
     side ^= 1;
     HashSide(hashKey);
 
-    if (IsSquareAttacked(kingSquare, side ^ 1)) {
+    if (IsSquareAttacked(kingSquare, side)) {
         TakeMove();
         return false;
     }
