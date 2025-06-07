@@ -10,6 +10,14 @@ Searcher::Searcher(TTable& t_table) : ttable(t_table) {
 
 }
 
+void SearchInfo::Reset() {
+    nodes = 0;
+    depth = MAX_DEPTH;
+    timeSet = false;
+    post = true;
+    stopped = false;
+}
+
 inline void CheckTimeUp(SearchInfo& info) {
     info.stopped = info.timeSet && (Utils::GetTimeMS() > info.stopTime);
     // check if stop command was written here
@@ -122,11 +130,15 @@ void Searcher::Search(Board& board, SearchInfo& info) {
         int now = Utils::GetTimeMS();
         int time = now - info.startTime;
 
+        if (!info.post) continue;
+
         std::cout << "info depth " << depth << " cp " << value;
         std::cout << " nodes " << info.nodes << " time " << time;
         
         std::cout << "\n";
     }
+
+    if (info.quitting) return;
 
     std::cout << "bestmove " << "\n";
 }

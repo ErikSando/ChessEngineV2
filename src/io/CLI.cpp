@@ -1,6 +1,4 @@
-#include <condition_variable>
 #include <iostream>
-#include <mutex>
 #include <sstream>
 #include <thread>
 #include <vector>
@@ -10,13 +8,19 @@
 #include "Perft.h"
 #include "Utils.h"
 
-void CommandLoop() {
-    std::mutex mutex;
-    std::condition_variable cv;
+std::condition_variable cv;
+std::mutex mutex;
 
+bool engine_running = true;
+bool search_requested = false;
+
+void CommandLoop() {
     Board board;
     TTable ttable(0);
     Searcher searcher(ttable);
+    SearchInfo search_info;
+
+    std::thread search_thread(SearchThread, std::ref(board), std::ref(searcher), std::ref(search_info));
 
     std::string command;
 
@@ -36,6 +40,11 @@ void CommandLoop() {
         std::string cmd = args.at(0);
 
         if (cmd == "exit" || cmd == "quit") {
+            engine_running = false;
+            search_info.stopped = true;
+            search_info.quitting = true;
+            cv.notify_one();
+            search_thread.join();
             break;
         }
         else if (cmd == "help") {
@@ -140,21 +149,24 @@ void CommandLoop() {
                 }
             }
 
-            SearchInfo info;
+            search_info.Reset();
 
-            if (depth > 0) info.depth = depth;
+            if (depth > 0) search_info.depth = depth;
 
-            info.startTime = Utils::GetTimeMS();
+            search_info.startTime = Utils::GetTimeMS();
 
             if (timeSet || useDefault) {
-                info.timeSet = true;
-                info.stopTime = info.startTime + time * 1000;
+                search_info.timeSet = true;
+                search_info.stopTime = search_info.startTime + time * 1000;
             }
 
-            searcher.Search(board, info);
+            search_requested = true;
+            cv.notify_one();
+
+            //searcher.Search(board, search_info);
         }
         else if (cmd == "stop") {
-            
+            search_info.stopped = true;
         }
         else if (cmd == "eval") {
             int eval = Evaluation::Evaluate(board);

@@ -15,7 +15,11 @@ struct SearchInfo {
     bool timeSet = false;
     int startTime;
     int stopTime;
+    bool post = true;
+    bool quitting = false;
     std::atomic<bool> stopped = false;
+
+    void Reset();
 };
 
 class Searcher {
