@@ -23,7 +23,7 @@ TTable::TTable(const int MB) {
         return;
     }
 
-    Reset();
+    Clear();
 
     std::cout << "Initialised transposition table with " << size << " entries.\n";
 }
@@ -32,7 +32,7 @@ TTable::~TTable() {
     free(entries);
 }
 
-void TTable::Reset() {
+void TTable::Clear() {
     if (!entries) return;
     memset(entries, 0, size * sizeof(TEntry));
 }

@@ -21,10 +21,10 @@
 namespace Utils {
     bool ParseMove(Board& board, const int fromSquare, const int toSquare, const char promoted);
     bool ParseMove(Board& board, const char* move);
-    bool ParseMove(Board& board, const std::string move);
+    bool ParseMove(Board& board, const std::string& move);
 
     int ToSquare(const char* square_string);
-    int ToSquare(std::string square_string);
+    int ToSquare(std::string& square_string);
 
     std::string ToSquareString(int square);
     std::string ToMoveString(int move);

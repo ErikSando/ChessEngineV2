@@ -13,7 +13,7 @@ class TTable {
     TTable(const int MB);
     ~TTable();
 
-    void Reset();
+    void Clear();
 
     void StoreEntry(U64 hashKey);
     int GetEntry(U64 positionKey);

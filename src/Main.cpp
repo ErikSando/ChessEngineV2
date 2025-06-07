@@ -5,16 +5,12 @@
 #include "Evaluation.h"
 #include "HashKeys.h"
 
-int main() {
+int main(int argc, char** argv) {
     Attacks::Init();
     Evaluation::Init();
     HashKeys::Init();
 
     CommandLoop();
-
-    // get mvv lva values
-
-    
 
     return 0;
 }

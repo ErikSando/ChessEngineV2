@@ -6,16 +6,15 @@
 #include "Searcher.h"
 #include "Utils.h"
 
-Searcher::Searcher(TTable& t_table) : ttable(t_table) {
-
-}
-
 void SearchInfo::Reset() {
     nodes = 0;
     depth = MAX_DEPTH;
     timeSet = false;
-    post = true;
     stopped = false;
+}
+
+void Searcher::ClearTTable() {
+    ttable.Clear();
 }
 
 inline void CheckTimeUp(SearchInfo& info) {
@@ -123,7 +122,7 @@ void Searcher::Search(Board& board, SearchInfo& info) {
     int beta = INFINITY;
 
     for (int depth = 1; depth <= info.depth; depth++) {
-        int value = AlphaBeta(board, info, depth, alpha, beta);
+        int score = AlphaBeta(board, info, depth, alpha, beta);
 
         if (info.stopped) break;
 
@@ -132,9 +131,30 @@ void Searcher::Search(Board& board, SearchInfo& info) {
 
         if (!info.post) continue;
 
-        std::cout << "info depth " << depth << " cp " << value;
-        std::cout << " nodes " << info.nodes << " time " << time;
-        
+        switch (info.postType) {
+            case DEFAULT: {
+                int knps = 0;
+                double seconds = (double) time / 1000;
+
+                if (seconds > 0) {
+                    knps = info.nodes / seconds / 1000;
+                }
+
+                std::cout << "Depth: " << depth << ", eval: " << score << ", nodes: " << info.nodes;
+                std::cout << ", time: " << time << ", knps: ";
+                knps != 0 ? std::cout << knps : std::cout << "undef";
+                std::cout << ", moves: ";
+                // print pv line
+                break;
+            }
+
+            case UCI:
+                std::cout << "info depth " << depth << " cp " << score;
+                std::cout << " nodes " << info.nodes << " time " << time;
+                std::cout << " pv "; // print pv line
+            break;
+        }
+
         std::cout << "\n";
     }
 

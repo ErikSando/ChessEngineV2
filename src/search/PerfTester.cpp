@@ -3,11 +3,11 @@
 
 #include "Debug.h"
 #include "MoveGen.h"
-#include "Perft.h"
+#include "PerfTester.h"
 #include "Utils.h"
 
-namespace Perft {
-    U64 Perft(Board& board, int depth) {
+namespace PerfTester {
+    U64 CountNodes(Board& board, int depth) {
         // debug(Debug::CheckBoardValid(board));
         //debug(board.CheckValid());
 
@@ -23,14 +23,14 @@ namespace Perft {
 
         for (int i = 0; i < list.length; i++) {
             if (!board.MakeMove(list.moves[i].move)) continue;
-            n += Perft(board, depth - 1);
+            n += CountNodes(board, depth - 1);
             board.TakeMove();
         }
 
         return n;
     }
 
-    void PerftTest(Board& board, int depth) {
+    void PerfTest(Board& board, int depth) {
         U64 nodes = 0;
 
         MoveList list;
@@ -46,7 +46,7 @@ namespace Perft {
             U64 newNodes = 0;
 
             if (!board.MakeMove(move)) continue;
-            newNodes = Perft(board, depth - 1);
+            newNodes = CountNodes(board, depth - 1);
             board.TakeMove();
 
             nodes += newNodes;
@@ -65,9 +65,9 @@ namespace Perft {
             nps = (int) (nodes / seconds);
         }
 
-        std::cout << "Total nodes:         " << nodes << "\n";
-        std::cout << "Duration:            " << duration << " ms\n";
-        std::cout << "Nodes per second:    ";
+        std::cout << "Total nodes:     " << nodes << "\n";
+        std::cout << "Duration:        " << duration << " ms\n";
+        std::cout << "Nodes/second:    ";
         nps != 0 ? std::cout << nps : std::cout << "undefined";
         std::cout << "\n";
     }

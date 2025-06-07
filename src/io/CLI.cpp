@@ -5,7 +5,7 @@
 
 #include "CLI.h"
 #include "Evaluation.h"
-#include "Perft.h"
+#include "PerfTester.h"
 #include "Utils.h"
 
 std::condition_variable cv;
@@ -13,6 +13,13 @@ std::mutex mutex;
 
 bool engine_running = true;
 bool search_requested = false;
+
+void CleanUp(SearchInfo& search_info, std::thread& search_thread) {
+    search_info.stopped = true;
+    search_info.quitting = true;
+    cv.notify_one();
+    search_thread.join();
+}
 
 void CommandLoop() {
     Board board;
@@ -41,53 +48,39 @@ void CommandLoop() {
 
         if (cmd == "exit" || cmd == "quit") {
             engine_running = false;
-            search_info.stopped = true;
-            search_info.quitting = true;
-            cv.notify_one();
-            search_thread.join();
+            CleanUp(search_info, search_thread);
             break;
         }
         else if (cmd == "help") {
-            std::cout << "Type a move without a command to make a move, e.g. g7g8q.\n";
+            std::cout << "Type a move on its own to play it, e.g. g7g8q.\n";
+            std::cout << "Use 'ret' or 'return' to return to this command line mode if in a seperate command line mode e.g. UCI mode.\n";
             std::cout << "help\n - Shows this menu.\n";
             std::cout << "exit | quit\n - Exit the program.\n";
             std::cout << "print\n - Prints the board to the console. White pieces are uppercased, black pieces are lowercased.\n";
             //std::cout << "make | play [move]\n - Play a move. Must be written in from-to-promotion form, e.g. g7g8q.\b";
             std::cout << "take | undo\n - Undo the last move.\n";
             std::cout << "reset\n - Load the starting position.\n";
-            std::cout << "loadfen [fen]\n - Parse the given FEN string.\n";
+            std::cout << "pos [fen]\n - Parse the given FEN string.\n";
             std::cout << "perft [depth]\n - Traverses through the game tree to a specified depth, counting the number of nodes.\n";
-            std::cout << "search | go [...options]\n - Enter UCI mode. Options are: -depth [depth] -time [time]. By default, five seconds is used.\n";
+            std::cout << "search | go [...options]\n - Search for the best move. Options are: depth [ply] time [time in ms]. If no options are given, a time of 5 seconds is used.\n";
+            std::cout << "stop\n - Cancel the search and print the best move found so far.\n";
+            std::cout << "post [true/false]\n - Set whether the engine will print it's results at each depth to the console.";
             std::cout << "eval\n - Calculate and print the static evaluation of the position.\n";
             std::cout << "uci\n - Enter UCI mode.\n";
         }
         else if (cmd == "uci") {
-            UCILoop(board, searcher);
+            UCILoop(board, searcher, search_info, search_thread);
+
+            if (!engine_running) {
+                CleanUp(search_info, search_thread);
+                break;
+            }
+
+            search_info.postType = DEFAULT;
         }
         else if (cmd == "print") {
             board.Print();
         }
-        // else if (cmd == "make" || cmd == "play") {
-        //     if (args.size() < 2) {
-        //         std::cout << "Insufficient arguments" << std::endl;
-        //         std::cout << "Usage: " << cmd << " [move]" << std::endl;
-        //         continue;
-        //     }
-
-        //     std::string move = args.at(1);
-
-        //     if (move.size() < 4) {
-        //         std::cout << "Invalid move: not enough characters.\n";
-        //         continue;
-        //     }
-
-        //     if (!board.ParseMove(move)) {
-        //         std::cout << "Invalid/illegal move.\n";
-        //         continue;
-        //     }
-
-        //     board.Print();
-        // }
         else if (cmd == "take" || cmd == "undo") {
             if (board.ply <= 0) {
                 std::cout << "Cannot take move: no previous board states to revert to.\n";
@@ -98,14 +91,15 @@ void CommandLoop() {
             board.Print();
         }
         else if (cmd == "reset") {
+            searcher.ClearTTable();
             board.ParseFEN(START_FEN);
             board.Print();
         }
-        else if (cmd == "loadfen") {
+        else if (cmd == "pos") {
             std::string fenstr;
 
-            for (int i = 1; i < args.size(); i++) {
-                fenstr += args.at(i) + " ";
+            for (size_t i = 1; i < args.size(); i++) {
+                fenstr += args[i] + " ";
             }
 
             board.ParseFEN(fenstr.c_str());
@@ -113,14 +107,14 @@ void CommandLoop() {
         }
         else if (cmd == "perft") {
             if (args.size() < 2) {
-                std::cout << "Insufficient arguments" << std::endl;
-                std::cout << "Usage: perft [depth]" << std::endl;
+                std::cout << "Insufficient arguments\n";
+                std::cout << "Usage: perft [depth]\n";
                 continue;
             }
 
             int depth = std::stoi(args.at(1));
 
-            Perft::PerftTest(board, depth);
+            PerfTester::PerfTest(board, depth);
         }
         else if (cmd == "search" || cmd == "go") {
             int time = 5;
@@ -129,23 +123,17 @@ void CommandLoop() {
             bool timeSet = false;
             bool useDefault = true;
 
-            for (int i = 1; i < args.size(); i++) {
-                std::string arg = args.at(i);
+            for (size_t i = 1; i < args.size() - 1; i++) {
+                std::string& arg = args[i];
 
-                if (arg == "time") {
+                if (arg == "time" || arg == "movetime") {
                     timeSet = true;
                     useDefault = false;
-
-                    if (i < args.size() - 1) {
-                        time = std::stoi(args.at(i + 1));
-                    }
+                    time = std::stoi(args[i + 1]);
                 }
                 else if (arg == "depth") {
                     useDefault = false;
-
-                    if (i < args.size() - 1) {
-                        depth = std::stoi(args.at(i + 1));
-                    }
+                    depth = std::stoi(args[i + 1]);
                 }
             }
 
@@ -157,16 +145,35 @@ void CommandLoop() {
 
             if (timeSet || useDefault) {
                 search_info.timeSet = true;
-                search_info.stopTime = search_info.startTime + time * 1000;
+                search_info.stopTime = search_info.startTime + time;
             }
 
             search_requested = true;
             cv.notify_one();
-
-            //searcher.Search(board, search_info);
         }
         else if (cmd == "stop") {
             search_info.stopped = true;
+        }
+        else if (cmd == "post") {
+            if (args.size() < 2) {
+                std::cout << "Insufficient arguments\n";
+                std::cout << "Usage: post [true/false]\n";
+                continue;
+            }
+
+            std::string& val = args[1];
+
+            if (val == "true" || val == "1" || val == "on" || val == "enable" || val == "enabled") {
+                search_info.post = true;
+                std::cout << "Engine thinking enabled\n";
+            }
+            else if (val == "false" || val == "0" || val == "off" || val == "disable" || val == "disabled") {
+                search_info.post = false;
+                std::cout << "Engine thinking disabled\n";
+            }
+            else {
+                std::cout << "Unrecognised option '" << val << "'\n";
+            }
         }
         else if (cmd == "eval") {
             int eval = Evaluation::Evaluate(board);

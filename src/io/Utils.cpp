@@ -53,7 +53,7 @@ namespace Utils {
         return ParseMove(board, fromSquare, toSquare, promoted);
     }
     
-    bool ParseMove(Board& board, const std::string move) {
+    bool ParseMove(Board& board, const std::string& move) {
         int fromF = move.at(0) - 'a';
         int fromR = move.at(1) - '1';
         int toF = move.at(2) - 'a';
@@ -77,7 +77,7 @@ namespace Utils {
         return ToSquare(square[0], square[1]);
     }
 
-    int ToSquare(std::string square) {
+    int ToSquare(std::string& square) {
         return ToSquare(square[0], square[1]);
     }
 

@@ -9,12 +9,17 @@
 constexpr int MAX_DEPTH = 64;
 constexpr int INFINITY = 30000;
 
+enum PostType {
+    DEFAULT, UCI
+};
+
 struct SearchInfo {
     int nodes = 0;
-    int depth = MAX_DEPTH;
-    bool timeSet = false;
     int startTime;
     int stopTime;
+    int depth = MAX_DEPTH;
+    int postType = DEFAULT;
+    bool timeSet = false;
     bool post = true;
     bool quitting = false;
     std::atomic<bool> stopped = false;
@@ -25,9 +30,10 @@ struct SearchInfo {
 class Searcher {
     public:
 
-    Searcher(TTable& ttable);
+    Searcher(TTable& t_table) : ttable(t_table) {}
 
-    void Search(Board& board, SearchInfo& sinfo);
+    void ClearTTable();
+    void Search(Board& board, SearchInfo& info);
 
     private:
 

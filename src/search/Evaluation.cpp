@@ -70,6 +70,6 @@ namespace Evaluation {
 
         int eval = (mgEval * mgPhase + egEval * egPhase) / 24;
 
-        return board.side == WHITE ? eval : -eval;
+        return board.side == WHITE ? eval + Heuristics::Tempo : -eval + Heuristics::Tempo;
     }
 }
