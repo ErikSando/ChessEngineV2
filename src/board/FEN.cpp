@@ -7,7 +7,6 @@
 void Board::ParseFEN(const char* fen) {
     int file = FILE_A;
     int rank = RANK_8;
-    // int numKings[2] = { 0, 0 };
 
     U64 new_bitboards[12]{};
     U64 new_occupancy[3]{};
@@ -16,6 +15,8 @@ void Board::ParseFEN(const char* fen) {
     int new_castlingPerms = 0;
     int new_fiftyMoveCount;
     int new_enPassant = NO_SQUARE;
+
+    bigPieces[WHITE] = bigPieces[BLACK] = 0;
 
     const char* ptr = fen;
 
@@ -80,8 +81,14 @@ void Board::ParseFEN(const char* fen) {
             case 'q':
             case 'k':
                 int piece = PieceID(c);
+                int side = PIECE_SIDE[piece];
+                
                 SetBit(new_bitboards[piece], square);
-                SetBit(new_occupancy[PIECE_SIDE[piece]], square);
+                SetBit(new_occupancy[side], square);
+
+                if (IS_BIG_PIECE[piece]) {
+                    bigPieces[side]++;
+                }
             break;
         }
     }

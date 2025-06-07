@@ -1,17 +1,12 @@
 #include <iostream>
+#include <sstream>
+#include <string.h>
 
 #include "Board.h"
 #include "Evaluation.h"
 #include "MoveGen.h"
 #include "Searcher.h"
 #include "Utils.h"
-
-void SearchInfo::Reset() {
-    nodes = 0;
-    depth = MAX_DEPTH;
-    timeSet = false;
-    stopped = false;
-}
 
 void Searcher::ClearTTable() {
     ttable.Clear();
@@ -82,7 +77,7 @@ int Searcher::Quiescence(Board& board, SearchInfo& info, int alpha, int beta) {
     return alpha;
 }
 
-int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, int beta) {
+int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, int beta, bool doNull) {
     if ((info.nodes & 4095) == 0) CheckTimeUp(info);
     if (info.stopped) return 0;
     if (depth <= 0) return Quiescence(board, info, alpha, beta);
@@ -96,6 +91,20 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
     int score = ttable.GetEntry(board.hashKey, pvMove, alpha, beta, depth);
 
     if (board.ply && !pvNode && score != NO_SCORE) return score;
+
+    int kingPiece = board.side == WHITE ? WK : BK;
+    int kingSquare = FirstBitIndex(board.bitboards[kingPiece]);
+    bool inCheck = board.IsSquareAttacked(kingSquare);
+
+    int R = NULL_MOVE_REDUCTION + (depth > 6);
+
+    if (doNull && !inCheck && depth > R + 1 && board.bigPieces[board.side] > 1) {
+        board.MakeNullMove();
+        int score = -AlphaBeta(board, info, depth - 1 - R, beta - 1, beta, false);
+        board.TakeNullMove();
+
+        if (score >= beta && std::abs(score) < MATE_SCORE) return beta;
+    }
 
     MoveList list;
     MoveGen::GenerateMoves(board, list);
@@ -119,7 +128,7 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
         int move = list.moves[i].move;
 
         if (!board.MakeMove(move)) continue;
-        int score = -AlphaBeta(board, info, depth - 1, -beta, -alpha);
+        int score = -AlphaBeta(board, info, depth - 1, -beta, -alpha, doNull);
         legalMoves++;
         board.TakeMove();
 
@@ -136,9 +145,7 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
     }
 
     if (!legalMoves) {
-        int KP = board.side == WHITE ? WK : BK;
-        if (board.IsSquareAttacked(FirstBitIndex(board.bitboards[KP]))) return -INF + board.ply;
-        else return 0;
+        return inCheck ? -INF + board.ply : 0;
     }
 
     ttable.StoreEntry(board.hashKey, bestMove, alpha, hashFlag, depth);
@@ -147,18 +154,53 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
 }
 
 void Searcher::Search(Board& board, SearchInfo& info) {
+    board.ply = 0;
+    ttable.age++;
+
+    info.nodes = 0ULL;
+    info.stopped = false;
+
     int alpha = -INF;
     int beta = INF;
+    int fails = 0;
 
-    for (int depth = 1; depth <= info.depth; depth++) {
-        int score = AlphaBeta(board, info, depth, alpha, beta);
+    int pvLine[MAX_DEPTH];
+    memset(pvLine, 0, sizeof(pvLine));
+
+    for (int depth = 1; depth <= info.depth;) {
+        int score = AlphaBeta(board, info, depth, alpha, beta, true);
+
+        if (score <= alpha) {
+            int delta = CalculateWindow(fails);
+            fails++;
+            alpha = score - delta;
+            continue;
+        }
+
+        if (score >= beta) {
+            int delta = CalculateWindow(fails);
+            fails++;
+            beta = score + delta;
+            continue;
+        }
+
+        fails = 0;
+        alpha = score - ASPIRATION_WINDOW;
+        beta = score + ASPIRATION_WINDOW;
 
         if (info.stopped) break;
 
-        int now = Utils::GetTimeMS();
-        int time = now - info.startTime;
+        int time = Utils::GetTimeMS() - info.startTime;
 
         if (!info.post) continue;
+
+        ttable.GetPVLine(board, pvLine, depth);
+
+        std::ostringstream pvString;
+
+        for (int i = 0; i < MAX_DEPTH && pvLine[i]; i++) {
+            pvString << " " << Utils::ToMoveString(pvLine[i]);
+        }
 
         switch (info.postType) {
             case DEFAULT: {
@@ -172,22 +214,23 @@ void Searcher::Search(Board& board, SearchInfo& info) {
                 std::cout << "Depth: " << depth << ", eval: " << score << ", nodes: " << info.nodes;
                 std::cout << ", time: " << time << ", knps: ";
                 knps != 0 ? std::cout << knps : std::cout << "undef";
-                std::cout << ", moves: ";
-                // print pv line
+                std::cout << ", moves:" << pvString.str();
                 break;
             }
 
             case UCI:
-                std::cout << "info depth " << depth << " cp " << score;
+                std::cout << "info depth " << depth << " score cp " << score;
                 std::cout << " nodes " << info.nodes << " time " << time;
-                std::cout << " pv "; // print pv line
+                std::cout << " pv" << pvString.str();
             break;
         }
 
-        std::cout << "\n";
+        std::cout << std::endl; // need to flush std::cout
+
+        depth++;
     }
 
     if (info.quitting) return;
 
-    std::cout << "bestmove " << "\n";
+    std::cout << "bestmove " << Utils::ToMoveString(pvLine[0]) << std::endl;
 }

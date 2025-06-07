@@ -48,9 +48,9 @@ void TTable::StoreEntry(U64 hashKey, int move, int score, int flag, int depth) {
     entry->age = age;
 }
 
-int TTable::GetEntry(U64 hashKey, int& pvMove, int alpha, int beta, int depth) {
+int TTable::GetEntry(U64 hashKey, int& pvMove, int alpha, int beta, int depth) const {
     int index = hashKey % size;
-    TTEntry* entry = &entries[index];
+    const TTEntry* entry = &entries[index];
 
     if (hashKey != entry->hashKey) return NO_SCORE;
 
@@ -67,4 +67,25 @@ int TTable::GetEntry(U64 hashKey, int& pvMove, int alpha, int beta, int depth) {
     }
 
     return NO_SCORE;
+}
+
+int TTable::GetPVMove(U64 hashKey) const {
+    int index = hashKey % size;
+    const TTEntry* entry = &entries[index];
+
+    return entry->move * (hashKey == entry->hashKey);
+}
+
+void TTable::GetPVLine(Board& board, int* pvLine, int depth) const {
+    int ply;
+
+    for (ply = 0; ply < depth && ply < MAX_DEPTH; ply++) {
+        int move = GetPVMove(board.hashKey);
+        if (!move || !board.MakeMove(move)) break;
+        pvLine[ply] = move;
+    }
+
+    if (ply < MAX_DEPTH) pvLine[ply] = 0;
+
+    while (board.ply) board.TakeMove();
 }

@@ -24,13 +24,17 @@ class Board {
     void CheckValid();
     bool CheckValidQuiet(); // no asserts
 
-    //bool CheckDraw(); // dont think I need this here
-
     bool MakeMove(const int move);
     void TakeMove();
 
-    bool IsSquareAttacked(int square) const;
+    void MakeNullMove();
+    void TakeNullMove();
+
     bool IsSquareAttacked(int square, int side) const;
+
+    inline bool IsSquareAttacked(int square) const {
+        return IsSquareAttacked(square, side);
+    }
 
     U64 bitboards[12];
     U64 occupancy[3];
@@ -40,8 +44,10 @@ class Board {
     BoardInfo history[MAX_GAME_MOVES];
 
     int ply = 0;
-    int fiftyMoveCount = 0;
+    int fiftyMoveCount;
     int enPassant = NO_SQUARE;
     int side = WHITE;
-    int castlingPerms = 0;
+    int castlingPerms;
+    
+    int bigPieces[2];
 };

@@ -44,6 +44,9 @@ void Board::TakeMove() {
             int captured = GetCapturedPiece(move);
             SetBit(bitboards[captured], toSquare);
             SetBit(occupancy[enemy], toSquare);
+
+            if (IS_BIG_PIECE[captured]) bigPieces[enemy]++;
+
             break;
         }
 
@@ -69,4 +72,13 @@ void Board::TakeMove() {
     }
 
     occupancy[BOTH] = occupancy[WHITE] | occupancy[BLACK];
+}
+
+void Board::TakeNullMove() {
+    ply--;
+
+    hashKey = history[ply].hashKey;
+    enPassant = history[ply].enPassant;
+
+    side ^= 1;
 }

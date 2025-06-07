@@ -1,10 +1,16 @@
 #pragma once
 
 #include <atomic>
-#include <condition_variable>
-#include <mutex>
 
 #include "TTable.h"
+
+constexpr int NULL_MOVE_REDUCTION = 2;
+constexpr int ASPIRATION_WINDOW = 50;
+constexpr int WINDOW_EXPANSION_FACTOR = 30;
+
+inline int CalculateWindow(int fails) {
+    return ASPIRATION_WINDOW + fails * WINDOW_EXPANSION_FACTOR;
+}
 
 enum PostType {
     DEFAULT, UCI
@@ -20,8 +26,6 @@ struct SearchInfo {
     bool post = true;
     bool quitting = false;
     std::atomic<bool> stopped = false;
-
-    void Reset();
 };
 
 class Searcher {
@@ -37,5 +41,5 @@ class Searcher {
     TTable& ttable;
 
     int Quiescence(Board& board, SearchInfo& info, int alpha, int beta);
-    int AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, int beta);
+    int AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, int beta, bool doNull);
 };

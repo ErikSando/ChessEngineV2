@@ -70,15 +70,6 @@ bool Board::IsSquareAttacked(int square, int side) const {
     return false;
 }
 
-bool Board::IsSquareAttacked(int square) const {
-    return IsSquareAttacked(square, side);
-}
-
-// bool Board::CheckDraw() {
-//     if (fiftyMoveCount >= 50) return true;
-
-//     // check material draw
-//     // check three fold repetition
-
-//     return false;
+// bool Board::IsSquareAttacked(int square) const {
+//     return IsSquareAttacked(square, side);
 // }

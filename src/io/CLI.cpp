@@ -23,6 +23,8 @@ void CleanUp(SearchInfo& search_info, std::thread& search_thread) {
     search_thread.join();
 }
 
+#include "MoveGen.h"
+
 void CommandLoop() {
     Board board;
     TTable ttable(64);
@@ -127,36 +129,27 @@ void CommandLoop() {
             cv.notify_one();
         }
         else if (cmd == "search" || cmd == "go") {
-            int time = 5;
-            int depth = 0;
+            int time = 5000;
+            int depth = MAX_DEPTH;
 
             bool timeSet = false;
-            bool useDefault = true;
 
             for (size_t i = 1; i < args.size() - 1; i++) {
                 std::string& arg = args[i];
 
                 if (arg == "time" || arg == "movetime") {
                     timeSet = true;
-                    useDefault = false;
                     time = std::stoi(args[i + 1]);
                 }
                 else if (arg == "depth") {
-                    useDefault = false;
                     depth = std::stoi(args[i + 1]);
                 }
             }
 
-            search_info.Reset();
-
-            if (depth > 0) search_info.depth = depth;
-
+            search_info.depth = std::min(depth, MAX_DEPTH);
+            search_info.timeSet = timeSet;
             search_info.startTime = Utils::GetTimeMS();
-
-            if (timeSet || useDefault) {
-                search_info.timeSet = true;
-                search_info.stopTime = search_info.startTime + time;
-            }
+            search_info.stopTime = search_info.startTime + time;
 
             search_requested = true;
             cv.notify_one();

@@ -43,10 +43,7 @@ void UCILoop(Board& board, Searcher& searcher, SearchInfo& search_info, std::thr
             int movetime = -1;
             int inc = 0;
             int movestogo = 30;
-
             int time = -1;
-
-            bool timeSet = false;
 
             for (size_t i = 1; i < args.size() - 1; i++) {
                 std::string& arg = args[i];
@@ -61,24 +58,24 @@ void UCILoop(Board& board, Searcher& searcher, SearchInfo& search_info, std::thr
                 else if (arg == "movestogo") movestogo = std::stoi(val);
             }
 
-            search_info.Reset();
-
             if (movetime != -1) { // movetime takes precedence over wtime/btime
                 time = movetime;
                 movestogo = 1;
             }
 
-            if (time != -1) {
+            bool timeSet = time != -1;
+
+            search_info.depth = std::min(depth, MAX_DEPTH);
+            search_info.timeSet = timeSet;
+
+            if (timeSet) {
                 time /= movestogo;
                 time += inc;
                 time -= 50; // safety
 
-                search_info.timeSet = true;
                 search_info.startTime = Utils::GetTimeMS();
                 search_info.stopTime = search_info.startTime + time;
             }
-
-            search_info.depth = depth;
 
             search_requested = true;
             cv.notify_one();
@@ -127,7 +124,7 @@ void UCILoop(Board& board, Searcher& searcher, SearchInfo& search_info, std::thr
             std::cout << "info name " << ENGINE_NAME << " v" << ENGINE_VERSION << "\n";
             std::cout << "info author " << ENGINE_AUTHOR << "\n";
         }
-        else if (cmd == "ready") {
+        else if (cmd == "isready") {
             std::cout << "readyok\n";
         }
     }

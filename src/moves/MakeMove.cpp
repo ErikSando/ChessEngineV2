@@ -26,6 +26,7 @@ bool Board::MakeMove(const int move) {
 
     ply++;
 
+    int enemy = side ^ 1;
     int fromSquare = GetFromSquare(move);
     int toSquare = GetToSquare(move);
     int piece = GetMovedPiece(move);
@@ -51,6 +52,7 @@ bool Board::MakeMove(const int move) {
     if (promoted) {
         SetBit(bitboards[promoted], toSquare);
         HashPiece(hashKey, promoted, toSquare);
+        bigPieces[side]++;
     }
     else {
         SetBit(bitboards[piece], toSquare);
@@ -65,8 +67,11 @@ bool Board::MakeMove(const int move) {
         case CAPTURE_FLAG: {
             int captured = GetCapturedPiece(move);
             ClearBit(bitboards[captured], toSquare);
-            ClearBit(occupancy[side ^ 1], toSquare);
+            ClearBit(occupancy[enemy], toSquare);
             HashPiece(hashKey, captured, toSquare);
+
+            if (IS_BIG_PIECE[captured]) bigPieces[enemy]--;
+
             break;
         }
 
@@ -117,4 +122,19 @@ bool Board::MakeMove(const int move) {
     }
 
     return true;
+}
+
+void Board::MakeNullMove() {
+    history[ply].hashKey = hashKey;
+    history[ply].enPassant = enPassant;
+
+    ply++;
+
+    side ^= 1;
+    HashSide(hashKey);
+
+    if (enPassant != NO_SQUARE) {
+        HashEnPassant(hashKey, enPassant);
+        enPassant = NO_SQUARE;
+    }
 }
