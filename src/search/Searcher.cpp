@@ -91,35 +91,64 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
 
     if (board.fiftyMoveCount >= 100 || ThreeFoldRepetition(board)) return 0;
 
+    int pvNode = beta - alpha > 1;
+    int pvMove = 0;
+    int score = ttable.GetEntry(board.hashKey, pvMove, alpha, beta, depth);
+
+    if (board.ply && !pvNode && score != NO_SCORE) return score;
+
     MoveList list;
     MoveGen::GenerateMoves(board, list);
+
+    if (pvMove) {
+        for (int i = 0; i < list.length; i++) {
+            if (pvMove == list.moves[i].move) {
+                list.moves[i].score = INF;
+                break;
+            }
+        }
+    }
+
     OrderMoves(list);
 
     int legalMoves = 0;
+    int bestMove = 0;
+    int hashFlag = ALPHA_FLAG;
 
     for (int i = 0; i < list.length; i++) {
-        if (!board.MakeMove(list.moves[i].move)) continue;
+        int move = list.moves[i].move;
+
+        if (!board.MakeMove(move)) continue;
         int score = -AlphaBeta(board, info, depth - 1, -beta, -alpha);
         legalMoves++;
         board.TakeMove();
 
-        if (score >= beta) return beta;
-        if (score > alpha) alpha = score;
+        if (score >= beta) {
+            ttable.StoreEntry(board.hashKey, move, score, BETA_FLAG, depth);
+            return beta;
+        }
+
+        if (score > alpha) {
+            alpha = score;
+            bestMove = move;
+            hashFlag = EXACT_FLAG;
+        }
     }
 
     if (!legalMoves) {
         int KP = board.side == WHITE ? WK : BK;
-
-        if (board.IsSquareAttacked(FirstBitIndex(board.bitboards[KP]))) return -INFINITY + board.ply;
+        if (board.IsSquareAttacked(FirstBitIndex(board.bitboards[KP]))) return -INF + board.ply;
         else return 0;
     }
+
+    ttable.StoreEntry(board.hashKey, bestMove, alpha, hashFlag, depth);
 
     return alpha;
 }
 
 void Searcher::Search(Board& board, SearchInfo& info) {
-    int alpha = -INFINITY;
-    int beta = INFINITY;
+    int alpha = -INF;
+    int beta = INF;
 
     for (int depth = 1; depth <= info.depth; depth++) {
         int score = AlphaBeta(board, info, depth, alpha, beta);

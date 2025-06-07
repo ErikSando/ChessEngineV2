@@ -3,6 +3,11 @@
 constexpr int NO_SQUARE = -1;
 constexpr int MAX_GAME_MOVES = 2048;
 
+constexpr int MAX_DEPTH = 64;
+constexpr int INF = 10000;
+constexpr int MATE_SCORE = INF - MAX_DEPTH;
+constexpr int NO_SCORE = INF + 1;
+
 enum Side {
     WHITE, BLACK, BOTH
 };

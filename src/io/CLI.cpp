@@ -13,6 +13,8 @@ std::mutex mutex;
 
 bool engine_running = true;
 bool search_requested = false;
+bool perft_requested = false;
+int perft_depth = 1;
 
 void CleanUp(SearchInfo& search_info, std::thread& search_thread) {
     search_info.stopped = true;
@@ -23,11 +25,11 @@ void CleanUp(SearchInfo& search_info, std::thread& search_thread) {
 
 void CommandLoop() {
     Board board;
-    TTable ttable(0);
+    TTable ttable(64);
     Searcher searcher(ttable);
     SearchInfo search_info;
 
-    std::thread search_thread(SearchThread, std::ref(board), std::ref(searcher), std::ref(search_info));
+    std::thread search_thread(WorkerThread, std::ref(board), std::ref(searcher), std::ref(search_info));
 
     std::string command;
 
@@ -112,9 +114,17 @@ void CommandLoop() {
                 continue;
             }
 
-            int depth = std::stoi(args.at(1));
+            int depth = std::stoi(args[1]);
 
-            PerfTester::PerfTest(board, depth);
+            if (depth < 1) {
+                std::cout << "Perft depth must be at least 1.\n";
+                continue;
+            }
+
+            stop_perft = false;
+            perft_depth = depth;
+            perft_requested = true;
+            cv.notify_one();
         }
         else if (cmd == "search" || cmd == "go") {
             int time = 5;
@@ -153,6 +163,7 @@ void CommandLoop() {
         }
         else if (cmd == "stop") {
             search_info.stopped = true;
+            stop_perft = true;
         }
         else if (cmd == "post") {
             if (args.size() < 2) {

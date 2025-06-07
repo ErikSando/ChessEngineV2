@@ -6,9 +6,6 @@
 
 #include "TTable.h"
 
-constexpr int MAX_DEPTH = 64;
-constexpr int INFINITY = 30000;
-
 enum PostType {
     DEFAULT, UCI
 };

@@ -6,6 +6,8 @@
 #include "PerfTester.h"
 #include "Utils.h"
 
+std::atomic<bool> stop_perft = false;
+
 namespace PerfTester {
     U64 CountNodes(Board& board, int depth) {
         // debug(Debug::CheckBoardValid(board));
@@ -27,6 +29,8 @@ namespace PerfTester {
             board.TakeMove();
         }
 
+        if (stop_perft) return 0;
+
         return n;
     }
 
@@ -38,7 +42,7 @@ namespace PerfTester {
 
         std::cout << "Running perft to depth " << depth << "...\n";
 
-        auto start = std::chrono::high_resolution_clock::now();
+        int start = Utils::GetTimeMS();
 
         for (int i = 0; i < list.length; i++) {
             int move = list.moves[i].move;
@@ -51,11 +55,16 @@ namespace PerfTester {
 
             nodes += newNodes;
 
+            if (stop_perft) {
+                std::cout << "Stopping perft.\n";
+                return;
+            }
+
             std::cout << Utils::ToMoveString(move) << ": " << newNodes << "\n";
         }
 
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        int end = Utils::GetTimeMS();
+        int duration = end - start;
 
         int nps = 0;
 

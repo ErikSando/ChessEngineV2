@@ -2,9 +2,17 @@
 
 #include "Globals.h"
 
-struct TEntry {
-    U64 positionKey;
-    int eval;
+enum TTFlag {
+    EXACT_FLAG, ALPHA_FLAG, BETA_FLAG
+};
+
+struct TTEntry {
+    U64 hashKey;
+    int move;
+    int score;
+    int flag;
+    int depth;
+    int age;
 };
 
 class TTable {
@@ -15,11 +23,12 @@ class TTable {
 
     void Clear();
 
-    void StoreEntry(U64 hashKey);
-    int GetEntry(U64 positionKey);
+    void StoreEntry(U64 hashKey, int move, int score, int flag, int depth);
+    int GetEntry(U64 hashKey, int& pvMove, int alpha, int beta, int depth);
 
     private:
 
+    int age;
     int size;
-    TEntry* entries;
+    TTEntry* entries;
 };
