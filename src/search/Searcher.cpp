@@ -6,6 +6,10 @@
 #include "Searcher.h"
 #include "Utils.h"
 
+Searcher::Searcher(TTable& t_table) : ttable(t_table) {
+
+}
+
 inline void CheckTimeUp(SearchInfo& info) {
     info.stopped = info.timeSet && (Utils::GetTimeMS() > info.stopTime);
     // check if stop command was written here
@@ -42,8 +46,8 @@ inline void OrderMoves(MoveList& list) {
     }
 }
 
-int Quiescence(Board& board, SearchInfo& info, int alpha, int beta) {
-    if (info.nodes & 4095 == 0) CheckTimeUp(info);
+int Searcher::Quiescence(Board& board, SearchInfo& info, int alpha, int beta) {
+    if ((info.nodes & 4095) == 0) CheckTimeUp(info);
     if (info.stopped) return 0;
 
     info.nodes++;
@@ -72,7 +76,7 @@ int Quiescence(Board& board, SearchInfo& info, int alpha, int beta) {
 }
 
 int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, int beta) {
-    if (info.nodes & 4095 == 0) CheckTimeUp(info);
+    if ((info.nodes & 4095) == 0) CheckTimeUp(info);
     if (info.stopped) return 0;
     if (depth <= 0) return Quiescence(board, info, alpha, beta);
 

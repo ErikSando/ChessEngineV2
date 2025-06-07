@@ -84,7 +84,7 @@ namespace MoveGen {
 
             if (board.enPassant != NO_SQUARE) {
                 if (IsBitSet(Attacks::PawnCaptures[side][fromSquare], board.enPassant)) {
-                    AddMove(list, 0, EncodeMove(fromSquare, board.enPassant, piece, 0, 0, ENPASSANT_FLAG));
+                    AddMove(list, MVV_LVA_SCORE[P][P], EncodeMove(fromSquare, board.enPassant, piece, 0, 0, ENPASSANT_FLAG));
                 }
             }
 
@@ -92,10 +92,10 @@ namespace MoveGen {
                 int toSquare = PopFirstBit(moves);
 
                 if (GetRank(toSquare) == promotionRank) {
-                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, 0, piece + 4, 0));
-                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, 0, piece + 3, 0));
-                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, 0, piece + 2, 0));
-                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, 0, piece + 1, 0));
+                    AddMove(list, MVV_LVA_SCORE[Q][P], EncodeMove(fromSquare, toSquare, piece, 0, piece + 4, 0));
+                    AddMove(list, MVV_LVA_SCORE[R][P], EncodeMove(fromSquare, toSquare, piece, 0, piece + 3, 0));
+                    AddMove(list, MVV_LVA_SCORE[B][P], EncodeMove(fromSquare, toSquare, piece, 0, piece + 2, 0));
+                    AddMove(list, MVV_LVA_SCORE[N][P], EncodeMove(fromSquare, toSquare, piece, 0, piece + 1, 0));
                     continue;
                 }
 
@@ -118,14 +118,15 @@ namespace MoveGen {
                 }
 
                 if (GetRank(toSquare) == promotionRank) {
-                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, piece + 4, CAPTURE_FLAG));
-                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, piece + 3, CAPTURE_FLAG));
-                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, piece + 2, CAPTURE_FLAG));
-                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, piece + 1, CAPTURE_FLAG));
+                    int mvvlva = MVV_LVA_SCORE[piece][captured];
+                    AddMove(list, MVV_LVA_SCORE[Q][P] + mvvlva, EncodeMove(fromSquare, toSquare, piece, captured, piece + 4, CAPTURE_FLAG));
+                    AddMove(list, MVV_LVA_SCORE[R][P] + mvvlva, EncodeMove(fromSquare, toSquare, piece, captured, piece + 3, CAPTURE_FLAG));
+                    AddMove(list, MVV_LVA_SCORE[B][P] + mvvlva, EncodeMove(fromSquare, toSquare, piece, captured, piece + 2, CAPTURE_FLAG));
+                    AddMove(list, MVV_LVA_SCORE[N][P] + mvvlva, EncodeMove(fromSquare, toSquare, piece, captured, piece + 1, CAPTURE_FLAG));
                     continue;
                 }
 
-                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
+                AddMove(list, MVV_LVA_SCORE[captured][P], EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
             }
         }
 
@@ -141,6 +142,7 @@ namespace MoveGen {
                 int toSquare = PopFirstBit(moves);
                 int captured = captureStart;
                 int flag = 0;
+                int score = 0;
 
                 if (IsBitSet(board.occupancy[enemy], toSquare)) {
                     flag = CAPTURE_FLAG;
@@ -148,9 +150,11 @@ namespace MoveGen {
                     for (; captured < captureStart + 6; captured++) {
                         if (IsBitSet(board.bitboards[captured], toSquare)) break;
                     }
+
+                    score = MVV_LVA_SCORE[captured][N];
                 }
 
-                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
+                AddMove(list, score, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
             }
         }
 
@@ -166,6 +170,7 @@ namespace MoveGen {
                 int toSquare = PopFirstBit(moves);
                 int captured = captureStart;
                 int flag = 0;
+                int score = 0;
 
                 if (IsBitSet(board.occupancy[enemy], toSquare)) {
                     flag = CAPTURE_FLAG;
@@ -173,9 +178,11 @@ namespace MoveGen {
                     for (; captured < captureStart + 6; captured++) {
                         if (IsBitSet(board.bitboards[captured], toSquare)) break;
                     }
+
+                    score = MVV_LVA_SCORE[captured][B];
                 }
 
-                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
+                AddMove(list, score, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
             }
         }
 
@@ -191,6 +198,7 @@ namespace MoveGen {
                 int toSquare = PopFirstBit(moves);
                 int captured = captureStart;
                 int flag = 0;
+                int score = 0;
 
                 if (IsBitSet(board.occupancy[enemy], toSquare)) {
                     flag = CAPTURE_FLAG;
@@ -198,9 +206,11 @@ namespace MoveGen {
                     for (; captured < captureStart + 6; captured++) {
                         if (IsBitSet(board.bitboards[captured], toSquare)) break;
                     }
+
+                    score = MVV_LVA_SCORE[captured][R];
                 }
 
-                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
+                AddMove(list, score, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
             }
         }
 
@@ -216,6 +226,7 @@ namespace MoveGen {
                 int toSquare = PopFirstBit(moves);
                 int captured = captureStart;
                 int flag = 0;
+                int score = 0;
 
                 if (IsBitSet(board.occupancy[enemy], toSquare)) {
                     flag = CAPTURE_FLAG;
@@ -223,9 +234,11 @@ namespace MoveGen {
                     for (; captured < captureStart + 6; captured++) {
                         if (IsBitSet(board.bitboards[captured], toSquare)) break;
                     }
+
+                    score = MVV_LVA_SCORE[captured][Q];
                 }
 
-                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
+                AddMove(list, score, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
             }
         }
 
@@ -243,6 +256,7 @@ namespace MoveGen {
 
                 int captured = captureStart;
                 int flag = 0;
+                int score = 0;
 
                 if (IsBitSet(board.occupancy[enemy], toSquare)) {
                     flag = CAPTURE_FLAG;
@@ -250,9 +264,11 @@ namespace MoveGen {
                     for (; captured < captureStart + 6; captured++) {
                         if (IsBitSet(board.bitboards[captured], toSquare)) break;
                     }
+
+                    score = MVV_LVA_SCORE[captured][K];
                 }
 
-                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
+                AddMove(list, score, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
             }
         }
     }

@@ -5,12 +5,11 @@
 #include "CLI.h"
 #include "Utils.h"
 
-void UCILoop(Board& board, TTable& ttable, Searcher& searcher) {
+void UCILoop(Board& board, Searcher& searcher) {
     std::cout << "uciok\n";
     std::string command;
 
     for (;;) {
-        std::cout << "> ";
         std::getline(std::cin, command);
 
         std::istringstream iss(command);
@@ -28,6 +27,19 @@ void UCILoop(Board& board, TTable& ttable, Searcher& searcher) {
         if (cmd == "exit" || cmd == "quit") {
             break;
         }
+        else if (cmd == "ret" || cmd == "return") {
+            std::cout << "Returning to default command line.\n";
+            return;
+        }
+        else if (cmd == "go") {
+            // go depth ... movetime ... wtime ... btime ... winc ... binc ... movestogo ...
+        }
+        else if (cmd == "position") {
+            // position startpos
+            // position fen ...
+            // position moves e2e4 d2d4 ...
+
+        }
         else if (cmd == "ucinewgame") {
             board.ParseFEN(START_FEN);
         }
@@ -40,15 +52,6 @@ void UCILoop(Board& board, TTable& ttable, Searcher& searcher) {
         }
         else if (cmd == "ready") {
             std::cout << "readyok\n";
-        }
-        else if (cmd == "position") {
-            // position startpos
-            // position fen ...
-            // position moves e2e4 d2d4 ...
-
-        }
-        else if (cmd == "go") {
-            // go depth ... movetime ... wtime ... btime ... winc ... binc ... movestogo ...
         }
     }
 }

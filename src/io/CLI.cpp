@@ -1,5 +1,8 @@
+#include <condition_variable>
 #include <iostream>
+#include <mutex>
 #include <sstream>
+#include <thread>
 #include <vector>
 
 #include "CLI.h"
@@ -8,6 +11,9 @@
 #include "Utils.h"
 
 void CommandLoop() {
+    std::mutex mutex;
+    std::condition_variable cv;
+
     Board board;
     TTable ttable(0);
     Searcher searcher(ttable);
@@ -45,6 +51,9 @@ void CommandLoop() {
             std::cout << "search | go [...options]\n - Enter UCI mode. Options are: -depth [depth] -time [time]. By default, five seconds is used.\n";
             std::cout << "eval\n - Calculate and print the static evaluation of the position.\n";
             std::cout << "uci\n - Enter UCI mode.\n";
+        }
+        else if (cmd == "uci") {
+            UCILoop(board, searcher);
         }
         else if (cmd == "print") {
             board.Print();
@@ -144,37 +153,15 @@ void CommandLoop() {
 
             searcher.Search(board, info);
         }
+        else if (cmd == "stop") {
+            
+        }
         else if (cmd == "eval") {
             int eval = Evaluation::Evaluate(board);
 
             std::cout << "Static evaluation: " << eval << "\n";
         }
-        else if (cmd == "uci") {
-            UCILoop(board, ttable, searcher);
-        }
-        // debug commands
-        #ifndef NDEBUG
-
-        else if (cmd == "sqatt") {
-            if (args.size() < 2) {
-                std::cout << "Insufficient arguments" << std::endl;
-                std::cout << "Usage: sqatt [square]" << std::endl;
-                continue;
-            }
-
-            std::string squarestr = args.at(1);
-            int square = Utils::ToSquare(squarestr);
-
-            std::cout << (board.IsSquareAttacked(square) ? "True" : "False") << "\n";
-        }
-
-        #endif
-
         else {
-            // if (cmd.size() > 0) {
-            //     std::cout << "Unknown command: '" << cmd << "'. Use 'help' for a list of commands.\n";
-            // }
-
             std::string move = cmd;
 
             if (move.size() < 4) {

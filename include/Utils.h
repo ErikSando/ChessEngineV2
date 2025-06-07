@@ -1,15 +1,19 @@
 #pragma once
 
+#include <chrono>
 #include <iostream>
+#include <thread>
 
 #include "Board.h"
 #include "Globals.h"
-
+#include "Searcher.h"
 
 #ifdef _WIN32
     #include <Windows.h>
 #elif defined(__APPLE__)
     #include <mach/mach_time.h>
+    #include <sys/select.h>
+    #include <unistd.h>
 #else
     #include <time.h>
 #endif
@@ -45,5 +49,45 @@ namespace Utils {
             clock_gettime(CLOCK_MONOTONIC, &ts);
             return static_cast<int>(ts.tv_sec * 1000 + ts.tv_nsec / 1000000);
         #endif
+    }
+
+    inline void CheckStop(SearchInfo* info) {
+        std::string command;
+
+        while (!info->stopped) {
+            std::cout << "waiting: " << std::cin.rdbuf()->in_avail() << "\n";
+            if (std::cin.rdbuf()->in_avail() > 0) {
+                std::cout << "Getting input" << "\n";
+                std::getline(std::cin, command);
+
+                if (command == "stop") {
+                    info->stopped = true;
+                    break;
+                }
+
+                if (command == "exit" || command == "quit") {
+                    info->stopped = true;
+                    // exit program entirely
+                }
+            }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        }
+
+        // while (std::getline(std::cin, command)) {
+
+
+            // if (command == "stop") {
+            //     info.stopped = true;
+            //     break;
+            // }
+
+            // if (command == "exit" || command == "quit") {
+            //     info.stopped = true;
+            //     // exit program entirely
+            // }
+
+        //     break;
+        // }
     }
 }

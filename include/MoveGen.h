@@ -29,4 +29,23 @@ inline void AddMove(MoveList& list, int score, int move) {
 namespace MoveGen {
     void GenerateMoves(const Board& board, MoveList& list);
     void GenerateCaptures(const Board& board, MoveList& list);
+
+    enum MvvLvaIndex {
+        P, N, B, R, Q, K
+    };
 }
+
+constexpr int MVV_LVA_SCORE[12][6] = {
+	{ 105, 104, 103, 102, 101, 100 },
+	{ 205, 204, 203, 202, 201, 200 },
+	{ 305, 304, 303, 302, 301, 300 },
+	{ 405, 404, 403, 402, 401, 400 },
+	{ 505, 504, 503, 502, 501, 500 },
+	{ 605, 604, 603, 602, 601, 600 },
+	{ 105, 104, 103, 102, 101, 100 },
+	{ 205, 204, 203, 202, 201, 200 },
+	{ 305, 304, 303, 302, 301, 300 },
+	{ 405, 404, 403, 402, 401, 400 },
+	{ 505, 504, 503, 502, 501, 500 },
+	{ 605, 604, 603, 602, 601, 600 }
+};

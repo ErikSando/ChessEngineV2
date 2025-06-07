@@ -12,5 +12,9 @@ int main() {
 
     CommandLoop();
 
+    // get mvv lva values
+
+    
+
     return 0;
 }
