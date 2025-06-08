@@ -3,7 +3,7 @@
 
 #include "Debug.h"
 #include "MoveGen.h"
-#include "PerfTester.h"
+#include "Perft.h"
 #include "Utils.h"
 
 std::atomic<bool> stop_perft = false;

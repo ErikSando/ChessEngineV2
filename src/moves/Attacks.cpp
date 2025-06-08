@@ -16,7 +16,9 @@ namespace Attacks {
     U64 QueenAttacks[64];
     U64 KingAttacks[64];
 
-    U64 SliderRays[64][64];
+    U64 BishopRays[64][64];
+    U64 RookRays[64][64];
+    //U64 SliderRays[64][64];
 
     U64 AttackMasksB[64];
     U64 AttackMasksR[64];
@@ -261,8 +263,28 @@ namespace Attacks {
         }
     }
 
+    inline void CreateRay(int fromSquare, int toSquare, int fileJump, int rankJump, U64& ray) {
+        int fromFile = GetFile(fromSquare);
+        int fromRank = GetRank(fromSquare);
+        int toFile = GetFile(toSquare);
+        int toRank = GetRank(toSquare);
+        
+        int file = fromFile + fileJump;
+        int rank = fromRank + rankJump;
+
+        while (file != toFile || rank != toRank) {
+            int square = GetSquare(file, rank);
+            SetBit(ray, square);
+
+            file += fileJump;
+            rank += rankJump;
+        }
+    }
+
     void InitSliderRays() {
-        memset(SliderRays, 0, sizeof(SliderRays));
+        memset(BishopRays, 0, sizeof(BishopRays));
+        memset(RookRays, 0, sizeof(RookRays));
+        //memset(SliderRays, 0, sizeof(SliderRays));
 
         for (int fromSquare = 0; fromSquare < 64; fromSquare++) {
             int fromFile = GetFile(fromSquare);
@@ -277,23 +299,15 @@ namespace Attacks {
                 int dFile = toFile - fromFile; // delta or change in file
                 int dRank = toRank - fromRank;
 
-                //  bishop condition                   // rook condition
-                if (std::abs(dFile) == std::abs(dRank) || !dFile || !dRank) {
-                    int fileJump = !dFile ? 0 : std::abs(dFile) / dFile;
-                    int rankJump = !dRank ? 0 : std::abs(dRank) / dRank;
+                int fileJump = !dFile ? 0 : std::abs(dFile) / dFile;
+                int rankJump = !dRank ? 0 : std::abs(dRank) / dRank;
 
-                    assert(fileJump || rankJump);
+                if (std::abs(dFile) == std::abs(dRank)) { // bishops
+                    CreateRay(fromSquare, toSquare, fileJump, rankJump, BishopRays[fromSquare][toSquare]);
+                }
 
-                    int file = fromFile + fileJump;
-                    int rank = fromRank + rankJump;
-
-                    while (file != toFile || rank != toRank) {
-                        int square = GetSquare(file, rank);
-                        SetBit(SliderRays[fromSquare][toSquare], square);
-
-                        file += fileJump;
-                        rank += rankJump;
-                    }
+                if (!dFile || !dRank) { // rooks
+                    CreateRay(fromSquare, toSquare, fileJump, rankJump, RookRays[fromSquare][toSquare]);
                 }
             }
         }

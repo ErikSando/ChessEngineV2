@@ -27,7 +27,18 @@ namespace Attacks {
     extern U64 QueenAttacks[64];
     extern U64 KingAttacks[64];
 
-    extern U64 SliderRays[64][64];
+    extern U64 BishopRays[64][64];
+    extern U64 RookRays[64][64];
+    //extern U64 SliderRays[64][64];
+
+    inline U64 GetSliderRay(int fromSquare, int toSquare, int pieceType = Q) {
+        switch (pieceType) {
+            case B: return BishopRays[fromSquare][toSquare];
+            case R: return RookRays[fromSquare][toSquare];
+        }
+
+        return BishopRays[fromSquare][toSquare] | RookRays[fromSquare][toSquare];
+    }
 
     inline U64 GetPieceAttacks(int pieceType, int square, U64 blockers = 0ULL) {
         switch (pieceType) {

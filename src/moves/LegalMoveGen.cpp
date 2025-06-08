@@ -75,7 +75,7 @@ namespace MoveGen {
             blockMask = 0ULL;
 
             if (IS_PIECE_SLIDER[attacker]) {
-                blockMask = Attacks::SliderRays[kingSquare][attackerSquare];
+                blockMask = Attacks::GetSliderRay(kingSquare, attackerSquare);
             }
         }
 
@@ -104,10 +104,15 @@ namespace MoveGen {
             while (pieces) {
                 int attackerSquare = PopFirstBit(pieces);
                 
-                U64 ray = Attacks::SliderRays[kingSquare][attackerSquare];
+                int pieceType = sliderPiece - enemyPawn;
+
+                U64 ray = Attacks::GetSliderRay(kingSquare, attackerSquare, pieceType);
                 if (!ray) continue;
 
-                U64 blockers = ray & board.occupancy[side];
+                // U64 sliderAttacks = Attacks::GetPieceAttacks(pieceType, attackerSquare, board.occupancy[BOTH]) & ~board.occupancy[enemy];
+                // U64 blockers = ray & sliderAttacks & board.occupancy[side];
+
+                U64 blockers = ray & board.occupancy[BOTH];
 
                 if (CountBits(blockers) == 1) {
                     int pinnedSquare = FirstBitIndex(blockers);
@@ -188,8 +193,16 @@ namespace MoveGen {
 
         while (bitboard) {
             int fromSquare = PopFirstBit(bitboard);
-            U64 moves = Attacks::PawnMoves[side][fromSquare] & ~board.occupancy[BOTH] & blockMask;
-            U64 captures = Attacks::PawnCaptures[side][fromSquare] & board.occupancy[enemy] & captureMask;
+
+            U64 ray = 0xFFFFFFFFFFFFFFFFULL;
+
+            if (GetBit(pinned, fromSquare)) {
+                if (pieceType == N) break;
+                ray = pinRays[fromSquare];
+            }
+            
+            U64 moves = Attacks::PawnMoves[side][fromSquare] & ~board.occupancy[BOTH] & blockMask & ray;
+            U64 captures = Attacks::PawnCaptures[side][fromSquare] & board.occupancy[enemy] & captureMask & ray;
 
             while (moves) {
                 int toSquare = PopFirstBit(moves);
@@ -245,11 +258,11 @@ namespace MoveGen {
                 U64 ray = 0xFFFFFFFFFFFFFFFFULL;
 
                 if (GetBit(pinned, fromSquare)) {
-                    if (pieceType == N) break;
+                    if (pieceType == N) continue;
                     ray = pinRays[fromSquare];
                 }
 
-                U64 attacks = Attacks::GetPieceAttacks(pieceType, fromSquare, board.occupancy[BOTH]) & ~board.occupancy[side] & blockMask & captureMask & ray;
+                U64 attacks = Attacks::GetPieceAttacks(pieceType, fromSquare, board.occupancy[BOTH]) & ~board.occupancy[side] & (blockMask | captureMask) & ray;
             
                 while (attacks) {
                     int toSquare = PopFirstBit(attacks);

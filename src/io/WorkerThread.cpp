@@ -5,7 +5,7 @@
 
 #include "Board.h"
 #include "CLI.h"
-#include "PerfTester.h"
+#include "Perft.h"
 #include "Searcher.h"
 
 void WorkerThread(Board& board, Searcher& searcher, SearchInfo& info) {

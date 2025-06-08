@@ -35,23 +35,21 @@ class Board {
     inline U64 GetAttackedSquares(const int attacker_side) const {
         U64 attacked = 0ULL;
 
-        int piece = attacker_side * 6;
-        int kingPiece = piece + 6;
+        int attackerPawns = attacker_side * 6;
+        int kingPiece = (attackerPawns ^ 6) + 5;
 
         U64 blockers = occupancy[BOTH];
         ClearBit(blockers, FirstBitIndex(bitboards[kingPiece]));
 
-        U64 pawns = bitboards[piece];
+        U64 pawns = bitboards[attackerPawns];
 
         while (pawns) {
             int square = PopFirstBit(pawns);
             attacked |= Attacks::PawnCaptures[attacker_side][square];
         }
 
-        int pieceType = N;
-
-        for (; pieceType <= K; pieceType++) {
-            U64 pieces = bitboards[piece + pieceType];
+        for (int pieceType = N; pieceType <= K; pieceType++) {
+            U64 pieces = bitboards[attackerPawns + pieceType];
 
             while (pieces) {
                 int square = PopFirstBit(pieces);

@@ -5,7 +5,7 @@
 
 #include "CLI.h"
 #include "Evaluation.h"
-#include "PerfTester.h"
+#include "Perft.h"
 #include "Utils.h"
 
 std::condition_variable cv;
@@ -183,6 +183,17 @@ void CommandLoop() {
             int eval = Evaluation::Evaluate(board);
 
             std::cout << "Static evaluation: " << eval << "\n";
+        }
+        // command for testing legal move gen
+        else if (cmd == "moves") {
+            MoveList list;
+            MoveGen::GenerateLegalMoves(board, list);
+
+            for (int i = 0; i < list.length; i++) {
+                std::cout << Utils::ToMoveString(list.moves[i].move) << "\n";
+            }
+
+            std::cout << "Moves: " << list.length << "\n";
         }
         else {
             std::string& movestr = cmd;
