@@ -277,15 +277,22 @@ namespace Attacks {
                 int dFile = toFile - fromFile; // delta or change in file
                 int dRank = toRank - fromRank;
 
+                //  bishop condition                   // rook condition
                 if (std::abs(dFile) == std::abs(dRank) || !dFile || !dRank) {
                     int fileJump = !dFile ? 0 : std::abs(dFile) / dFile;
                     int rankJump = !dRank ? 0 : std::abs(dRank) / dRank;
 
                     assert(fileJump || rankJump);
 
-                    for (int file = fromFile, rank = fromRank; file != toFile || rank != toRank; file += fileJump, rank += rankJump) {
+                    int file = fromFile + fileJump;
+                    int rank = fromRank + rankJump;
+
+                    while (file != toFile || rank != toRank) {
                         int square = GetSquare(file, rank);
                         SetBit(SliderRays[fromSquare][toSquare], square);
+
+                        file += fileJump;
+                        rank += rankJump;
                     }
                 }
             }
