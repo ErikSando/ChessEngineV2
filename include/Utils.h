@@ -22,10 +22,12 @@ namespace Utils {
 
     std::string ToSquareString(int square);
     std::string ToMoveString(int move);
-    
-    int ParseMove(Board& board, const int fromSquare, const int toSquare, const char promoted);
-    int ParseMove(Board& board, const char* move);
-    int ParseMove(Board& board, const std::string& move);
+
+    int ParseMove(const Board& board, const int fromSquare, const int toSquare, const char promoted);
+    int ParseMove(const Board& board, const char* move);
+    int ParseMove(const Board& board, const std::string& move);
+
+    bool MoveExists(const Board& board, int move);
 
     void PrintBitboard(U64 bitboard);
 

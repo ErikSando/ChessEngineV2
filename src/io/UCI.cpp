@@ -78,8 +78,16 @@ void ParsePosition(Board& board, std::vector<std::string>& args) {
             for (; i < args.size(); i++) {
                 std::string& movestr = args[i];
 
-                if (!board.MakeMove(Utils::ParseMove(board, movestr))) {
-                    std::cout << "Invalid move: '" << movestr << "'\n";
+                int move = Utils::ParseMove(board, movestr);
+
+                if (!Utils::MoveExists(board, move)) {
+                    std::cout << "Invalid move: " << movestr << "\n";
+                    continue;
+                }
+
+                if (!board.MakeMove(move)) {
+                    std::cout << "Illegal move: " << movestr << "\n";
+                    continue;
                 }
             }
         }

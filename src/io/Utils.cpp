@@ -62,7 +62,7 @@ namespace Utils {
         return moveString.str();
     }
 
-    int ParseMove(Board& board, const int fromSquare, const int toSquare, const char promoted) {
+    int ParseMove(const Board& board, const int fromSquare, const int toSquare, const char promoted) {
         MoveList list;
         MoveGen::GenerateMoves(board, list);
     
@@ -89,7 +89,7 @@ namespace Utils {
         return 0;
     }
     
-    int ParseMove(Board& board, const char* move) {
+    int ParseMove(const Board& board, const char* move) {
         int fromF = *move++ - 'a';
         int fromR = *move++ - '1';
         int toF = *move++ - 'a';
@@ -102,7 +102,7 @@ namespace Utils {
         return ParseMove(board, fromSquare, toSquare, promoted);
     }
     
-    int ParseMove(Board& board, const std::string& move) {
+    int ParseMove(const Board& board, const std::string& move) {
         int fromF = move.at(0) - 'a';
         int fromR = move.at(1) - '1';
         int toF = move.at(2) - 'a';
@@ -113,6 +113,17 @@ namespace Utils {
         int toSquare = GetSquare(toF, toR);
     
         return ParseMove(board, fromSquare, toSquare, promoted);
+    }
+
+    bool MoveExists(const Board& board, int move) {
+        MoveList list;
+        MoveGen::GenerateMoves(board, list);
+
+        for (int i = 0; i < list.length; i++) {
+            if (move == list.moves[i].move) return true;
+        }
+
+        return false;
     }
 
     void PrintBitboard(U64 bitboard) {

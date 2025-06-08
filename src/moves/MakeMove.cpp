@@ -6,6 +6,8 @@
 #include "Move.h"
 #include "MoveHandling.h"
 
+#include "Utils.h"
+
 constexpr int CastlingPermsUpdate[64] = {
 	13, 15, 15, 15, 12, 15, 15, 14,
 	15, 15, 15, 15, 15, 15, 15, 15,

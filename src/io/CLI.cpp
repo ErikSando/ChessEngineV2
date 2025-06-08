@@ -48,7 +48,7 @@ void CommandLoop() {
 
         if (args.size() < 1) continue;
 
-        std::string cmd = args[0];
+        std::string& cmd = args[0];
 
         if (cmd == "exit" || cmd == "quit") {
             engine_running = false;
@@ -185,17 +185,22 @@ void CommandLoop() {
             std::cout << "Static evaluation: " << eval << "\n";
         }
         else {
-            std::string move = cmd;
+            std::string& movestr = cmd;
 
-            if (move.size() < 4) {
+            if (movestr.size() < 4) {
                 std::cout << "Invalid move: not enough characters.\n";
                 continue;
             }
 
-            std::cout << Utils::ToMoveString(Utils::ParseMove(board, move)) << "\n";
+            int move = Utils::ParseMove(board, movestr);
 
-            if (!board.MakeMove(Utils::ParseMove(board, move))) {
-                //std::cout << "Invalid/illegal move.\n";
+            if (!Utils::MoveExists(board, move)) {
+                //std::cout << "Invalid move.\n";
+                continue;
+            }
+
+            if (!board.MakeMove(move)) {
+                //std::cout << "Illegal move.\n";
                 continue;
             }
 

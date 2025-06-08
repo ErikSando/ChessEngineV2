@@ -27,61 +27,92 @@ namespace MoveGen {
 
         int pieceType = P;
         int piece = side * 6;
+        int kingPiece = piece + 5;
         // int piece = enemy ? WP : BP;
-        U64 bitboard = board.bitboards[piece + 5];
+        U64 bitboard = board.bitboards[kingPiece];
 
-        while (bitboard) {
-            int fromSquare = PopFirstBit(bitboard);
-            U64 attacks = Attacks::KingAttacks[fromSquare] & ~board.occupancy[side] & ~attacked;
+        int kingSquare = PopFirstBit(bitboard);
+        U64 attacks = Attacks::KingAttacks[kingSquare] & ~board.occupancy[side] & ~attacked;
 
-            int enemyPawns = piece ^ 6;
+        int enemyPawn = piece ^ 6;
 
-            U64 attackers = Attacks::PawnCaptures[side][fromSquare] & board.bitboards[enemyPawns] |
-                            Attacks::KnightAttacks[fromSquare] & board.bitboards[enemyPawns + 1] |
-                            Attacks::GetBishopAttacks(fromSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawns + 2] |
-                            Attacks::GetRookAttacks(fromSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawns + 3] |
-                            Attacks::GetQueenAttacks(fromSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawns + 4];
+        U64 attackers = Attacks::PawnCaptures[side][kingSquare] & board.bitboards[enemyPawn] |
+                        Attacks::KnightAttacks[kingSquare] & board.bitboards[enemyPawn + N] |
+                        Attacks::GetBishopAttacks(kingSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawn + B] |
+                        Attacks::GetRookAttacks(kingSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawn + R] |
+                        Attacks::GetQueenAttacks(kingSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawn + Q];
 
-            int numAttackers = CountBits(attackers);
+        int numAttackers = CountBits(attackers);
 
-            while (attacks) {
-                int toSquare = PopFirstBit(attacks);
-                int flag = 0;
-                int captured = captureStart;
-                int move;
+        while (attacks) {
+            int toSquare = PopFirstBit(attacks);
+            int flag = 0;
+            int captured = captureStart;
 
-                if (IsBitSet(board.occupancy[enemy], toSquare)) {
-                    flag = CAPTURE_FLAG;
+            if (IsBitSet(board.occupancy[enemy], toSquare)) {
+                flag = CAPTURE_FLAG;
 
-                    for (; captured < captureStart + 6; captured++) {
-                        if (IsBitSet(board.bitboards[captured], toSquare)) break;
-                    }
-
-                    move = EncodeMove(fromSquare, toSquare, piece, captured, 0, flag);
+                for (; captured < captureStart + 6; captured++) {
+                    if (IsBitSet(board.bitboards[captured], toSquare)) break;
                 }
-                else {
-                    move = EncodeMove(fromSquare, toSquare, piece, captured, 0, flag);
-                }
-
-                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
             }
 
-            if (numAttackers > 1) return;
+            AddMove(list, 0, EncodeMove(kingSquare, toSquare, kingPiece, captured, 0, flag));
+        }
 
-            if (numAttackers == 1) {
-                captureMask = attackers;
+        if (numAttackers > 1) return;
 
-                int attackerSquare = PopFirstBit(attackers);
-                int attacker = enemyPawns;
+        if (numAttackers == 1) {
+            captureMask = attackers;
 
-                for (; attacker <= enemyPawns + 4; attacker++) {
-                    if (IsBitSet(board.bitboards[attacker], attackerSquare)) break;
-                }
+            int attackerSquare = PopFirstBit(attackers);
+            int attacker = enemyPawn;
 
-                blockMask = 0ULL;
+            for (; attacker <= enemyPawn + 4; attacker++) {
+                if (IsBitSet(board.bitboards[attacker], attackerSquare)) break;
+            }
 
-                if (IS_PIECE_SLIDER[attacker]) {
-                    blockMask = Attacks::SliderRays[fromSquare][attackerSquare];
+            blockMask = 0ULL;
+
+            if (IS_PIECE_SLIDER[attacker]) {
+                blockMask = Attacks::SliderRays[kingSquare][attackerSquare];
+            }
+        }
+
+        // calculate pins here
+
+        // U64 enemySliderAttacks = 0ULL;
+
+        // for (int sliderPiece = enemyPawn + B; sliderPiece <= enemyPawn + Q; sliderPiece++) {
+        //     U64 pieces = board.bitboards[sliderPiece];
+
+        //     while (pieces) {
+        //         int square = PopFirstBit(pieces);
+        //         enemySliderAttacks |= Attacks::GetPieceAttacks(PIECE_TYPE[sliderPiece], square, board.occupancy[BOTH]);
+        //     }
+        // }
+
+        // U64 sliderMovesFromKing = Attacks::GetPieceAttacks(Q, kingSquare, board.occupancy[BOTH]);
+        // U64 pinned = enemySliderAttacks & sliderMovesFromKing;
+        
+        U64 pinned = 0ULL;
+        U64 pinRays[64] = {};
+
+        for (int sliderPiece = enemyPawn + B; sliderPiece <= enemyPawn + Q; sliderPiece++) {
+            U64 pieces = board.bitboards[sliderPiece];
+
+            while (pieces) {
+                int attackerSquare = PopFirstBit(pieces);
+                
+                U64 ray = Attacks::SliderRays[kingSquare][attackerSquare];
+                if (!ray) continue;
+
+                U64 blockers = ray & board.occupancy[side];
+
+                if (CountBits(blockers) == 1) {
+                    int pinnedSquare = FirstBitIndex(blockers);
+                    pinned |= (1ULL << pinnedSquare);
+                    pinRays[pinnedSquare] = ray | (1ULL << attackerSquare);
                 }
             }
         }
@@ -140,6 +171,9 @@ namespace MoveGen {
             }
         }
 
+        // pawns
+        bitboard = board.bitboards[piece];
+
         if (board.enPassant != NO_SQUARE) {
             U64 fromSquares = Attacks::PawnCaptures[enemy][board.enPassant];
 
@@ -152,12 +186,10 @@ namespace MoveGen {
             }
         }
 
-        bitboard = board.bitboards[piece];
-
         while (bitboard) {
             int fromSquare = PopFirstBit(bitboard);
-            U64 moves = Attacks::PawnMoves[side][fromSquare] & ~board.occupancy[BOTH];
-            U64 captures = Attacks::PawnCaptures[side][fromSquare] & board.occupancy[enemy];
+            U64 moves = Attacks::PawnMoves[side][fromSquare] & ~board.occupancy[BOTH] & blockMask;
+            U64 captures = Attacks::PawnCaptures[side][fromSquare] & board.occupancy[enemy] & captureMask;
 
             while (moves) {
                 int toSquare = PopFirstBit(moves);
@@ -178,7 +210,7 @@ namespace MoveGen {
                 }
 
                 int move = EncodeMove(fromSquare, toSquare, piece, 0, 0, flag);
-
+                //std::cout << Utils::ToSquareString(fromSquare) << ", " << Utils::ToSquareString(toSquare) << "\n";
                 AddMove(list, 0, move);
             }
 
@@ -203,14 +235,21 @@ namespace MoveGen {
         }
 
         piece++;
-        pieceType++;
 
-        for (; pieceType <= Q; piece++, pieceType++) {
+        for (pieceType = N; pieceType <= Q; piece++, pieceType++) {
             bitboard = board.bitboards[piece];
 
             while (bitboard) {
                 int fromSquare = PopFirstBit(bitboard);
-                U64 attacks = Attacks::GetPieceAttacks(pieceType, fromSquare, board.occupancy[BOTH]) & ~board.occupancy[side];
+
+                U64 ray = 0xFFFFFFFFFFFFFFFFULL;
+
+                if (GetBit(pinned, fromSquare)) {
+                    if (pieceType == N) break;
+                    ray = pinRays[fromSquare];
+                }
+
+                U64 attacks = Attacks::GetPieceAttacks(pieceType, fromSquare, board.occupancy[BOTH]) & ~board.occupancy[side] & blockMask & captureMask & ray;
             
                 while (attacks) {
                     int toSquare = PopFirstBit(attacks);

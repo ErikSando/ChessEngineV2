@@ -302,25 +302,5 @@ namespace Attacks {
     void Init() {
         InitAttackTables();
         InitSliderRays();
-
-        for (int fromSquare = 0; fromSquare < 64; fromSquare++) {
-            int fromFile = GetFile(fromSquare);
-            int fromRank = GetRank(fromSquare);
-
-            for (int toSquare = 0; toSquare < 64; toSquare++) {
-                if (fromSquare == toSquare) continue;
-                
-                int toFile = GetFile(toSquare);
-                int toRank = GetRank(toSquare);
-
-                int dFile = toFile - fromFile;
-                int dRank = toRank - fromRank;
-
-                if (std::abs(dFile) == std::abs(dRank) || !dFile || !dRank) {
-                    std::cout << Utils::ToSquareString(fromSquare) << " to " << Utils::ToSquareString(toSquare) << "\n";
-                    Utils::PrintBitboard(SliderRays[fromSquare][toSquare]);
-                }
-            }
-        }
     }
 }
