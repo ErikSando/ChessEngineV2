@@ -19,7 +19,7 @@ constexpr int CastlingPermsUpdate[64] = {
 	 7, 15, 15, 15,  3, 15, 15, 11
 };
 
-bool Board::MakeMove(const int move) {
+bool Board::MakeMove(const int move, bool legal) {
     history[ply].hashKey = hashKey;
     history[ply].move = move;
     history[ply].castlingPerms = castlingPerms;
@@ -118,7 +118,7 @@ bool Board::MakeMove(const int move) {
     side ^= 1;
     HashSide(hashKey);
 
-    if (IsSquareAttacked(kingSquare, side)) {
+    if (!legal && IsSquareAttacked(kingSquare, side)) {
         TakeMove();
         return false;
     }

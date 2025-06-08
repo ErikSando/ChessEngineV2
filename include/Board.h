@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include "Attacks.h"
 #include "Data.h"
 #include "Globals.h"
@@ -26,7 +28,7 @@ class Board {
     void CheckValid();
     bool CheckValidQuiet(); // no asserts
 
-    bool MakeMove(const int move);
+    bool MakeMove(const int move, bool legal = false);
     void TakeMove();
 
     void MakeNullMove();
@@ -71,7 +73,7 @@ class Board {
     
         U64 bishopAttacks = Attacks::GetBishopAttacks(square, occupancy[BOTH]);
         U64 rookAttacks = Attacks::GetRookAttacks(square, occupancy[BOTH]);
-    
+
         if ((bishopAttacks | rookAttacks) & bitboards[piece + 4]) return true;
         if (bishopAttacks & bitboards[piece + 2]) return true;
         if (rookAttacks & bitboards[piece + 3]) return true;

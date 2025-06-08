@@ -6,8 +6,10 @@
 
 #include "Utils.h"
 
+U64 RANK_1_MASK = 0x00000000000000FFULL;
+
 namespace MoveGen {
-    void GenerateLegalMoves(const Board& board, MoveList& list) {
+    void GenerateLegalMoves(Board& board, MoveList& list) {
         int side = board.side;
         int enemy = side ^ 1;
 
@@ -180,14 +182,33 @@ namespace MoveGen {
         bitboard = board.bitboards[piece];
 
         if (board.enPassant != NO_SQUARE) {
-            U64 fromSquares = Attacks::PawnCaptures[enemy][board.enPassant];
+            U64 candidates = Attacks::PawnCaptures[enemy][board.enPassant] & bitboard;
 
-            while (fromSquares) {
-                int fromSquare = PopFirstBit(fromSquares);
+            while (candidates) {
+                int fromSquare = PopFirstBit(candidates);
 
-                if (IsBitSet(bitboard, fromSquare)) {
-                    AddMove(list, 0, EncodeMove(fromSquare, board.enPassant, piece, 0, 0, ENPASSANT_FLAG));
-                }
+                if (GetBit(pinned, fromSquare)) continue;
+
+                ClearBit(board.bitboards[piece], fromSquare);
+                ClearBit(board.bitboards[enemyPawn], board.enPassant - direction);
+                ClearBit(board.occupancy[BOTH], fromSquare);
+                ClearBit(board.occupancy[BOTH], board.enPassant - direction);
+
+                int rank = GetRank(kingSquare);
+
+                U64 rankMask = RANK_1_MASK << rank * 8;
+                U64 attacks = Attacks::GetQueenAttacks(kingSquare, board.occupancy[BOTH]) & rankMask;
+
+                bool illegal = (attacks & (board.bitboards[enemyPawn + R] | board.bitboards[enemyPawn + Q]));
+
+                SetBit(board.bitboards[piece], fromSquare);
+                SetBit(board.bitboards[enemyPawn], board.enPassant - direction);
+                SetBit(board.occupancy[BOTH], fromSquare);
+                SetBit(board.occupancy[BOTH], board.enPassant - direction);
+
+                if (illegal) continue; // probably could be a break, i dont think the other pawn (if there is one) could legally make the move
+
+                AddMove(list, 0, EncodeMove(fromSquare, board.enPassant, piece, 0, 0, ENPASSANT_FLAG));
             }
         }
 
@@ -222,9 +243,7 @@ namespace MoveGen {
                     flag = PAWNSTART_FLAG;
                 }
 
-                int move = EncodeMove(fromSquare, toSquare, piece, 0, 0, flag);
-                //std::cout << Utils::ToSquareString(fromSquare) << ", " << Utils::ToSquareString(toSquare) << "\n";
-                AddMove(list, 0, move);
+                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, 0, 0, flag));
             }
 
             while (captures) {
@@ -276,11 +295,6 @@ namespace MoveGen {
                         for (; captured < captureStart + 6; captured++) {
                             if (IsBitSet(board.bitboards[captured], toSquare)) break;
                         }
-
-                        move = EncodeMove(fromSquare, toSquare, piece, captured, 0, flag);
-                    }
-                    else {
-                        move = EncodeMove(fromSquare, toSquare, piece, captured, 0, flag);
                     }
 
                     AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
