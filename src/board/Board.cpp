@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string.h>
 
 #include "Attacks.h"
 #include "Board.h"
@@ -11,6 +12,20 @@ Board::Board() {
     }
 
     ParseFEN(START_FEN);
+}
+
+void Board::Clear() {
+    memset(bitboards, 0, sizeof(bitboards));
+    memset(occupancy, 0, sizeof(bitboards));
+    memset(history, 0, sizeof(history));
+    memset(bigPieces, 0, sizeof(bigPieces));
+
+    hashKey = 0ULL;
+    side = BOTH;
+    enPassant = NO_SQUARE;
+    castlingPerms = 0;
+    fiftyMoveCount = 0;
+    ply = 0;
 }
 
 void Board::Print() {
@@ -45,29 +60,29 @@ void Board::Print() {
     if (castlingPerms & BKC) castlingPermsStr[2] = 'k';
     if (castlingPerms & BQC) castlingPermsStr[3] = 'q';
 
-    std::cout << "Side to move:       " << (side == WHITE ? "white" : "black") << "\n";
-    std::cout << "Castling:           " << castlingPermsStr << "\n";
-    std::cout << "En passant:         " << (enPassant != NO_SQUARE ? Utils::ToSquareString(enPassant) : "none") << "\n";
-    std::cout << "50 move counter:    " << fiftyMoveCount << "\n";
-    std::cout << "Hash key:           " << std::hex << hashKey << std::dec << "\n";
+    std::cout << "Side to move:        " << (side == WHITE ? "white" : "black") << "\n";
+    std::cout << "Castling:            " << castlingPermsStr << "\n";
+    std::cout << "En passant:          " << (enPassant != NO_SQUARE ? Utils::ToSquareString(enPassant) : "none") << "\n";
+    std::cout << "50 move counter:     " << fiftyMoveCount << "\n";
+    std::cout << "Hash key:            " << std::hex << hashKey << std::dec << "\n";
 }
 
-bool Board::IsSquareAttacked(const int square, const int attacker_side) const {
-    int piece = attacker_side * 6;
+// bool Board::IsSquareAttacked(const int square, const int attacker_side) const {
+//     int piece = attacker_side * 6;
 
-    U64 bishopAttacks = Attacks::GetBishopAttacks(square, occupancy[BOTH]);
-    U64 rookAttacks = Attacks::GetRookAttacks(square, occupancy[BOTH]);
+//     U64 bishopAttacks = Attacks::GetBishopAttacks(square, occupancy[BOTH]);
+//     U64 rookAttacks = Attacks::GetRookAttacks(square, occupancy[BOTH]);
 
-    if ((bishopAttacks | rookAttacks) & bitboards[piece + 4]) return true;
-    if (bishopAttacks & bitboards[piece + 2]) return true;
-    if (rookAttacks & bitboards[piece + 3]) return true;
+//     if ((bishopAttacks | rookAttacks) & bitboards[piece + 4]) return true;
+//     if (bishopAttacks & bitboards[piece + 2]) return true;
+//     if (rookAttacks & bitboards[piece + 3]) return true;
 
-    if (Attacks::KnightAttacks[square] & bitboards[piece + 1]) return true;
-    if (Attacks::PawnCaptures[attacker_side ^ 1][square] & bitboards[piece]) return true;
-    if (Attacks::KingAttacks[square] & bitboards[piece + 5]) return true;
+//     if (Attacks::KnightAttacks[square] & bitboards[piece + 1]) return true;
+//     if (Attacks::PawnCaptures[attacker_side ^ 1][square] & bitboards[piece]) return true;
+//     if (Attacks::KingAttacks[square] & bitboards[piece + 5]) return true;
 
-    return false;
-}
+//     return false;
+// }
 
 // bool Board::IsSquareAttacked(int square) const {
 //     return IsSquareAttacked(square, side);

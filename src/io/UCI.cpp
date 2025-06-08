@@ -58,7 +58,9 @@ void ParsePosition(Board& board, std::vector<std::string>& args) {
         else if (arg == "fen") {
             std::string fenstr;
 
-            for (i++; i < args.size(); i++) {
+            i++;
+
+            for (; i < args.size(); i++) {
                 std::string& val = args[i];
                 if (val == "moves") {
                     i--;
@@ -71,10 +73,12 @@ void ParsePosition(Board& board, std::vector<std::string>& args) {
             board.ParseFEN(fenstr.c_str());
         }
         else if (arg == "moves") {
-            for (i++; i < args.size(); i++) {
+            i++;
+
+            for (; i < args.size(); i++) {
                 std::string& movestr = args[i];
 
-                if (!Utils::ParseMove(board, movestr)) {
+                if (!board.MakeMove(Utils::ParseMove(board, movestr))) {
                     std::cout << "Invalid move: '" << movestr << "'\n";
                 }
             }

@@ -10,20 +10,20 @@ std::atomic<bool> stop_perft = false;
 
 namespace PerfTester {
     U64 CountNodes(Board& board, int depth) {
-        // debug(Debug::CheckBoardValid(board));
         //debug(board.CheckValid());
 
         if (depth == 0) return 1;
 
         MoveList list;
-        MoveGen::GenerateMoves(board, list);
+        MoveGen::GenerateLegalMoves(board, list);
 
         // requires legal move generator
-        // if (depth == 1) return list.length;
+        if (depth == 1) return list.length;
 
         U64 n = 0;
 
         for (int i = 0; i < list.length; i++) {
+            // board.MakeMove(list.moves[i].move);
             if (!board.MakeMove(list.moves[i].move)) continue;
             n += CountNodes(board, depth - 1);
             board.TakeMove();
@@ -38,7 +38,7 @@ namespace PerfTester {
         U64 nodes = 0;
 
         MoveList list;
-        MoveGen::GenerateMoves(board, list);
+        MoveGen::GenerateLegalMoves(board, list);
 
         std::cout << "Running perft to depth " << depth << "...\n";
 
@@ -49,6 +49,7 @@ namespace PerfTester {
 
             U64 newNodes = 0;
 
+            // board.MakeMove(move);
             if (!board.MakeMove(move)) continue;
             newNodes = CountNodes(board, depth - 1);
             board.TakeMove();

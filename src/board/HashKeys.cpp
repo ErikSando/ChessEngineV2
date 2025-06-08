@@ -28,23 +28,23 @@ namespace HashKeys {
         SideKey = RandU64();
     }
 
-    void GenerateHashKey(Board* board) {
-        U64 newHashKey = 0ULL;
+    U64 GenerateHashKey(Board* board) {
+        U64 hashKey = 0ULL;
 
         for (int piece = WP; piece <= BK; piece++) {
             U64 bitboard = board->bitboards[piece];
 
             while (bitboard) {
                 int square = PopFirstBit(bitboard);
-                newHashKey ^= PieceKeys[piece][square];
+                hashKey ^= PieceKeys[piece][square];
             }
         }
 
-        newHashKey ^= CastlingPermKeys[board->castlingPerms];
+        hashKey ^= CastlingPermKeys[board->castlingPerms];
 
-        if (board->enPassant != NO_SQUARE) newHashKey ^= EnPassantKeys[board->enPassant];
-        if (board->side == BLACK) newHashKey ^= SideKey;
+        if (board->enPassant != NO_SQUARE) hashKey ^= EnPassantKeys[board->enPassant];
+        if (board->side == BLACK) hashKey ^= SideKey;
 
-        board->hashKey = newHashKey;
+        return hashKey;
     }
 }

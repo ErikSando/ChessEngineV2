@@ -29,8 +29,5 @@ inline void AddMove(MoveList& list, int score, int move) {
 namespace MoveGen {
     void GenerateMoves(const Board& board, MoveList& list);
     void GenerateCaptures(const Board& board, MoveList& list);
-
-    enum MvvLvaIndex {
-        P, N, B, R, Q, K
-    };
+    void GenerateLegalMoves(const Board& board, MoveList& list);
 }

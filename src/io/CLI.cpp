@@ -192,7 +192,9 @@ void CommandLoop() {
                 continue;
             }
 
-            if (!Utils::ParseMove(board, move)) {
+            std::cout << Utils::ToMoveString(Utils::ParseMove(board, move)) << "\n";
+
+            if (!board.MakeMove(Utils::ParseMove(board, move))) {
                 //std::cout << "Invalid/illegal move.\n";
                 continue;
             }

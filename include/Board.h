@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Attacks.h"
 #include "Data.h"
 #include "Globals.h"
 
@@ -16,6 +17,7 @@ class Board {
 
     Board();
 
+    void Clear();
     void Print();
     void ParseFEN(const char* fen);
 
@@ -30,7 +32,58 @@ class Board {
     void MakeNullMove();
     void TakeNullMove();
 
-    bool IsSquareAttacked(const int square, const int attacker_side) const;
+    inline U64 GetAttackedSquares(const int attacker_side) const {
+        U64 attacked = 0ULL;
+
+        int piece = attacker_side * 6;
+        int kingPiece = piece + 6;
+
+        U64 blockers = occupancy[BOTH];
+        ClearBit(blockers, FirstBitIndex(bitboards[kingPiece]));
+
+        U64 pawns = bitboards[piece];
+
+        while (pawns) {
+            int square = PopFirstBit(pawns);
+            attacked |= Attacks::PawnCaptures[attacker_side][square];
+        }
+
+        int pieceType = N;
+
+        for (; pieceType <= K; pieceType++) {
+            U64 pieces = bitboards[piece + pieceType];
+
+            while (pieces) {
+                int square = PopFirstBit(pieces);
+                attacked |= Attacks::GetPieceAttacks(pieceType, square, blockers);
+            }
+        }
+
+        return attacked;
+    }
+
+    inline U64 GetAttackedSquares() const {
+        return GetAttackedSquares(side ^ 1);
+    }
+
+    //bool IsSquareAttacked(const int square, const int attacker_side) const;
+
+    inline bool IsSquareAttacked(const int square, const int attacker_side) const {
+        int piece = attacker_side * 6;
+    
+        U64 bishopAttacks = Attacks::GetBishopAttacks(square, occupancy[BOTH]);
+        U64 rookAttacks = Attacks::GetRookAttacks(square, occupancy[BOTH]);
+    
+        if ((bishopAttacks | rookAttacks) & bitboards[piece + 4]) return true;
+        if (bishopAttacks & bitboards[piece + 2]) return true;
+        if (rookAttacks & bitboards[piece + 3]) return true;
+    
+        if (Attacks::KnightAttacks[square] & bitboards[piece + 1]) return true;
+        if (Attacks::PawnCaptures[attacker_side ^ 1][square] & bitboards[piece]) return true;
+        if (Attacks::KingAttacks[square] & bitboards[piece + 5]) return true;
+    
+        return false;
+    }
 
     inline bool IsSquareAttacked(const int square) const {
         return IsSquareAttacked(square, side ^ 1);

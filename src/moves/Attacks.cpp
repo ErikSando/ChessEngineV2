@@ -1,8 +1,11 @@
-#include <iostream>
+#include <cassert>
+#include <cstdlib>
+#include <string.h>
 
 #include "Attacks.h"
 #include "Data.h"
 #include "Board.h"
+#include "Utils.h"
 
 namespace Attacks {
     U64 PawnMoves[2][64];
@@ -12,6 +15,8 @@ namespace Attacks {
     U64 RookAttacks[64][4096];
     U64 QueenAttacks[64];
     U64 KingAttacks[64];
+
+    U64 SliderRays[64][64];
 
     U64 AttackMasksB[64];
     U64 AttackMasksR[64];
@@ -221,7 +226,7 @@ namespace Attacks {
         return BishopAttacks[square][bishopOccupancy] | RookAttacks[square][rookOccupancy];
     }
 
-    void Init() {
+    void InitAttackTables() {
         for (int square = 0; square < 64; square++) {
             PawnMoves[WHITE][square] = GeneratePawnMoves(WHITE, square);
             PawnMoves[BLACK][square] = GeneratePawnMoves(BLACK, square);
@@ -252,6 +257,62 @@ namespace Attacks {
                 U64 occupancy = IndexToU64(i, relevantBitsR, attackMaskR);
                 int magicIndex = (occupancy * MagicsR[square]) >> (64 - relevantBitsR);
                 RookAttacks[square][magicIndex] = GenerateRookAttacks(square, occupancy);
+            }
+        }
+    }
+
+    void InitSliderRays() {
+        memset(SliderRays, 0, sizeof(SliderRays));
+
+        for (int fromSquare = 0; fromSquare < 64; fromSquare++) {
+            int fromFile = GetFile(fromSquare);
+            int fromRank = GetRank(fromSquare);
+
+            for (int toSquare = 0; toSquare < 64; toSquare++) {
+                if (fromSquare == toSquare) continue;
+                
+                int toFile = GetFile(toSquare);
+                int toRank = GetRank(toSquare);
+
+                int dFile = toFile - fromFile; // delta or change in file
+                int dRank = toRank - fromRank;
+
+                if (std::abs(dFile) == std::abs(dRank) || !dFile || !dRank) {
+                    int fileJump = !dFile ? 0 : std::abs(dFile) / dFile;
+                    int rankJump = !dRank ? 0 : std::abs(dRank) / dRank;
+
+                    assert(fileJump || rankJump);
+
+                    for (int file = fromFile, rank = fromRank; file != toFile || rank != toRank; file += fileJump, rank += rankJump) {
+                        int square = GetSquare(file, rank);
+                        SetBit(SliderRays[fromSquare][toSquare], square);
+                    }
+                }
+            }
+        }
+    }
+
+    void Init() {
+        InitAttackTables();
+        InitSliderRays();
+
+        for (int fromSquare = 0; fromSquare < 64; fromSquare++) {
+            int fromFile = GetFile(fromSquare);
+            int fromRank = GetRank(fromSquare);
+
+            for (int toSquare = 0; toSquare < 64; toSquare++) {
+                if (fromSquare == toSquare) continue;
+                
+                int toFile = GetFile(toSquare);
+                int toRank = GetRank(toSquare);
+
+                int dFile = toFile - fromFile;
+                int dRank = toRank - fromRank;
+
+                if (std::abs(dFile) == std::abs(dRank) || !dFile || !dRank) {
+                    std::cout << Utils::ToSquareString(fromSquare) << " to " << Utils::ToSquareString(toSquare) << "\n";
+                    Utils::PrintBitboard(SliderRays[fromSquare][toSquare]);
+                }
             }
         }
     }

@@ -106,7 +106,8 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
 
     int pvNode = beta - alpha > 1;
     int pvMove = 0;
-    int score = ttable.GetEntry(board.hashKey, pvMove, alpha, beta, depth);
+    // disabling transposition table for now
+    int score = NO_SCORE;// ttable.GetEntry(board.hashKey, pvMove, alpha, beta, depth);
 
     if (score != NO_SCORE && board.ply && !pvNode) return score;
 

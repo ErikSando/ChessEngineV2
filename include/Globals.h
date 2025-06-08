@@ -96,7 +96,3 @@ inline int GetFile(int square) {
 inline int GetRank(int square) {
     return square >> 3;
 }
-
-// inline U64 GetSquareMask(int square) {
-//     return 1ULL << square;
-// }

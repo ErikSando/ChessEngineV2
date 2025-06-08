@@ -70,7 +70,7 @@ bool Board::MakeMove(const int move) {
             ClearBit(occupancy[enemy], toSquare);
             HashPiece(hashKey, captured, toSquare);
 
-            if (IS_BIG_PIECE[captured]) bigPieces[enemy]--;
+            if (IS_PIECE_BIG[captured]) bigPieces[enemy]--;
 
             break;
         }

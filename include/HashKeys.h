@@ -10,5 +10,6 @@ namespace HashKeys {
     extern U64 SideKey;
 
     void Init();
-    void GenerateHashKey(Board* board);
+    
+    U64 GenerateHashKey(Board* board);
 }

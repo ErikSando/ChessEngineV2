@@ -17,6 +17,10 @@ enum Piece {
     BP, BN, BB, BR, BQ, BK, NO_PIECE
 };
 
+enum PieceType {
+    P, N, B, R, Q, K
+};
+
 constexpr const char* START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 constexpr char PIECE_CHAR[14] = "PNBRQKpnbrqk.";
@@ -26,6 +30,8 @@ constexpr int PIECE_SIDE[12] = {
     BLACK, BLACK, BLACK, BLACK, BLACK, BLACK
 };
 
+constexpr int PIECE_TYPE[12] = { P, N, B, R, Q, K, P, N, B, R, Q, K };
+
 constexpr bool IS_PAWN[12] =      {  true, false, false, false, false, false,  true, false, false, false, false, false };
 constexpr bool IS_KNIGHT[12] =    { false,  true, false, false, false, false, false,  true, false, false, false, false };
 constexpr bool IS_BISHOP[12] =    { false, false,  true, false, false, false, false, false,  true, false, false, false };
@@ -33,7 +39,9 @@ constexpr bool IS_ROOK[12] =      { false, false, false,  true, false, false, fa
 constexpr bool IS_QUEEN[12] =     { false, false, false, false,  true, false, false, false, false, false,  true, false };
 constexpr bool IS_KING[12] =      { false, false, false, false, false,  true, false, false, false, false, false,  true };
 
-constexpr bool IS_BIG_PIECE[12] = { false,  true,  true,  true,  true,  true, false,  true,  true,  true,  true,  true };
+constexpr bool IS_PIECE_BIG[12] = { false,  true,  true,  true,  true,  true, false,  true,  true,  true,  true,  true };
+
+constexpr bool IS_PIECE_SLIDER[12] =    { false, false,  true,  true,  true, false, false, false,  true,  true,  true, false };
 
 inline int PieceID(char piece) {
     switch (piece) {
@@ -49,8 +57,9 @@ inline int PieceID(char piece) {
         case 'r': return BR;
         case 'q': return BQ;
         case 'k': return BK;
-        default: return NO_PIECE;
     }
+
+    return NO_PIECE;
 }
 
 enum CastlingPerms {

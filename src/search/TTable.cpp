@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "Data.h"
+#include "Debug.h"
 #include "TTable.h"
 
 TTable::TTable(const int MB) {
@@ -28,7 +29,7 @@ void TTable::Resize(const int MB) {
 
     Clear();
 
-    std::cout << "Initialised transposition table with " << size << " entries.\n";
+    debug(std::cout << "Initialised transposition table with " << size << " entries.\n");
 }
 
 void TTable::Clear() {

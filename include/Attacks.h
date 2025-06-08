@@ -1,5 +1,8 @@
 #pragma once
 
+#include <optional>
+
+#include "Data.h"
 #include "Globals.h"
 
 namespace Attacks {
@@ -23,6 +26,20 @@ namespace Attacks {
     extern U64 RookAttacks[64][4096];
     extern U64 QueenAttacks[64];
     extern U64 KingAttacks[64];
+
+    extern U64 SliderRays[64][64];
+
+    inline U64 GetPieceAttacks(int pieceType, int square, U64 blockers = 0ULL) {
+        switch (pieceType) {
+            case N: return KnightAttacks[square];
+            case B: return GetBishopAttacks(square, blockers);
+            case R: return GetRookAttacks(square, blockers);
+            case Q: return GetQueenAttacks(square, blockers);
+            case K: return KingAttacks[square];
+        }
+
+        return 0ULL;
+    }
 
     extern U64 AttackMasksB[64];
     extern U64 AttackMasksR[64];

@@ -4,168 +4,125 @@
 #include "Board.h"
 #include "HashKeys.h"
 
+#include "Utils.h"
+
 void Board::ParseFEN(const char* fen) {
+    Clear();
+
     int file = FILE_A;
     int rank = RANK_8;
 
-    U64 new_bitboards[12]{};
-    U64 new_occupancy[3]{};
+    while (*fen && rank >= RANK_1) {
+        int piece = NO_PIECE;
+        int jump = 1;
 
-    int new_side;
-    int new_castlingPerms = 0;
-    int new_fiftyMoveCount;
-    int new_enPassant = NO_SQUARE;
+        char c = *fen;
 
-    bigPieces[WHITE] = bigPieces[BLACK] = 0;
-
-    const char* ptr = fen;
-
-    for (;;) {
-        char c = *ptr++; // chracters are one byte, so the memory address can be incremented by 1 to get the next character
-        if (c == ' ') break;
-
-        // if (rank < Rank1) {
-        //     std::cout << "Invalid FEN string: invalid piece positions\n";
-        //     return;
-        // }
-
-        int square = GetSquare(file, rank);
-
-        file++;
-
-        if (file > FILE_H) {
-            file = FILE_A;
-            rank--;
-        }
+        fen++;
 
         switch (c) {
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-                file += c - '1'; // file is always incremented, so here it is incremented by 1 less than the jump
-                
-                if (file > FILE_H) {
-                    file = FILE_A;
-                    rank--;
-                }
+            case 'P': case 'N': case 'B': case 'R': case 'Q': case 'K':
+            case 'p': case 'n': case 'b': case 'r': case 'q': case 'k':
+                piece = PieceID(c);
+            break;
 
-                // if (rank < Rank1) {
-                //     std::cout << "Invalid FEN string: invalid piece positions\n";
-                //     return;
-                // }
+            case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8':
+            jump = c - '0';
             break;
 
             case '/':
-                file--;
+                file = FILE_A;
+                jump = 0;
+                rank--;
             break;
+
+            case ' ': rank = -1; break;
 
             default:
-                std::cout << "Invalid FEN string: invalid piece\n";
+                std::cout << "Invalid FEN string: invalid character '" << c << "'\n";
+                Clear();
             return;
-
-            case 'P':
-            case 'N':
-            case 'B':
-            case 'R':
-            case 'Q':
-            case 'K':
-            case 'p':
-            case 'n':
-            case 'b':
-            case 'r':
-            case 'q':
-            case 'k':
-                int piece = PieceID(c);
-                int side = PIECE_SIDE[piece];
-                
-                SetBit(new_bitboards[piece], square);
-                SetBit(new_occupancy[side], square);
-
-                if (IS_BIG_PIECE[piece]) {
-                    bigPieces[side]++;
-                }
-            break;
         }
+
+        if (piece != NO_PIECE) {
+            int square = GetSquare(file, rank);
+            int pside = PIECE_SIDE[piece];
+
+            SetBit(bitboards[piece], square);
+            SetBit(occupancy[pside], square);
+
+            if (IS_PIECE_BIG[piece]) bigPieces[pside]++;
+        }
+
+        file += jump;
     }
 
-    new_occupancy[BOTH] = new_occupancy[WHITE] | new_occupancy[BLACK];
+    occupancy[BOTH] = occupancy[WHITE] | occupancy[BLACK];
 
     // if (numKings[White] != 1 || numKings[Black] != 1) {
     //     std::cout << "Invalid FEN string: invalid number of king pieces\n";
     //     return;
     // }
 
-    char sideChar = *ptr;
-
-    switch (sideChar) {
-        case 'w': new_side = WHITE; break;
-        case 'b': new_side = BLACK; break;
+    switch (*fen) {
+        case 'w': side = WHITE; break;
+        case 'b': side = BLACK; break;
 
         default:
             std::cout << "Invalid FEN string: invalid side\n";
+            Clear();
         return;
     }
 
-    ptr += 2;
+    fen += 2;
 
     for (int i = 0; i < 4; i++) {
-        char c = *ptr;
+        char c = *fen;
         
         if (c == ' ') break;
 
         if (c == '-') {
-            ptr++;
+            fen++;
             break;
         }
 
-        ptr++;
+        fen++;
 
         switch (c) {
-            case 'K': new_castlingPerms |= WKC; break;
-            case 'Q': new_castlingPerms |= WQC; break;
-            case 'k': new_castlingPerms |= BKC; break;
-            case 'q': new_castlingPerms |= BQC; break;
+            case 'K': castlingPerms |= WKC; break;
+            case 'Q': castlingPerms |= WQC; break;
+            case 'k': castlingPerms |= BKC; break;
+            case 'q': castlingPerms |= BQC; break;
 
             default:
                 std::cout << "Invalid FEN string: invalid castling permissions\n";
+                Clear();
             return;
         }
     }
 
-    ptr++;
+    fen++;
 
-    if (*ptr != '-') {
-        char enPassantFile = *ptr++ - 'a';
-        char enPassantRank = *ptr++ - '1';
+    if (*fen != '-') {
+        char enPassantFile = *fen++ - 'a';
+        char enPassantRank = *fen++ - '1';
 
-        std::cout << enPassantFile << enPassantRank << "\n";
+        enPassant = GetSquare(enPassantFile, enPassantRank);
 
-        new_enPassant = GetSquare(enPassantFile, enPassantRank);
-
-        if (new_enPassant < 0 || new_enPassant >= 64) {
+        if (enPassant < a1 || enPassant > h8) {
             std::cout << "Invalid FEN string: invalid en passant square\n";
+            Clear();
             return;
         }
     }
 
-    new_fiftyMoveCount = atoi(ptr + 1);
+    fiftyMoveCount = atoi(fen + 1);
 
-    if (new_fiftyMoveCount < 0) {
+    if (fiftyMoveCount < 0) {
         std::cout << "Invalid FEN string: invalid fifty move rule counter\n";
+        Clear();
         return;
     }
-
-    fiftyMoveCount = new_fiftyMoveCount;
-    enPassant = new_enPassant;
-    castlingPerms = new_castlingPerms;
-    side = new_side;
-    memcpy(bitboards, new_bitboards, 12 * sizeof(U64));
-    memcpy(occupancy, new_occupancy, 3 * sizeof(U64));
 
     #ifdef NDEBUG
         if (!CheckValidQuiet()) {
@@ -175,7 +132,7 @@ void Board::ParseFEN(const char* fen) {
         CheckValid();
     #endif
 
-    HashKeys::GenerateHashKey(this);
+    hashKey = HashKeys::GenerateHashKey(this);
 }
 
 const char* GenerateFEN() {
