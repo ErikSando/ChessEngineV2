@@ -21,35 +21,6 @@ inline int GetScore(const Board& board, int move, int piece, int toSquare) {
     return score;
 }
 
-inline void ProcessMove(const Board& board, MoveList& list, int fromSquare, int toSquare, int piece, int pieceType, int enemy, int captureStart) {
-    int flag = 0;
-    int score = 0;
-    int captured = captureStart;
-    int move;
-
-    if (IsBitSet(board.occupancy[enemy], toSquare)) {
-        flag = CAPTURE_FLAG;
-
-        for (; captured < captureStart + 6; captured++) {
-            if (IsBitSet(board.bitboards[captured], toSquare)) break;
-        }
-
-        move = EncodeMove(fromSquare, toSquare, piece, captured, 0, flag);
-        score = MvvLvaScore[captured][pieceType];
-    }
-    else {
-        move = EncodeMove(fromSquare, toSquare, piece, captured, 0, flag);
-        score = GetScore(board, move, piece, toSquare);
-
-        if (move == KillerMoves[0][board.ply]) score = KillerScore0;
-        else if (move == KillerMoves[1][board.ply]) score = KillerScore1;
-        //else if (move == board.history[board.ply - 1].move) score = CounterMoveScore;
-        else score = HistoryMoves[piece][toSquare];
-    }
-
-    AddMove(list, score, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
-}
-
 namespace MoveGen {
     void GenerateMoves(const Board& board, MoveList& list) {
         int side = board.side;
@@ -234,76 +205,5 @@ namespace MoveGen {
                 }
             }
         }
-
-        // // knights
-        // piece++;
-        // bitboard = board.bitboards[piece];
-
-        // while (bitboard) {
-        //     int fromSquare = PopFirstBit(bitboard);
-        //     U64 moves = Attacks::KnightAttacks[fromSquare] & ~board.occupancy[side];
-
-        //     while (moves) {
-        //         int toSquare = PopFirstBit(moves);
-        //         ProcessMove(board, list, fromSquare, toSquare, piece, N, enemy, captureStart);
-        //     }
-        // }
-
-        // // bishops
-        // piece++;
-        // bitboard = board.bitboards[piece];
-
-        // while (bitboard) {
-        //     int fromSquare = PopFirstBit(bitboard);
-        //     U64 moves = Attacks::GetBishopAttacks(fromSquare, board.occupancy[BOTH]) & ~board.occupancy[side];
-
-        //     while (moves) {
-        //         int toSquare = PopFirstBit(moves);
-        //         ProcessMove(board, list, fromSquare, toSquare, piece, B, enemy, captureStart);
-        //     }
-        // }
-
-        // // rooks
-        // piece++;
-        // bitboard = board.bitboards[piece];
-
-        // while (bitboard) {
-        //     int fromSquare = PopFirstBit(bitboard);
-        //     U64 moves = Attacks::GetRookAttacks(fromSquare, board.occupancy[BOTH]) & ~board.occupancy[side];
-
-        //     while (moves) {
-        //         int toSquare = PopFirstBit(moves);
-        //         ProcessMove(board, list, fromSquare, toSquare, piece, R, enemy, captureStart);
-        //     }
-        // }
-
-        // // queens
-        // piece++;
-        // bitboard = board.bitboards[piece];
-
-        // while (bitboard) {
-        //     int fromSquare = PopFirstBit(bitboard);
-        //     U64 moves = Attacks::GetQueenAttacks(fromSquare, board.occupancy[BOTH]) & ~board.occupancy[side];
-
-        //     while (moves) {
-        //         int toSquare = PopFirstBit(moves);
-        //         ProcessMove(board, list, fromSquare, toSquare, piece, Q, enemy, captureStart);
-        //     }
-        // }
-
-        // // king
-        // piece++;
-        // bitboard = board.bitboards[piece];
-
-        // while (bitboard) {
-        //     int fromSquare = PopFirstBit(bitboard);
-        //     U64 moves = Attacks::KingAttacks[fromSquare] & ~board.occupancy[side];
-
-        //     while (moves) {
-        //         int toSquare = PopFirstBit(moves);
-        //         if (board.IsSquareAttacked(toSquare)) continue;
-        //         ProcessMove(board, list, fromSquare, toSquare, piece, K, enemy, captureStart);
-        //     }
-        // }
     }
 }

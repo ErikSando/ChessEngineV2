@@ -27,7 +27,10 @@ inline void AddMove(MoveList& list, int score, int move) {
 }
 
 namespace MoveGen {
+    extern U64 RANK_1_MASK; // defined in LegalMoveGen.cpp
+
     void GenerateMoves(const Board& board, MoveList& list);
     void GenerateCaptures(const Board& board, MoveList& list);
     void GenerateLegalMoves(Board& board, MoveList& list);
+    void GenerateLegalCaptures(Board& board, MoveList& list);
 }

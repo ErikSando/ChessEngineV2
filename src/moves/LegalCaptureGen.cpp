@@ -5,9 +5,7 @@
 #include "MoveGen.h"
 
 namespace MoveGen {
-    U64 RANK_1_MASK = 0x00000000000000FFULL;
-
-    void GenerateLegalMoves(Board& board, MoveList& list) {
+    void GenerateLegalCaptures(Board& board, MoveList& list) {
         int side = board.side;
         int enemy = side ^ 1;
 
@@ -93,66 +91,15 @@ namespace MoveGen {
                 U64 ray = Attacks::GetSliderRay(kingSquare, attackerSquare, pieceType);
                 if (!ray) continue;
 
+                // U64 sliderAttacks = Attacks::GetPieceAttacks(pieceType, attackerSquare, board.occupancy[BOTH]) & ~board.occupancy[enemy];
+                // U64 blockers = ray & sliderAttacks & board.occupancy[side];
+
                 U64 blockers = ray & board.occupancy[BOTH];
 
                 if (CountBits(blockers) == 1) {
                     int pinnedSquare = FirstBitIndex(blockers);
                     pinned |= (1ULL << pinnedSquare);
                     pinRays[pinnedSquare] = ray | (1ULL << attackerSquare);
-                }
-            }
-        }
-
-        // castling
-        if (enemy) { // equivalent to if side == WHITE
-            if (board.castlingPerms & WKC) {
-                if (!IsBitSet(board.occupancy[BOTH], f1) &&
-                    !IsBitSet(board.occupancy[BOTH], g1) &&
-                    !IsBitSet(attacked, e1) &&
-                    !IsBitSet(attacked, f1) &&
-                    !IsBitSet(attacked, g1)
-                ) {
-                    int move = EncodeMove(e1, g1, WK, 0, 0, CASTLING_FLAG);
-                    AddMove(list, 0, move);
-                }
-            }
-
-            if (board.castlingPerms & WQC) {
-                if (!IsBitSet(board.occupancy[BOTH], d1) &&
-                    !IsBitSet(board.occupancy[BOTH], c1) &&
-                    !IsBitSet(board.occupancy[BOTH], b1) &&
-                    !IsBitSet(attacked, e1) &&
-                    !IsBitSet(attacked, d1) &&
-                    !IsBitSet(attacked, c1)
-                ) {
-                    int move = EncodeMove(e1, c1, WK, 0, 0, CASTLING_FLAG);
-                    AddMove(list, 0, move);
-                }
-            }
-        }
-        else {
-            if (board.castlingPerms & BKC) {
-                if (!IsBitSet(board.occupancy[BOTH], f8) &&
-                    !IsBitSet(board.occupancy[BOTH], g8) &&
-                    !IsBitSet(attacked, e8) &&
-                    !IsBitSet(attacked, f8) &&
-                    !IsBitSet(attacked, g8)
-                ) {
-                    int move = EncodeMove(e8, g8, BK, 0, 0, CASTLING_FLAG);
-                    AddMove(list, 0, move);
-                }
-            }
-
-            if (board.castlingPerms & BQC) {
-                if (!IsBitSet(board.occupancy[BOTH], d8) &&
-                    !IsBitSet(board.occupancy[BOTH], c8) &&
-                    !IsBitSet(board.occupancy[BOTH], b8) &&
-                    !IsBitSet(attacked, e8) &&
-                    !IsBitSet(attacked, d8) &&
-                    !IsBitSet(attacked, c8)
-                ) {
-                    int move = EncodeMove(e8, c8, BK, 0, 0, CASTLING_FLAG);
-                    AddMove(list, 0, move);
                 }
             }
         }
@@ -201,29 +148,7 @@ namespace MoveGen {
                 ray = pinRays[fromSquare];
             }
             
-            U64 moves = Attacks::PawnMoves[side][fromSquare] & ~board.occupancy[BOTH] & blockMask & ray;
             U64 captures = Attacks::PawnCaptures[side][fromSquare] & board.occupancy[enemy] & captureMask & ray;
-
-            while (moves) {
-                int toSquare = PopFirstBit(moves);
-
-                if (GetRank(toSquare) == promotionRank) {
-                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, 0, piece + 4, 0));
-                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, 0, piece + 3, 0));
-                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, 0, piece + 2, 0));
-                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, 0, piece + 1, 0));
-                    continue;
-                }
-
-                int flag = 0;
-
-                if (toSquare - fromSquare == direction * 2) {
-                    if (IsBitSet(board.occupancy[BOTH], fromSquare + direction)) continue;
-                    flag = PAWNSTART_FLAG;
-                }
-
-                AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, 0, 0, flag));
-            }
 
             while (captures) {
                 int toSquare = PopFirstBit(captures);
@@ -260,7 +185,7 @@ namespace MoveGen {
                     ray = pinRays[fromSquare];
                 }
 
-                U64 attacks = Attacks::GetPieceAttacks(pieceType, fromSquare, board.occupancy[BOTH]) & ~board.occupancy[side] & (blockMask | captureMask) & ray;
+                U64 attacks = Attacks::GetPieceAttacks(pieceType, fromSquare, board.occupancy[BOTH]) & board.occupancy[enemy] & (blockMask | captureMask) & ray;
             
                 while (attacks) {
                     int toSquare = PopFirstBit(attacks);

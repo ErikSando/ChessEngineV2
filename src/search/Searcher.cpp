@@ -81,10 +81,12 @@ int Searcher::Quiescence(Board& board, SearchInfo& info, int alpha, int beta) {
 
     MoveList list;
     MoveGen::GenerateCaptures(board, list);
+    //MoveGen::GenerateLegalCaptures(board, list);
     OrderMoves(list);
 
     for (int i = 0; i < list.length; i++) {
         if (!board.MakeMove(list.moves[i].move)) continue;
+        //board.MakeMove(list.moves[i].move, true);
         int score = -Quiescence(board, info, -beta, -alpha);
         board.TakeMove();
 
@@ -135,6 +137,7 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
 
     MoveList list;
     MoveGen::GenerateMoves(board, list);
+    //MoveGen::GenerateLegalMoves(board, list);
 
     if (pvMove) {
         for (int i = 0; i < list.length; i++) {
@@ -154,6 +157,7 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
     for (int i = 0; i < list.length; i++) {
         int move = list.moves[i].move;
         if (!board.MakeMove(move)) continue;
+        //board.MakeMove(move, true);
 
         int score;
 

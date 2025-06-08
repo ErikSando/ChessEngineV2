@@ -1,7 +1,5 @@
 #pragma once
 
-#include <iostream>
-
 #include "Attacks.h"
 #include "Data.h"
 #include "Globals.h"

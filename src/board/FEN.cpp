@@ -4,8 +4,6 @@
 #include "Board.h"
 #include "HashKeys.h"
 
-#include "Utils.h"
-
 void Board::ParseFEN(const char* fen) {
     Clear();
 
