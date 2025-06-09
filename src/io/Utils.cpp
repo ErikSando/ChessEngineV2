@@ -64,7 +64,7 @@ namespace Utils {
 
     int ParseMove(const Board& board, const int fromSquare, const int toSquare, const char promoted) {
         MoveList list;
-        MoveGen::GenerateMoves(board, list);
+        MoveGen::GenerateMovesPL(board, list);
     
         for (int i = 0; i < list.length; i++) {
             int move = list.moves[i].move;
@@ -117,7 +117,11 @@ namespace Utils {
 
     bool MoveExists(const Board& board, int move) {
         MoveList list;
-        MoveGen::GenerateMoves(board, list);
+        // choosing to use pseudo legal to differentiate between invalid and illegal moves
+        // invalid meaning the piece can not move in the way specified
+        // illegal meaning the piece movement is valid, but the move leaves the king in check
+        // i made up that definition of invalid, not sure if that is correct chess terminology
+        MoveGen::GenerateMovesPL(board, list);
 
         for (int i = 0; i < list.length; i++) {
             if (move == list.moves[i].move) return true;

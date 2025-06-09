@@ -22,7 +22,7 @@ void WorkerThread(Board& board, Searcher& searcher, SearchInfo& info) {
         }
 
         if (perft_requested) {
-            PerfTester::PerfTest(board, perft_depth);
+            Perft::Perft(board, perft_depth);
             perft_requested = false;
             continue;
         }

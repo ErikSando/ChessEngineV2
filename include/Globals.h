@@ -7,6 +7,7 @@ constexpr const char* ENGINE_AUTHOR = "Erik";
 constexpr const char* ENGINE_VERSION = "2.0";
 
 typedef unsigned long long U64;
+typedef unsigned char U8;
 
 #if defined(__GNUC__) || defined(__clang__)
     inline int CountBits(U64 bitboard) {

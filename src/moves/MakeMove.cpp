@@ -17,7 +17,7 @@ constexpr int CastlingPermsUpdate[64] = {
 	 7, 15, 15, 15,  3, 15, 15, 11
 };
 
-bool Board::MakeMove(const int move, bool legal) {
+bool Board::MakeMove(const int move, bool pseudoLegal) {
     history[ply].hashKey = hashKey;
     history[ply].move = move;
     history[ply].castlingPerms = castlingPerms;
@@ -34,41 +34,36 @@ bool Board::MakeMove(const int move, bool legal) {
 
     if (IS_PAWN[piece]) fiftyMoveCount = 0;
 
-    HashCastling(hashKey, castlingPerms);
+    // HashCastling(this);
+    hashKey ^= HashKeys::CastlingPermKeys[castlingPerms];
     castlingPerms &= CastlingPermsUpdate[fromSquare] & CastlingPermsUpdate[toSquare];
-    HashCastling(hashKey, castlingPerms);
+    // HashCastling(this);
+    hashKey ^= HashKeys::CastlingPermKeys[castlingPerms];
 
-    int oldEnPassant = enPassant;
+    int _enPassant = enPassant;
 
     if (enPassant != NO_SQUARE) {
-        HashEnPassant(hashKey, enPassant);
+        // HashEnPassant(this);
+        hashKey ^= HashKeys::EnPassantKeys[enPassant];
         enPassant = NO_SQUARE;
     }
 
-    ClearBit(bitboards[piece], fromSquare);
-    ClearBit(occupancy[side], fromSquare);
-    HashPiece(hashKey, piece, fromSquare);
+    RemovePiece(this, piece, side, fromSquare);
 
     if (promoted) {
-        SetBit(bitboards[promoted], toSquare);
-        HashPiece(hashKey, promoted, toSquare);
+        AddPiece(this, promoted, side, toSquare);
         bigPieces[side]++;
     }
     else {
-        SetBit(bitboards[piece], toSquare);
-        HashPiece(hashKey, piece, toSquare);
+        AddPiece(this, piece, side, toSquare);
     }
-
-    SetBit(occupancy[side], toSquare);
 
     int flag = GetFlag(move);
 
     switch (flag) {
         case CAPTURE_FLAG: {
             int captured = GetCapturedPiece(move);
-            ClearBit(bitboards[captured], toSquare);
-            ClearBit(occupancy[enemy], toSquare);
-            HashPiece(hashKey, captured, toSquare);
+            RemovePiece(this, captured, enemy, toSquare);
 
             if (IS_PIECE_BIG[captured]) bigPieces[enemy]--;
 
@@ -78,33 +73,31 @@ bool Board::MakeMove(const int move, bool legal) {
         case PAWNSTART_FLAG:
             if (side == WHITE) {
                 enPassant = fromSquare + 8;
-                HashEnPassant(hashKey, enPassant);
+                // HashEnPassant(this);
+                hashKey ^= HashKeys::EnPassantKeys[enPassant];
             }
             else {
                 enPassant = toSquare + 8;
-                HashEnPassant(hashKey, enPassant);
+                // HashEnPassant(this);
+                hashKey ^= HashKeys::EnPassantKeys[enPassant];
             }
         break;
 
         case ENPASSANT_FLAG:
             if (side == WHITE) {
-                ClearBit(bitboards[BP], oldEnPassant - 8);
-                ClearBit(occupancy[BLACK], oldEnPassant - 8);
-                HashPiece(hashKey, BP, oldEnPassant - 8);
+                RemovePiece(this, BP, BLACK, _enPassant - 8);
             }
             else {
-                ClearBit(bitboards[WP], oldEnPassant + 8);
-                ClearBit(occupancy[WHITE], oldEnPassant + 8);
-                HashPiece(hashKey, WP, oldEnPassant + 8);
+                RemovePiece(this, WP, WHITE, _enPassant + 8);
             }
         break;
 
         case CASTLING_FLAG:
             switch (toSquare) {
-                case g1: MoveRook(hashKey, bitboards[WR], occupancy[WHITE], WR, h1, f1); break;
-                case c1: MoveRook(hashKey, bitboards[WR], occupancy[WHITE], WR, a1, d1); break;
-                case g8: MoveRook(hashKey, bitboards[BR], occupancy[BLACK], BR, h8, f8); break;
-                case c8: MoveRook(hashKey, bitboards[BR], occupancy[BLACK], BR, a8, d8); break;
+                case g1: MovePiece(this, WR, WHITE, h1, f1); break;
+                case c1: MovePiece(this, WR, WHITE, a1, d1); break;
+                case g8: MovePiece(this, BR, BLACK, h8, f8); break;
+                case c8: MovePiece(this, BR, BLACK, a8, d8); break;
             }
         break;
     }
@@ -114,9 +107,10 @@ bool Board::MakeMove(const int move, bool legal) {
     int kingSquare = FirstBitIndex(bitboards[side == WHITE ? WK : BK]);
 
     side ^= 1;
-    HashSide(hashKey);
+    // HashSide(this);
+    hashKey ^= HashKeys::SideKey;
 
-    if (!legal && IsSquareAttacked(kingSquare, side)) {
+    if (pseudoLegal && IsSquareAttacked(kingSquare, side)) {
         TakeMove();
         return false;
     }
@@ -131,10 +125,12 @@ void Board::MakeNullMove() {
     ply++;
 
     side ^= 1;
-    HashSide(hashKey);
+    // HashSide(this);
+    hashKey ^= HashKeys::SideKey;
 
     if (enPassant != NO_SQUARE) {
-        HashEnPassant(hashKey, enPassant);
+        // HashEnPassant(this);
+        hashKey ^= HashKeys::EnPassantKeys[enPassant];
         enPassant = NO_SQUARE;
     }
 }

@@ -4,12 +4,12 @@
 #include "Data.h"
 #include "Globals.h"
 
-struct BoardInfo {
+struct UndoInfo {
     U64 hashKey;
     int move;
     int castlingPerms;
     int fiftyMoveCount;
-    int enPassant = NO_SQUARE;
+    int enPassant;
 };
 
 class Board {
@@ -26,11 +26,26 @@ class Board {
     void CheckValid();
     bool CheckValidQuiet(); // no asserts
 
-    bool MakeMove(const int move, bool legal = false);
+    bool MakeMove(const int move, bool pseudoLegal = false);
     void TakeMove();
 
     void MakeNullMove();
     void TakeNullMove();
+
+    U64 bitboards[12];
+    U64 occupancy[3];
+
+    U64 hashKey;
+
+    UndoInfo history[MAX_GAME_MOVES];
+
+    int ply = 0;
+    int fiftyMoveCount;
+    int enPassant = NO_SQUARE;
+    int side = WHITE;
+    int castlingPerms;
+
+    int bigPieces[2];
 
     inline U64 GetAttackedSquares(const int attacker_side) const {
         U64 attacked = 0ULL;
@@ -86,19 +101,4 @@ class Board {
     inline bool IsSquareAttacked(const int square) const {
         return IsSquareAttacked(square, side ^ 1);
     }
-
-    U64 bitboards[12];
-    U64 occupancy[3];
-
-    U64 hashKey;
-
-    BoardInfo history[MAX_GAME_MOVES];
-
-    int ply = 0;
-    int fiftyMoveCount;
-    int enPassant = NO_SQUARE;
-    int side = WHITE;
-    int castlingPerms;
-
-    int bigPieces[2];
 };

@@ -85,7 +85,7 @@ void ParsePosition(Board& board, std::vector<std::string>& args) {
                     continue;
                 }
 
-                if (!board.MakeMove(move)) {
+                if (!board.MakeMove(move, true)) {
                     std::cout << "Illegal move: " << movestr << "\n";
                     continue;
                 }
@@ -114,7 +114,7 @@ void UCILoop(Board& board, Searcher& searcher, SearchInfo& search_info, std::thr
 
         if (args.size() < 1) continue;
 
-        std::string cmd = args[0];
+        std::string& cmd = args[0];
 
         if (cmd == "exit" || cmd == "quit") {
             engine_running = false;

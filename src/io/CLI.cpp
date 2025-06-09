@@ -14,11 +14,13 @@ std::mutex mutex;
 bool engine_running = true;
 bool search_requested = false;
 bool perft_requested = false;
+bool stop_perft = false;
 int perft_depth = 1;
 
 void CleanUp(SearchInfo& search_info, std::thread& search_thread) {
     search_info.stopped = true;
     search_info.quitting = true;
+    stop_perft = true;
     cv.notify_one();
     search_thread.join();
 }
@@ -184,10 +186,17 @@ void CommandLoop() {
 
             std::cout << "Static evaluation: " << eval << "\n";
         }
+        else if (cmd == "qeval") {
+            search_info.timeSet = false;
+
+            int eval = searcher.Quiescence(board, search_info, -INF, INF);
+
+            std::cout << "Quiescent evaluation: " << eval << "\n";
+        }
         // command for testing legal move gen
         else if (cmd == "moves") {
             MoveList list;
-            MoveGen::GenerateLegalMoves(board, list);
+            MoveGen::GenerateMoves(board, list);
 
             for (int i = 0; i < list.length; i++) {
                 std::cout << Utils::ToMoveString(list.moves[i].move) << "\n";
@@ -199,21 +208,23 @@ void CommandLoop() {
             std::string& movestr = cmd;
 
             if (movestr.size() < 4) {
-                std::cout << "Invalid move: not enough characters.\n";
+                //std::cout << "Invalid move: not enough characters.\n";
                 continue;
             }
 
             int move = Utils::ParseMove(board, movestr);
 
-            if (!Utils::MoveExists(board, move)) {
-                //std::cout << "Invalid move.\n";
-                continue;
-            }
+            // if (!Utils::MoveExists(board, move)) {
+            //     //std::cout << "Invalid move.\n";
+            //     continue;
+            // }
 
-            if (!board.MakeMove(move)) {
-                //std::cout << "Illegal move.\n";
-                continue;
-            }
+            // if (!board.MakeMove(move, true)) {
+            //     //std::cout << "Illegal move.\n";
+            //     continue;
+            // }
+
+            if (!Utils::MoveExists(board, move) || !board.MakeMove(move, true)) continue;
 
             board.Print();
         }

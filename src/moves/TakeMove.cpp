@@ -11,14 +11,13 @@ void Board::TakeMove() {
 
     int enemy = side;
 
-    BoardInfo info = history[ply];
-    hashKey = info.hashKey;
-    castlingPerms = info.castlingPerms;
-    fiftyMoveCount = info.fiftyMoveCount;
-    enPassant = info.enPassant;
+    hashKey = history[ply].hashKey;
+    castlingPerms = history[ply].castlingPerms;
+    fiftyMoveCount = history[ply].fiftyMoveCount;
+    enPassant = history[ply].enPassant;
     side ^= 1;
 
-    int move = info.move;
+    int move = history[ply].move;
 
     int fromSquare = GetFromSquare(move);
     int toSquare = GetToSquare(move);
@@ -62,11 +61,18 @@ void Board::TakeMove() {
         break;
 
         case CASTLING_FLAG:
+            // switch (toSquare) {
+            //     case g1: MoveRook(hashKey, bitboards[WR], occupancy[WHITE], WR, f1, h1); break;
+            //     case c1: MoveRook(hashKey, bitboards[WR], occupancy[WHITE], WR, d1, a1); break;
+            //     case g8: MoveRook(hashKey, bitboards[BR], occupancy[BLACK], BR, f8, h8); break;
+            //     case c8: MoveRook(hashKey, bitboards[BR], occupancy[BLACK], BR, d8, a8); break;
+            // }
+
             switch (toSquare) {
-                case g1: MoveRook(hashKey, bitboards[WR], occupancy[WHITE], WR, f1, h1); break;
-                case c1: MoveRook(hashKey, bitboards[WR], occupancy[WHITE], WR, d1, a1); break;
-                case g8: MoveRook(hashKey, bitboards[BR], occupancy[BLACK], BR, f8, h8); break;
-                case c8: MoveRook(hashKey, bitboards[BR], occupancy[BLACK], BR, d8, a8); break;
+                case g1: MovePieceNoHashing(this, WR, WHITE, f1, h1); break;
+                case c1: MovePieceNoHashing(this, WR, WHITE, d1, a1); break;
+                case g8: MovePieceNoHashing(this, BR, BLACK, f8, h8); break;
+                case c8: MovePieceNoHashing(this, BR, BLACK, d8, a8); break;
             }
         break;
     }

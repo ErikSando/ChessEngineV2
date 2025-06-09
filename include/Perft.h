@@ -4,8 +4,6 @@
 
 #include "Board.h"
 
-extern std::atomic<bool> stop_perft;
-
-namespace PerfTester {
-    void PerfTest(Board& board, int depth);
+namespace Perft {
+    void Perft(Board& board, int depth);
 }

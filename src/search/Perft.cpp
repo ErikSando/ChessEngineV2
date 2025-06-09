@@ -2,41 +2,38 @@
 #include <iostream>
 
 #include "Debug.h"
+#include "CLI.h"
 #include "MoveGen.h"
 #include "Perft.h"
 #include "Utils.h"
 
-std::atomic<bool> stop_perft = false;
-
-namespace PerfTester {
+namespace Perft {
     U64 CountNodes(Board& board, int depth) {
         //debug(board.CheckValid());
 
-        if (depth == 0) return 1;
+        if (depth == 0 || stop_perft) return 1;
 
         MoveList list;
-        MoveGen::GenerateLegalMoves(board, list);
+        MoveGen::GenerateMoves(board, list);
 
         if (depth == 1) return list.length;
 
         U64 n = 0;
 
         for (int i = 0; i < list.length; i++) {
-            board.MakeMove(list.moves[i].move, true);
+            board.MakeMove(list.moves[i].move);
             n += CountNodes(board, depth - 1);
             board.TakeMove();
         }
 
-        if (stop_perft) return 0;
-
         return n;
     }
 
-    void PerfTest(Board& board, int depth) {
+    void Perft(Board& board, int depth) {
         U64 nodes = 0;
 
         MoveList list;
-        MoveGen::GenerateLegalMoves(board, list);
+        MoveGen::GenerateMoves(board, list);
 
         std::cout << "Running perft to depth " << depth << "...\n";
 
@@ -47,14 +44,14 @@ namespace PerfTester {
 
             U64 newNodes = 0;
 
-            board.MakeMove(move, true);
+            board.MakeMove(move);
             newNodes = CountNodes(board, depth - 1);
             board.TakeMove();
 
             nodes += newNodes;
 
             if (stop_perft) {
-                std::cout << "Stopping perft.\n";
+                if (engine_running) std::cout << "Stopping perft.\n";
                 return;
             }
 

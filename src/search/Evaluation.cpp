@@ -128,7 +128,10 @@ namespace Evaluation {
 
         int mg[2] = { 0, 0 };
         int eg[2] = { 0, 0 };
+        int score = 0; // score that doesnt depend on game phase
         int mgPhase = 0;
+
+        int pieces[12] = { 0 };
 
         for (int piece = WP; piece <= BK; piece++) {
             U64 bitboard = board.bitboards[piece];
@@ -141,8 +144,13 @@ namespace Evaluation {
                 eg[side] += EgTables[piece][square];
 
                 mgPhase += PhaseInc[piece];
+
+                pieces[piece]++;
             }
         }
+
+        if (pieces[WB] > 1) score += Params::BishopPairBonus;
+        if (pieces[BB] > 1) score -= Params::BishopPairBonus;
 
         int mgEval = mg[WHITE] - mg[BLACK];
         int egEval = eg[WHITE] - eg[BLACK];
@@ -150,7 +158,7 @@ namespace Evaluation {
         if (mgPhase > 24) mgPhase = 24;
         int egPhase = 24 - mgPhase;
 
-        int eval = (mgEval * mgPhase + egEval * egPhase) / 24;
+        int eval = score + (mgEval * mgPhase + egEval * egPhase) / 24;
 
         return (board.side == WHITE ? eval : -eval) + Params::TempoBonus;
     }
