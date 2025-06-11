@@ -26,8 +26,6 @@ class Searcher {
 
     Searcher(TTable& t_table) : ttable(t_table) {}
 
-    static void Init();
-
     void ClearTTable();
 
     int Quiescence(Board& board, SearchInfo& info, int alpha, int beta);

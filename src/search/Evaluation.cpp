@@ -4,9 +4,11 @@
 #include "EvalParams.h"
 #include "Utils.h"
 
+using namespace EvalParams;
+
 namespace Evaluation {
-    int MgTables[12][64];
-    int EgTables[12][64];
+    int PieceTablesMg[12][64];
+    int PieceTablesEg[12][64];
 
     namespace Masks {
         U64 Files[8];
@@ -28,22 +30,22 @@ namespace Evaluation {
         }
     }
 
-    const int* PieceMgTables[6] = {
-        PawnMgTable, KnightMgTable, BishopMgTable, RookMgTable, QueenMgTable, KingMgTable
+    const int* MgPieceTables[6] = {
+        PawnTableMg, KnightTableMg, BishopTableMg, RookTableMg, QueenTableMg, KingTableMg
     };
 
-    const int* PieceEgTables[6] = {
-        PawnEgTable, KnightEgTable, BishopEgTable, RookEgTable, QueenEgTable, KingEgTable
+    const int* EgPieceTables[6] = {
+        PawnTableEg, KnightTableEg, BishopTableEg, RookTableEg, QueenTableEg, KingTableEg
     };
 
     void InitPieceSquareTables() {
         for (int piece = WP; piece <= WK; piece++) {
             for (int square = 0; square < 64; square++) {
-                MgTables[piece][square] = MgValues[piece] + PieceMgTables[piece][MirrorSquare(square)];
-                EgTables[piece][square] = EgValues[piece] + PieceEgTables[piece][MirrorSquare(square)];
+                PieceTablesMg[piece][square] = PieceValuesMg[piece] + MgPieceTables[piece][MirrorSquare(square)];
+                PieceTablesEg[piece][square] = PieceValuesEg[piece] + EgPieceTables[piece][MirrorSquare(square)];
 
-                MgTables[piece + 6][square] = MgValues[piece] + PieceMgTables[piece][square];
-                EgTables[piece + 6][square] = EgValues[piece] + PieceEgTables[piece][square];
+                PieceTablesMg[piece + 6][square] = PieceValuesMg[piece] + MgPieceTables[piece][square];
+                PieceTablesEg[piece + 6][square] = PieceValuesEg[piece] + EgPieceTables[piece][square];
             }
         }
     }
@@ -73,7 +75,7 @@ namespace Evaluation {
             for (int rank = RANK_1; rank <= RANK_8; rank++) {
                 int square = GetSquare(file, rank);
 
-                Masks::StackedPawn[square] = fileMask;
+                Masks::StackedPawn[square] = fileMask & ~(1ULL << square);
                 Masks::IsolatedPawn[square] = leftFileMask | rightFileMask;
 
                 Masks::ClosePawnShieldWhite[square] = ((Masks::Square(square + 7) & NotFileH) | Masks::Square(square + 8) | (Masks::Square(square + 9) & NotFileA)) & NotRank1;
@@ -120,46 +122,319 @@ namespace Evaluation {
         int rooks[2] = { CountBits(board.bitboards[WR]), CountBits(board.bitboards[BR]) };
         int queens[2] = { CountBits(board.bitboards[WQ]), CountBits(board.bitboards[BQ]) };
 
+        if (!rooks[WHITE] && !rooks[BLACK] && !queens[WHITE] && !queens[BLACK]) {
+            if (!bishops[WHITE] && !bishops[BLACK]) {
+                if (knights[WHITE] < 3 && knights[BLACK] < 3) return true;
+            }
+            else if (!knights[WHITE] && !knights[BLACK]) {
+                if (abs(bishops[WHITE] - bishops[BLACK]) < 2) return true;
+            }
+            else if ((knights[WHITE] < 3 && !bishops[WHITE]) || (bishops[BLACK] == 1 && !knights[BLACK])) {
+                if ((knights[BLACK] < 3 && !bishops[BLACK]) || (bishops[BLACK] == 1 && !knights[BLACK])) return true;
+            }
+        }
+        else if (!queens[WHITE] && !queens[BLACK]) {
+            if (rooks[WHITE] == 1 && rooks[BLACK] == 1) {
+                if ((knights[WHITE] + bishops[WHITE] < 2) && (knights[BLACK] + bishops[BLACK] < 2)) return true;
+            }
+            else if (rooks[WHITE] == 1 && !rooks[BLACK]) {
+                if ((knights[WHITE] + bishops[WHITE] == 0) && ((knights[BLACK] + bishops[BLACK] == 1) || (knights[BLACK] + bishops[BLACK] == 2))) return true;
+            }
+            else if (rooks[BLACK] == 1 && !rooks[WHITE]) {
+                if ((knights[BLACK] + bishops[BLACK] == 0) && ((knights[WHITE] + bishops[WHITE] == 1) || (knights[WHITE] + bishops[WHITE] == 2))) return true;
+            }
+        }
+
         return false;
     }
 
     int Evaluate(Board& board) {
         if (MaterialDraw(board)) return 0;
 
-        int mg[2] = { 0, 0 };
-        int eg[2] = { 0, 0 };
+        int mgScore = 0;
+        int egScore = 0;
         int score = 0; // score that doesnt depend on game phase
         int mgPhase = 0;
 
-        int pieces[12] = { 0 };
+        int pawns = 0;
+        int bishops[2] = { 0, 0 };
 
-        for (int piece = WP; piece <= BK; piece++) {
-            U64 bitboard = board.bitboards[piece];
-            int side = PIECE_SIDE[piece];
+        int kingSquare[2];
 
-            while (bitboard) {
-                int square = PopFirstBit(bitboard);
+        int piece = WP;
+        U64 bitboard = board.bitboards[piece];
 
-                mg[side] += MgTables[piece][square];
-                eg[side] += EgTables[piece][square];
+        while (bitboard) {
+            int square = PopFirstBit(bitboard);
 
-                mgPhase += PhaseInc[piece];
+            pawns++;
 
-                pieces[piece]++;
+            mgScore += PieceTablesMg[piece][square];
+            egScore += PieceTablesEg[piece][square];
+
+            mgPhase += PhaseInc[piece];
+
+            if (Masks::StackedPawn[square] & board.bitboards[WP]) score -= StackedPawnPenalty;
+            if (Masks::IsolatedPawn[square] & board.bitboards[WP]) score -= IsolatedPawnPenalty;
+            
+            if (Masks::PassedPawnWhite[square] & board.bitboards[BP]) {
+                score += PassedPawnValue[GetRank(square)];
+            }
+
+            if (Attacks::PawnCaptures[BLACK][square] & board.bitboards[WP]) score += DefendedPawnBonus;
+        }
+
+        piece = BP;
+        bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int square = PopFirstBit(bitboard);
+
+            pawns++;
+
+            mgScore -= PieceTablesMg[piece][square];
+            egScore -= PieceTablesEg[piece][square];
+
+            mgPhase += PhaseInc[piece];
+
+            if (Masks::StackedPawn[square] & board.bitboards[BP]) score += StackedPawnPenalty;
+            if (Masks::IsolatedPawn[square] & board.bitboards[BP]) score += IsolatedPawnPenalty;
+            
+            if (Masks::PassedPawnBlack[square] & board.bitboards[WP]) {
+                score -= PassedPawnValue[RANK_8 - GetRank(square)];
+            }
+
+            if (Attacks::PawnCaptures[WHITE][square] & board.bitboards[BP]) score -= DefendedPawnBonus;
+        }
+
+        piece = WN;
+        bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int square = PopFirstBit(bitboard);
+
+            mgScore += PieceTablesMg[piece][square];
+            egScore += PieceTablesEg[piece][square];
+
+            mgPhase += PhaseInc[piece];
+
+            U64 attacks = Attacks::KnightAttacks[square] & ~board.occupancy[WHITE];
+            int mobility = CountBits(attacks);
+
+            mgScore += mobility * MobilityValueMg[piece];
+            egScore += mobility * MobilityValueEg[piece];
+        }
+
+        piece = BN;
+        bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int square = PopFirstBit(bitboard);
+
+            mgScore -= PieceTablesMg[piece][square];
+            egScore -= PieceTablesEg[piece][square];
+
+            mgPhase += PhaseInc[piece];
+
+            U64 attacks = Attacks::KnightAttacks[square] & ~board.occupancy[BLACK];
+            int mobility = CountBits(attacks);
+
+            mgScore -= mobility * MobilityValueMg[piece];
+            egScore -= mobility * MobilityValueEg[piece];
+        }
+
+        piece = WB;
+        bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int square = PopFirstBit(bitboard);
+
+            bishops[WHITE]++;
+
+            mgScore += PieceTablesMg[piece][square];
+            egScore += PieceTablesEg[piece][square];
+
+            mgPhase += PhaseInc[piece];
+
+            U64 attacks = Attacks::GetBishopAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[WHITE];
+            int mobility = CountBits(attacks);
+
+            mgScore += mobility * MobilityValueMg[piece];
+            egScore += mobility * MobilityValueEg[piece];
+        }
+
+        piece = BB;
+        bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int square = PopFirstBit(bitboard);
+
+            bishops[BLACK]++;
+
+            mgScore -= PieceTablesMg[piece][square];
+            egScore -= PieceTablesEg[piece][square];
+
+            mgPhase += PhaseInc[piece];
+
+            U64 attacks = Attacks::GetBishopAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[BLACK];
+            int mobility = CountBits(attacks);
+
+            mgScore -= mobility * MobilityValueMg[piece];
+            egScore -= mobility * MobilityValueEg[piece];
+        }
+
+        piece = WR;
+        bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int square = PopFirstBit(bitboard);
+
+            mgScore += PieceTablesMg[piece][square];
+            egScore += PieceTablesEg[piece][square];
+
+            mgPhase += PhaseInc[piece];
+
+            U64 attacks = Attacks::GetRookAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[WHITE];
+            int mobility = CountBits(attacks);
+
+            mgScore += mobility * MobilityValueMg[piece];
+            egScore += mobility * MobilityValueEg[piece];
+
+            if (!(Masks::StackedPawn[square] & (board.bitboards[WP] | board.bitboards[BP]))) {
+                score += RookOpenFileBonus;
+            }
+            else if (!(Masks::StackedPawn[square] & board.bitboards[WP])) {
+                score += RookSemiOpenFileBonus;
             }
         }
 
-        if (pieces[WB] > 1) score += Params::BishopPairBonus;
-        if (pieces[BB] > 1) score -= Params::BishopPairBonus;
+        piece = BR;
+        bitboard = board.bitboards[piece];
 
-        int mgEval = mg[WHITE] - mg[BLACK];
-        int egEval = eg[WHITE] - eg[BLACK];
+        while (bitboard) {
+            int square = PopFirstBit(bitboard);
+
+            mgScore -= PieceTablesMg[piece][square];
+            egScore -= PieceTablesEg[piece][square];
+
+            mgPhase += PhaseInc[piece];
+
+            U64 attacks = Attacks::GetRookAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[BLACK];
+            int mobility = CountBits(attacks);
+
+            mgScore -= mobility * MobilityValueMg[piece];
+            egScore -= mobility * MobilityValueEg[piece];
+
+            if (!(Masks::StackedPawn[square] & (board.bitboards[BP] | board.bitboards[WP]))) {
+                score -= RookOpenFileBonus;
+            }
+            else if (!(Masks::StackedPawn[square] & board.bitboards[BP])) {
+                score -= RookSemiOpenFileBonus;
+            }
+        }
+
+        piece = WQ;
+        bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int square = PopFirstBit(bitboard);
+
+            mgScore += PieceTablesMg[piece][square];
+            egScore += PieceTablesEg[piece][square];
+
+            mgPhase += PhaseInc[piece];
+
+            U64 attacks = Attacks::GetQueenAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[WHITE];
+            int mobility = CountBits(attacks);
+
+            mgScore += mobility * MobilityValueMg[piece];
+            egScore += mobility * MobilityValueEg[piece];
+
+            if (!(Masks::StackedPawn[square] & (board.bitboards[WP] | board.bitboards[BP]))) {
+                score += QueenOpenFileBonus;
+            }
+            else if (!(Masks::StackedPawn[square] & board.bitboards[WP])) {
+                score += QueenSemiOpenFileBonus;
+            }
+        }
+
+        piece = BQ;
+        bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int square = PopFirstBit(bitboard);
+
+            mgScore -= PieceTablesMg[piece][square];
+            egScore -= PieceTablesEg[piece][square];
+
+            mgPhase += PhaseInc[piece];
+
+            U64 attacks = Attacks::GetQueenAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[BLACK];
+            int mobility = CountBits(attacks);
+
+            mgScore -= mobility * MobilityValueMg[piece];
+            egScore -= mobility * MobilityValueEg[piece];
+
+            if (!(Masks::StackedPawn[square] & (board.bitboards[BP] | board.bitboards[WP]))) {
+                score -= QueenOpenFileBonus;
+            }
+            else if (!(Masks::StackedPawn[square] & board.bitboards[BP])) {
+                score -= QueenSemiOpenFileBonus;
+            }
+        }
+
+        piece = WK;
+        bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int square = PopFirstBit(bitboard);
+
+            mgScore += PieceTablesMg[piece][square];
+            egScore += PieceTablesEg[piece][square];
+
+            kingSquare[WHITE] = square;
+
+            int virtualAttacks = CountBits(Attacks::GetQueenAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[WHITE]);
+            int closePawnShield = CountBits(Masks::ClosePawnShieldWhite[square] & board.bitboards[WP]);
+            int farPawnShield = CountBits(Masks::FarPawnShieldWhite[square] & board.bitboards[WP]);
+
+            mgScore += KingVirtualAttackPenalty * virtualAttacks;
+            mgScore += ClosePawnShieldBonus * closePawnShield;
+            mgScore += FarPawnShieldBonus * farPawnShield;
+            
+            if (!(Masks::StackedPawn[square] & board.bitboards[WP])) mgScore -= KingOpenFilePenalty;
+        }
+
+        piece = BK;
+        bitboard = board.bitboards[piece];
+
+        while (bitboard) {
+            int square = PopFirstBit(bitboard);
+
+            mgScore -= PieceTablesMg[piece][square];
+            egScore -= PieceTablesEg[piece][square];
+
+            kingSquare[BLACK] = square;
+
+            int virtualAttacks = CountBits(Attacks::GetQueenAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[BLACK]);
+            int closePawnShield = CountBits(Masks::ClosePawnShieldBlack[square] & board.bitboards[BP]);
+            int farPawnShield = CountBits(Masks::FarPawnShieldBlack[square] & board.bitboards[BP]);
+
+            mgScore -= KingVirtualAttackPenalty * virtualAttacks;
+            mgScore -= ClosePawnShieldBonus * closePawnShield;
+            mgScore -= FarPawnShieldBonus * farPawnShield;
+            
+            if (!(Masks::StackedPawn[square] & board.bitboards[BP])) mgScore += KingOpenFilePenalty;
+        }
+
+        if (bishops[WHITE] > 1) score += BishopPairBonus;
+        if (bishops[BLACK] > 1) score -= BishopPairBonus;
 
         if (mgPhase > 24) mgPhase = 24;
         int egPhase = 24 - mgPhase;
 
-        int eval = score + (mgEval * mgPhase + egEval * egPhase) / 24;
+        int eval = score + (mgScore * mgPhase + egScore * egPhase) / 24;
 
-        return (board.side == WHITE ? eval : -eval) + Params::TempoBonus;
+        return (board.side == WHITE ? eval : -eval) + TempoBonus;
     }
 }

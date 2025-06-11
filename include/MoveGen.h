@@ -23,7 +23,8 @@ inline int EncodeMove(int fromSquare, int toSquare, int moved, int captured, int
 
 inline void AddMove(MoveList& list, int score, int move) {
     list.moves[list.length].move = move;
-    list.moves[list.length++].score = score;
+    list.moves[list.length].score = score;
+    list.length++;
 }
 
 namespace MoveGen {

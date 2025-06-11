@@ -13,7 +13,7 @@ struct TTEntry {
     int score;
     int flag;
     int depth;
-    int age;
+    //int age;
 };
 
 class TTable {
@@ -25,8 +25,8 @@ class TTable {
     void Resize(const int MB);
     void Clear();
 
-    void StoreEntry(U64 hashKey, int move, int score, int flag, int depth);
-    int GetEntry(U64 hashKey, int& pvMove, int alpha, int beta, int depth) const;
+    void StoreEntry(Board& board, int move, int score, int flag, int depth);
+    int GetEntry(Board& board, int& pvMove, int alpha, int beta, int depth) const;
 
     void GetPVLine(Board& board, int* pvLine, int depth) const;
 

@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "Attacks.h"
 #include "Board.h"
 #include "Globals.h"
@@ -10,12 +12,14 @@ using namespace MoveScoring::Heuristics;
 
 inline int GetScore(const Board& board, int move, int piece, int toSquare) {
     int score = 0;
+
     if (move == KillerMoves[0][board.ply]) score = KillerScore0;
     else if (move == KillerMoves[1][board.ply]) score = KillerScore1;
     else {
-        int lastMove = board.history[board.ply - 1].move;
-        if (move == CounterMoves[GetFromSquare(lastMove)][GetToSquare(lastMove)]) score = CounterMoveScore;
-        else score = HistoryMoves[piece][toSquare];
+        // int lastMove = board.history[board.ply - 1].move;
+        // if (move == CounterMoves[GetFromSquare(lastMove)][GetToSquare(lastMove)]) score = CounterMoveScore;
+        // else score = HistoryMoves[piece][toSquare];
+        score = HistoryMoves[piece][toSquare];
     }
 
     return score;
@@ -194,14 +198,9 @@ namespace MoveGen {
                     else {
                         move = EncodeMove(fromSquare, toSquare, piece, captured, 0, flag);
                         score = GetScore(board, move, piece, toSquare);
-
-                        if (move == KillerMoves[0][board.ply]) score = KillerScore0;
-                        else if (move == KillerMoves[1][board.ply]) score = KillerScore1;
-                        //else if (move == board.history[board.ply - 1].move) score = CounterMoveScore;
-                        else score = HistoryMoves[piece][toSquare];
                     }
 
-                    AddMove(list, score, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
+                    AddMove(list, score, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag)); 
                 }
             }
         }

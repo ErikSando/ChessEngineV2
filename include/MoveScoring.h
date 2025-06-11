@@ -8,10 +8,7 @@ namespace MoveScoring {
     extern int HistoryMoves[12][64];
     extern int CounterMoves[64][64];
 
-    inline void Reset() {
-        memset(KillerMoves, 0, sizeof(KillerMoves));
-        memset(HistoryMoves, 0, sizeof(HistoryMoves));
-    }
+    void Reset();
 
     constexpr int MAX_HISTORY_SCORE = 16384;
     constexpr int MAX_COUNTERMOVE_SCORE = 16384;
@@ -44,19 +41,19 @@ namespace MoveScoring {
             { 605, 604, 603, 602, 601, 600 }
         };
         
-        constexpr int BasePromotionScore = 600;
+        constexpr int BasePromotionScore = 0; // dont think i need this
         
         constexpr int PromotionScore[5] = {
             0,
-            BasePromotionScore + 100,
-            BasePromotionScore + 110,
-            BasePromotionScore + 120,
-            BasePromotionScore + 130
+            BasePromotionScore + 200,
+            BasePromotionScore + 210,
+            BasePromotionScore + 400,
+            BasePromotionScore + 500
         };
         
-        constexpr int KillerScore0 = 900;
-        constexpr int KillerScore1 = 800;
+        constexpr int KillerScore0 = 90;
+        constexpr int KillerScore1 = 80;
 
-        constexpr int CounterMoveScore = 90;
+        constexpr int CounterMoveScore = 70;
     }
 }

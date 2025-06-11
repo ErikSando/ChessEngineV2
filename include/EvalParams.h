@@ -8,30 +8,38 @@ inline int MirrorSquare(int square) {
     return square ^ 56;
 }
 
-namespace Evaluation {
+namespace EvalParams {
     constexpr int PhaseInc[12] = { 0, 1, 1, 2, 4, 0, 0, 1, 1, 2, 4, 0 };
 
-    constexpr int MgValues[6] = { 100, 320, 330, 500, 950, 0 };
-    constexpr int EgValues[6] = { 110, 290, 330, 550, 900, 0 };
+    constexpr int PieceValuesMg[6] = { 100, 320, 330, 500, 950, 0 };
+    constexpr int PieceValuesEg[6] = { 110, 290, 330, 550, 900, 0 };
 
-    namespace Params {
-        constexpr int TempoBonus = 10;
-        constexpr int BishopPairBonus = 30;
-        constexpr int OpenFileBonusR = 15;
-        constexpr int SemiOpenFileBonusR = 8;
-        constexpr int OpenFileBonusQ = 8;
-        constexpr int SemiOpenFileBonusQ = 5;
-        constexpr int CentreControlBonus = 5;
-        constexpr int ExtendedCentreControlBonus = 3;
-        constexpr int PassedPawnBonus = 20;
-        constexpr int StackedPawnPenalty = -5;
-        constexpr int IsolatedPawnPenalty = -10;
-    }
+    constexpr int TempoBonus = 10;
 
+    constexpr int BishopPairBonus = 30;
+
+    constexpr int RookOpenFileBonus = 15;
+    constexpr int RookSemiOpenFileBonus = 8;
+    constexpr int QueenOpenFileBonus = 8;
+    constexpr int QueenSemiOpenFileBonus = 5;
+
+    constexpr int CentreControlBonus = 5;
+    constexpr int ExtendedCentreControlBonus = 3;
+
+    // king safety (middle game)
+    constexpr int KingVirtualAttackPenalty = 2;
+    constexpr int ClosePawnShieldBonus = 10;
+    constexpr int FarPawnShieldBonus = 3;
+    constexpr int KingOpenFilePenalty = 15;
+
+    // pawn structure
+    constexpr int StackedPawnPenalty = 5;
+    constexpr int IsolatedPawnPenalty = 10;
+    constexpr int DefendedPawnBonus = 7;
     constexpr int PassedPawnValue[8] = { 0, 20, 30, 40, 55, 75, 100, 0 };
 
-    constexpr int MobilityMgValue[12] = { 0, 4, 3, 1, 1, 0, 0, 4, 3, 1, 1, 0 };
-    constexpr int MobilityEgValue[12] = { 0, 2, 3, 3, 1, 0, 0, 2, 3, 3, 1, 0 };
+    constexpr int MobilityValueMg[12] = { 0, 4, 3, 1, 1, 0, 0, 4, 3, 1, 1, 0 };
+    constexpr int MobilityValueEg[12] = { 0, 2, 3, 3, 1, 0, 0, 2, 3, 3, 1, 0 };
 
     constexpr int CentreManhattenDistance[64] = {
         6, 5, 4, 3, 3, 4, 5, 6,
@@ -44,7 +52,7 @@ namespace Evaluation {
         6, 5, 4, 3, 3, 4, 5, 6
     };
 
-    constexpr int PawnMgTable[64] = {
+    constexpr int PawnTableMg[64] = {
          0,   0,   0,   0,   0,   0,   0,   0,
         50,  50,  50,  50,  50,  50,  50,  50,
         10,  10,  20,  30,  30,  20,  10,  10,
@@ -55,7 +63,7 @@ namespace Evaluation {
          0,   0,   0,   0,   0,   0,   0,   0
     };
 
-    constexpr int PawnEgTable[64] = {
+    constexpr int PawnTableEg[64] = {
           0,   0,   0,   0,   0,   0,   0,   0,
          50,  50,  50,  50,  50,  50,  50,  50,
          35,  35,  35,  35,  35,  35,  35,  35,
@@ -66,7 +74,7 @@ namespace Evaluation {
           0,   0,   0,   0,   0,   0,   0,   0
     };
 
-    constexpr int KnightMgTable[64] = {
+    constexpr int KnightTableMg[64] = {
         -25, -20, -15, -15, -15, -15, -20, -25,
         -20, -15,   0,   0,   0,   0, -15, -20,
         -15,   0,   8,  13,  13,   8,   0, -15,
@@ -77,7 +85,7 @@ namespace Evaluation {
         -25, -20, -15, -15, -15, -15, -23, -25
     };
 
-    constexpr int KnightEgTable[64] = {
+    constexpr int KnightTableEg[64] = {
         -20, -15, -10, -10, -10, -10, -15, -20,
         -15, -10,   0,   0,   0,   0, -10, -15,
         -10,   0,   3,   8,   8,   3,   0, -10,
@@ -88,7 +96,7 @@ namespace Evaluation {
         -20, -15, -10, -10, -10, -10, -15, -20
     };
 
-    constexpr int BishopMgTable[64] = {
+    constexpr int BishopTableMg[64] = {
         -15, -10, -10, -10, -10, -10, -10, -15,
         -10,   0,   0,   0,   0,   0,   0, -10,
         -10,   0,   8,  13,  13,   8,   0, -10,
@@ -99,7 +107,7 @@ namespace Evaluation {
         -15, -10, -10, -10, -10, -10, -10, -15
     };
 
-    constexpr int BishopEgTable[64] = {
+    constexpr int BishopTableEg[64] = {
         -10,  -5,  -5,  -5,  -5,  -5,  -5, -10,
          -5,   0,   0,   0,   0,   0,   0,  -5,
          -5,   0,   3,   5,   5,   3,   0,  -5,
@@ -110,7 +118,7 @@ namespace Evaluation {
         -10,  -5,  -5,  -5, - 5,  -5,  -5, -10
     };
 
-    constexpr int RookMgTable[64] = {
+    constexpr int RookTableMg[64] = {
          0,   0,   0,   5,   5,   0,   0,   0,
          5,  10,  10,  10,  10,  10,  10,   5,
         -4,   0,   0,   4,   4,   0,   0,  -4,
@@ -121,7 +129,7 @@ namespace Evaluation {
          0,   0,   3,   6,   6,   4,   0,   0
     };
 
-    constexpr int RookEgTable[64] = {
+    constexpr int RookTableEg[64] = {
          0,   0,   0,   5,   5,   0,   0,   0,
          5,  10,  10,  10,  10,  10,  10,   5,
         -4,   0,   0,   4,   4,   0,   0,  -4,
@@ -132,7 +140,7 @@ namespace Evaluation {
          0,   0,   3,   6,   6,   4,   0,   0
     };
 
-    constexpr int QueenMgTable[64] = {
+    constexpr int QueenTableMg[64] = {
          -5,  -5,  -5,  -3,  -3,  -5,  -5, -10,
          -5,   0,   0,   0,   0,   0,   0,  -5,
          -5,   0,   3,   3,   3,   3,   0,  -5,
@@ -143,7 +151,7 @@ namespace Evaluation {
         -10,  -5,  -5,  -3,  -3,  -5,  -5, -10
     };
 
-    constexpr int QueenEgTable[64] = {
+    constexpr int QueenTableEg[64] = {
          -5,  -5,  -5,  -3,  -3,  -5,  -5, -10,
          -5,   0,   0,   0,   0,   0,   0,  -5,
          -5,   0,   3,   3,   3,   3,   0,  -5,
@@ -154,7 +162,7 @@ namespace Evaluation {
         -10,  -5,  -5,  -3,  -3,  -5,  -5, -10
     };
 
-    constexpr int KingMgTable[64] = {
+    constexpr int KingTableMg[64] = {
         -60, -60, -60, -60, -60, -60, -60, -60,
         -60, -60, -60, -60, -60, -60, -60, -60,
         -60, -60, -60, -60, -60, -60, -60, -60,
@@ -165,7 +173,7 @@ namespace Evaluation {
          20,  40,  30, -30,   0, -30,  40,  20
     };
 
-    constexpr int KingEgTable[64] = {
+    constexpr int KingTableEg[64] = {
         -30, -20, -10,   0,   0, -10, -20, -30,
         -20, -10,   0,  10,  10,   0, -10, -20,
         -20,   0,  10,  20,  20,  10,   0, -20,
