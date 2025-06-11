@@ -148,6 +148,10 @@ namespace Evaluation {
         return false;
     }
 
+    inline int ManhattenDistance(int square1, int square2) {
+        return std::abs(GetFile(square2) - GetFile(square1)) + std::abs(GetRank(square2) - GetRank(square1));
+    }
+
     int Evaluate(Board& board) {
         if (MaterialDraw(board)) return 0;
 
@@ -425,6 +429,17 @@ namespace Evaluation {
             mgScore -= FarPawnShieldBonus * farPawnShield;
             
             if (!(Masks::StackedPawn[square] & board.bitboards[BP])) mgScore += KingOpenFilePenalty;
+        }
+
+        if (pawns == 0) {
+            if (egScore > 0) {
+                score += 4.7 * CentreManhattenDistance[kingSquare[BLACK]];
+                score += 1.6 * (14 - ManhattenDistance(kingSquare[WHITE], kingSquare[BLACK]));
+            }
+            else {
+                score -= 4.7 * CentreManhattenDistance[kingSquare[BLACK]];
+                score -= 1.6 * (14 - ManhattenDistance(kingSquare[WHITE], kingSquare[BLACK]));
+            }
         }
 
         if (bishops[WHITE] > 1) score += BishopPairBonus;

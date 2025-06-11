@@ -41,7 +41,7 @@ inline bool ThreeFoldRepetition(Board& board) {
     for (int i = board.ply - board.fiftyMoveCount; i < board.ply - 1; i++) {
         if (board.hashKey == board.history[i].hashKey) {
             repetitions++;
-            if (repetitions >= 2) break;
+            if (repetitions >= 2) return true;
         }
     }
 
@@ -112,7 +112,6 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
     int pvMove = 0;
 
     int score = ttable.GetEntry(board, pvMove, alpha, beta, depth);
-
     if (score != NO_SCORE /*&& board.ply*/ && !pvNode) return score;
 
     if (board.ply >= MAX_DEPTH) return Evaluation::Evaluate(board);
