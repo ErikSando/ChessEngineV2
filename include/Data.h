@@ -43,7 +43,6 @@ constexpr bool IS_ROOK[12] =         { false, false, false,  true, false, false,
 constexpr bool IS_QUEEN[12] =        { false, false, false, false,  true, false, false, false, false, false,  true, false };
 constexpr bool IS_KING[12] =         { false, false, false, false, false,  true, false, false, false, false, false,  true };
 
-constexpr bool IS_PIECE_BIG[12] =    { false,  true,  true,  true,  true, false, false,  true,  true,  true,  true, false };
 constexpr bool IS_PIECE_SLIDER[12] = { false, false,  true,  true,  true, false, false, false,  true,  true,  true, false };
 
 inline int PieceID(char piece) {

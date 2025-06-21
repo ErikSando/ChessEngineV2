@@ -23,10 +23,15 @@ class Board {
 
     const char* GenerateFEN();
 
-    void CheckValid(); // has assertions
+    void AssertValid();
     bool IsValid();
 
     bool MakeMove(const int move, bool pseudoLegal = false);
+
+    inline bool MakeMovePL(const int move) {
+        return MakeMove(move, true);
+    }
+
     void TakeMove();
 
     void MakeNullMove();
@@ -45,7 +50,7 @@ class Board {
     int side;
     int castlingPerms;
 
-    int fullMoveCount; // used to generate a FEN string
+    int fullMoveCount; // used to generate an FEN string
 
     int bigPieces[2];
 

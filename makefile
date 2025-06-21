@@ -9,7 +9,7 @@ SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
 NAME := Main
 
 all:
-	$(CXX) -Ofast -o $(BINDIR)/$(NAME) $(SRCS) $(CXXFLAGS) -D NDEBUG
+	$(CXX) -Ofast -o $(BINDIR)/$(NAME) $(SRCS) $(CXXFLAGS) -DNDEBUG
 
 debug:
 	$(CXX) -o $(BINDIR)/$(NAME)Debug $(SRCS) $(CXXFLAGS)

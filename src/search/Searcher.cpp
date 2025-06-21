@@ -14,12 +14,12 @@
 #include "Utils.h"
 
 constexpr int NULL_MOVE_REDUCTION = 2;
+
 constexpr int FULL_DEPTH_MOVES = 5;
 constexpr int MIN_REDUCTION_DEPTH = 3;
-constexpr float REDUCTION_FACTOR = 0.5;
-int REDUCTION_TABLE[64];
-
 constexpr int MAX_REDUCTION = 3;
+constexpr float REDUCTION_FACTOR = 0.5;
+
 constexpr int ASPIRATION_WINDOW = 50;
 constexpr int WINDOW_EXPANSION_FACTOR = 30;
 
@@ -50,19 +50,19 @@ inline bool ThreeFoldRepetition(Board& board) {
 
 inline void OrderMoves(MoveList& list) {
     for (int startidx = 0; startidx < list.length - 1; startidx++) {
-        int bestScore = list.moves[startidx].score;
+        int bestScore = list.score_at(startidx);
         int bestIndex = startidx;
         
         for (int i = startidx + 1; i < list.length; i++) {
-            if (list.moves[i].score > bestScore) {
-                bestScore = list.moves[i].score;
+            if (list.score_at(i) > bestScore) {
+                bestScore = list.score_at(i);
                 bestIndex = i;
             }
         }
 
-        Move temp = list.moves[bestIndex];
-        list.moves[bestIndex] = list.moves[startidx];
-        list.moves[startidx] = temp;
+        Move temp = list[bestIndex];
+        list[bestIndex] = list[startidx];
+        list[startidx] = temp;
     }
 }
 
@@ -83,12 +83,10 @@ int Searcher::Quiescence(Board& board, SearchInfo& info, int alpha, int beta) {
 
     MoveList list;
     MoveGen::GenerateCapturesPL(board, list);
-    //MoveGen::GenerateCaptures(board, list);
     OrderMoves(list);
 
     for (int i = 0; i < list.length; i++) {
-        if (!board.MakeMove(list.moves[i].move, true)) continue;
-        //board.MakeMove(list.moves[i].move);
+        if (!board.MakeMovePL(list.move_at(i))) continue;
         int score = -Quiescence(board, info, -beta, -alpha);
         board.TakeMove();
 
@@ -121,7 +119,7 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
 
     int nullMoveR = NULL_MOVE_REDUCTION + (depth > 6);
 
-    if (doNull && !inCheck && depth > nullMoveR && board.bigPieces[board.side]) { // null move pruning
+    if (doNull && !inCheck && depth > nullMoveR && board.bigPieces[board.side] > 1) { // null move pruning
         board.MakeNullMove();
         int score = -AlphaBeta(board, info, depth - 1 - nullMoveR, -beta, -beta + 1, false);
         board.TakeNullMove();
@@ -138,12 +136,11 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
 
     MoveList list;
     MoveGen::GenerateMovesPL(board, list);
-    //MoveGen::GenerateMoves(board, list);
 
     if (pvMove) {
         for (int i = 0; i < list.length; i++) {
-            if (pvMove == list.moves[i].move) {
-                list.moves[i].score = INF;
+            if (pvMove == list.move_at(i)) {
+                list[i].score = INF;
                 break;
             }
         }
@@ -157,22 +154,19 @@ int Searcher::AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, in
     int hashFlag = ALPHA_FLAG;
 
     for (int i = 0; i < list.length; i++) {
-        int move = list.moves[i].move;
-        if (!board.MakeMove(move, true)) continue;
-        //board.MakeMove(move);
+        int move = list.move_at(i);
+        if (!board.MakeMovePL(move)) continue;
 
         int score;
 
         if (legalMoves == 0) { // legalMoves is considered "moves searched so far" in this context
             score = -AlphaBeta(board, info, depth - 1 + extension, -beta, -alpha, true);
         }
-        else if (!inCheck && legalMoves >= FULL_DEPTH_MOVES && depth >= MIN_REDUCTION_DEPTH && list.moves[i].score == 0) { // late move reductions
-            //int reduction = 1;//REDUCTION_FACTOR * std::log(depth) * std::log(legalMoves - FULL_DEPTH_MOVES);
-            //int reduction = REDUCTION_TABLE[depth] * std::log(legalMoves - FULL_DEPTH_MOVES);
-            
-            int reduction = REDUCTION_FACTOR * std::log(depth) * std::log(legalMoves - FULL_DEPTH_MOVES);
-            reduction = std::clamp(reduction, 1, MAX_REDUCTION);
-            int newDepth = std::max(1, depth - 1 - reduction) + extension;
+        else if (!inCheck && legalMoves >= FULL_DEPTH_MOVES && depth >= MIN_REDUCTION_DEPTH && list.score_at(i) == 0) { // late move reductions
+            // int reduction = REDUCTION_FACTOR * std::log(depth) * std::log(legalMoves - FULL_DEPTH_MOVES);
+            // reduction = std::clamp(reduction, 1, MAX_REDUCTION);
+            // int newDepth = std::max(1, depth - 1 - reduction) + extension;
+            int newDepth = depth - 2 + extension;
 
             score = -AlphaBeta(board, info, newDepth, -alpha - 1, -alpha, true);
         }

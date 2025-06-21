@@ -9,9 +9,9 @@
 
 namespace Perft {
     U64 CountNodes(Board& board, int depth) {
-        //debug(board.CheckValid());
+        //debug(board.AssertValid());
 
-        if (depth == 0 || stop_perft) return 1;
+        if (stop_perft || !depth) return 1;
 
         MoveList list;
         MoveGen::GenerateMoves(board, list);
@@ -21,7 +21,7 @@ namespace Perft {
         U64 n = 0;
 
         for (int i = 0; i < list.length; i++) {
-            board.MakeMove(list.moves[i].move);
+            board.MakeMove(list[i].move);
             n += CountNodes(board, depth - 1);
             board.TakeMove();
         }
@@ -40,7 +40,7 @@ namespace Perft {
         int start = Utils::GetTimeMS();
 
         for (int i = 0; i < list.length; i++) {
-            int move = list.moves[i].move;
+            int move = list[i].move;
 
             U64 newNodes = 0;
 

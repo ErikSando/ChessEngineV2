@@ -66,7 +66,7 @@ bool Board::MakeMove(const int move, bool pseudoLegal) {
             int captured = GetCapturedPiece(move);
             RemovePiece(this, captured, enemy, toSquare);
 
-            if (IS_PIECE_BIG[captured]) bigPieces[enemy]--;
+            if (!IS_PAWN[captured]) bigPieces[enemy]--;
 
             break;
         }

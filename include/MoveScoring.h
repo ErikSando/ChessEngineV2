@@ -1,3 +1,5 @@
+#pragma once
+
 #include <algorithm>
 #include <string.h>
 
@@ -46,7 +48,7 @@ namespace MoveScoring {
         constexpr int PromotionScore[5] = {
             0,
             BasePromotionScore + 200,
-            BasePromotionScore + 210,
+            BasePromotionScore + 300,
             BasePromotionScore + 400,
             BasePromotionScore + 500
         };

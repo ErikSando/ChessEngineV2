@@ -74,7 +74,7 @@ namespace EvalParams {
           0,   0,   0,   0,   0,   0,   0,   0
     };
 
-    constexpr int KnightTableMg[64] = {
+        constexpr int KnightTableMg[64] = {
         -25, -20, -15, -15, -15, -15, -20, -25,
         -20, -15,   0,   0,   0,   0, -15, -20,
         -15,   0,   8,  13,  13,   8,   0, -15,

@@ -24,6 +24,8 @@ void Board::Clear() {
     ply = 0;
 }
 
+static const char* SIDE_STR[3] = { "white", "black", "none" };
+
 void Board::Print() {
     for (int rank = RANK_8; rank >= RANK_1; rank--) {
         std::cout << " " << (rank + 1) << "  ";
@@ -56,7 +58,7 @@ void Board::Print() {
     if (castlingPerms & BKC) castlingPermsStr[2] = 'k';
     if (castlingPerms & BQC) castlingPermsStr[3] = 'q';
 
-    std::cout << "Side to move:        " << SIDE_CHAR[side] << "\n";
+    std::cout << "Side to move:        " << SIDE_STR[side] << "\n";
     std::cout << "Castling:            " << castlingPermsStr << "\n";
     std::cout << "En passant:          " << (enPassant != NO_SQUARE ? Utils::ToSquareString(enPassant) : "none") << "\n";
     std::cout << "50 move counter:     " << fiftyMoveCount << "\n";

@@ -50,7 +50,7 @@ void Board::ParseFEN(const char* fen) {
             SetBit(bitboards[piece], square);
             SetBit(occupancy[pside], square);
 
-            if (IS_PIECE_BIG[piece]) bigPieces[pside]++;
+            if (!IS_PAWN[piece]) bigPieces[pside]++;
         }
 
         file += jump;

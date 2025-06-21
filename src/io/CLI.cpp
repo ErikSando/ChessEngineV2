@@ -212,6 +212,27 @@ void CommandLoop() {
 
             std::cout << "Moves: " << list.length << "\n";
         }
+        // commands for testing capture gens
+        else if (cmd == "caps") {
+            MoveList list;
+            MoveGen::GenerateCapturesPL(board, list);
+
+            for (int i = 0; i < list.length; i++) {
+                std::cout << Utils::ToMoveString(list.moves[i].move) << "\n";
+            }
+
+            std::cout << "Moves: " << list.length << "\n";
+        }
+        else if (cmd == "lcaps") {
+            MoveList list;
+            MoveGen::GenerateCaptures(board, list);
+
+            for (int i = 0; i < list.length; i++) {
+                std::cout << Utils::ToMoveString(list.moves[i].move) << "\n";
+            }
+
+            std::cout << "Moves: " << list.length << "\n";
+        }
         else {
             std::string& movestr = cmd;
 

@@ -4,17 +4,15 @@
 #include "Move.h"
 #include "MoveGen.h"
 
+using namespace MoveScoring;
+using namespace MoveScoring::Heuristics;
+
 namespace MoveGen {
     U64 RANK_1_MASK = 0x00000000000000FFULL;
 
-    // TODO: add move scoring so this can be used in search
     void GenerateMoves(Board& board, MoveList& list) {
         int side = board.side;
         int enemy = side ^ 1;
-
-        // int direction = side * -16 + 8;
-        // int promotionRank = side * -7 + 7;
-        // int captureStart = enemy * 6;
 
         int direction = enemy ? 8 : -8;
         int promotionRank = enemy ? RANK_8 : RANK_1;
@@ -27,7 +25,6 @@ namespace MoveGen {
         U64 blockMask = 0xFFFFFFFFFFFFFFFFULL;
 
         int pieceType = P;
-        // int piece = side * 6;
         int piece = enemy ? WP : BP;
         int kingPiece = piece + 5;
         U64 bitboard = board.bitboards[kingPiece];

@@ -4,7 +4,7 @@
 #include "Board.h"
 #include "Utils.h"
 
-void Board::CheckValid() {
+void Board::AssertValid() {
     int nWK = CountBits(bitboards[WK]);
     int nBK = CountBits(bitboards[BK]);
 

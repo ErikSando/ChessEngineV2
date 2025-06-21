@@ -10,21 +10,6 @@
 using namespace MoveScoring;
 using namespace MoveScoring::Heuristics;
 
-inline int GetScore(const Board& board, int move, int piece, int toSquare) {
-    int score = 0;
-
-    if (move == KillerMoves[0][board.ply]) score = KillerScore0;
-    else if (move == KillerMoves[1][board.ply]) score = KillerScore1;
-    else {
-        // int lastMove = board.history[board.ply - 1].move;
-        // if (move == CounterMoves[GetFromSquare(lastMove)][GetToSquare(lastMove)]) score = CounterMoveScore;
-        // else score = HistoryMoves[piece][toSquare];
-        score = HistoryMoves[piece][toSquare];
-    }
-
-    return score;
-}
-
 namespace MoveGen {
     void GenerateMovesPL(const Board& board, MoveList& list) {
         int side = board.side;
@@ -180,27 +165,24 @@ namespace MoveGen {
             
                 while (attacks) {
                     int toSquare = PopFirstBit(attacks);
-                    int flag = 0;
-                    int score = 0;
-                    int captured = captureStart;
+                    int score;
                     int move;
+                    int captured = captureStart;
 
                     if (IsBitSet(board.occupancy[enemy], toSquare)) {
-                        flag = CAPTURE_FLAG;
-
                         for (; captured < captureStart + 6; captured++) {
                             if (IsBitSet(board.bitboards[captured], toSquare)) break;
                         }
 
-                        move = EncodeMove(fromSquare, toSquare, piece, captured, 0, flag);
+                        move = EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG);
                         score = MvvLvaScore[captured][pieceType];
                     }
                     else {
-                        move = EncodeMove(fromSquare, toSquare, piece, captured, 0, flag);
+                        move = EncodeMove(fromSquare, toSquare, piece, captured, 0, 0);
                         score = GetScore(board, move, piece, toSquare);
                     }
 
-                    AddMove(list, score, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag)); 
+                    AddMove(list, score, move); 
                 }
             }
         }

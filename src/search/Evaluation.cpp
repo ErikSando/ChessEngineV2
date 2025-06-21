@@ -179,9 +179,8 @@ namespace Evaluation {
             mgPhase += PhaseInc[piece];
 
             if (Masks::StackedPawn[square] & board.bitboards[WP]) score -= StackedPawnPenalty;
-            if (Masks::IsolatedPawn[square] & board.bitboards[WP]) score -= IsolatedPawnPenalty;
-            
-            if (Masks::PassedPawnWhite[square] & board.bitboards[BP]) {
+            if (!(Masks::IsolatedPawn[square] & board.bitboards[WP])) score -= IsolatedPawnPenalty;
+            if (!(Masks::PassedPawnWhite[square] & board.bitboards[BP])) {
                 score += PassedPawnValue[GetRank(square)];
             }
 
@@ -202,14 +201,16 @@ namespace Evaluation {
             mgPhase += PhaseInc[piece];
 
             if (Masks::StackedPawn[square] & board.bitboards[BP]) score += StackedPawnPenalty;
-            if (Masks::IsolatedPawn[square] & board.bitboards[BP]) score += IsolatedPawnPenalty;
-            
-            if (Masks::PassedPawnBlack[square] & board.bitboards[WP]) {
+            if (!(Masks::IsolatedPawn[square] & board.bitboards[BP])) score += IsolatedPawnPenalty;
+            if (!(Masks::PassedPawnBlack[square] & board.bitboards[WP])) {
                 score -= PassedPawnValue[RANK_8 - GetRank(square)];
             }
 
             if (Attacks::PawnCaptures[WHITE][square] & board.bitboards[BP]) score -= DefendedPawnBonus;
         }
+
+        // std::cout << "After pawns:\n";
+        // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
 
         piece = WN;
         bitboard = board.bitboards[piece];
@@ -246,6 +247,9 @@ namespace Evaluation {
             mgScore -= mobility * MobilityValueMg[piece];
             egScore -= mobility * MobilityValueEg[piece];
         }
+
+        // std::cout << "After knights:\n";
+        // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
 
         piece = WB;
         bitboard = board.bitboards[piece];
@@ -286,6 +290,9 @@ namespace Evaluation {
             mgScore -= mobility * MobilityValueMg[piece];
             egScore -= mobility * MobilityValueEg[piece];
         }
+
+        // std::cout << "After bishops:\n";
+        // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
 
         piece = WR;
         bitboard = board.bitboards[piece];
@@ -329,13 +336,16 @@ namespace Evaluation {
             mgScore -= mobility * MobilityValueMg[piece];
             egScore -= mobility * MobilityValueEg[piece];
 
-            if (!(Masks::StackedPawn[square] & (board.bitboards[BP] | board.bitboards[WP]))) {
+            if (!(Masks::StackedPawn[square] & (board.bitboards[WP] | board.bitboards[WP]))) {
                 score -= RookOpenFileBonus;
             }
             else if (!(Masks::StackedPawn[square] & board.bitboards[BP])) {
                 score -= RookSemiOpenFileBonus;
             }
         }
+
+        // std::cout << "After rooks:\n";
+        // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
 
         piece = WQ;
         bitboard = board.bitboards[piece];
@@ -379,13 +389,16 @@ namespace Evaluation {
             mgScore -= mobility * MobilityValueMg[piece];
             egScore -= mobility * MobilityValueEg[piece];
 
-            if (!(Masks::StackedPawn[square] & (board.bitboards[BP] | board.bitboards[WP]))) {
+            if (!(Masks::StackedPawn[square] & (board.bitboards[WP] | board.bitboards[BP]))) {
                 score -= QueenOpenFileBonus;
             }
             else if (!(Masks::StackedPawn[square] & board.bitboards[BP])) {
                 score -= QueenSemiOpenFileBonus;
             }
         }
+
+        // std::cout << "After queens:\n";
+        // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
 
         piece = WK;
         bitboard = board.bitboards[piece];
@@ -398,13 +411,13 @@ namespace Evaluation {
 
             kingSquare[WHITE] = square;
 
-            int virtualAttacks = CountBits(Attacks::GetQueenAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[WHITE]);
+            int virtualAttacks = CountBits(Attacks::GetQueenAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[BOTH]);
             int closePawnShield = CountBits(Masks::ClosePawnShieldWhite[square] & board.bitboards[WP]);
             int farPawnShield = CountBits(Masks::FarPawnShieldWhite[square] & board.bitboards[WP]);
 
-            mgScore += KingVirtualAttackPenalty * virtualAttacks;
-            mgScore += ClosePawnShieldBonus * closePawnShield;
-            mgScore += FarPawnShieldBonus * farPawnShield;
+            mgScore -= virtualAttacks * KingVirtualAttackPenalty;
+            mgScore += closePawnShield * ClosePawnShieldBonus;
+            mgScore += farPawnShield * FarPawnShieldBonus;
             
             if (!(Masks::StackedPawn[square] & board.bitboards[WP])) mgScore -= KingOpenFilePenalty;
         }
@@ -420,16 +433,19 @@ namespace Evaluation {
 
             kingSquare[BLACK] = square;
 
-            int virtualAttacks = CountBits(Attacks::GetQueenAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[BLACK]);
+            int virtualAttacks = CountBits(Attacks::GetQueenAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[BOTH]);
             int closePawnShield = CountBits(Masks::ClosePawnShieldBlack[square] & board.bitboards[BP]);
             int farPawnShield = CountBits(Masks::FarPawnShieldBlack[square] & board.bitboards[BP]);
 
-            mgScore -= KingVirtualAttackPenalty * virtualAttacks;
-            mgScore -= ClosePawnShieldBonus * closePawnShield;
-            mgScore -= FarPawnShieldBonus * farPawnShield;
+            mgScore += virtualAttacks * KingVirtualAttackPenalty;
+            mgScore -= closePawnShield * ClosePawnShieldBonus;
+            mgScore -= farPawnShield * FarPawnShieldBonus;
             
             if (!(Masks::StackedPawn[square] & board.bitboards[BP])) mgScore += KingOpenFilePenalty;
         }
+
+        // std::cout << "After kings:\n";
+        // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
 
         if (pawns == 0) {
             if (egScore > 0) {
@@ -442,13 +458,21 @@ namespace Evaluation {
             }
         }
 
+        // std::cout << "After mop up:\n";
+        // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
+
         if (bishops[WHITE] > 1) score += BishopPairBonus;
         if (bishops[BLACK] > 1) score -= BishopPairBonus;
+
+        // std::cout << "After bishop pair:\n";
+        // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
 
         if (mgPhase > 24) mgPhase = 24;
         int egPhase = 24 - mgPhase;
 
         int eval = score + (mgScore * mgPhase + egScore * egPhase) / 24;
+
+        // std::cout << "Evaluation: " << eval << "\n";
 
         return (board.side == WHITE ? eval : -eval) + TempoBonus;
     }

@@ -30,7 +30,7 @@ namespace MoveGen {
         U64 bitboard = board.bitboards[kingPiece];
 
         int kingSquare = PopFirstBit(bitboard);
-        U64 attacks = Attacks::KingAttacks[kingSquare] & ~board.occupancy[side] & ~attacked;
+        U64 attacks = Attacks::KingAttacks[kingSquare] & ~board.occupancy[side] & ~attacked & board.occupancy[enemy];
 
         int enemyPawn = piece ^ 6;
 
@@ -44,18 +44,15 @@ namespace MoveGen {
 
         while (attacks) {
             int toSquare = PopFirstBit(attacks);
-            int flag = 0;
+            // if (!IsBitSet(board.occupancy[enemy], toSquare)) continue;
+
             int captured = captureStart;
 
-            if (IsBitSet(board.occupancy[enemy], toSquare)) {
-                flag = CAPTURE_FLAG;
-
-                for (; captured < captureStart + 6; captured++) {
-                    if (IsBitSet(board.bitboards[captured], toSquare)) break;
-                }
+            for (; captured < captureStart + 6; captured++) {
+                if (IsBitSet(board.bitboards[captured], toSquare)) break;
             }
 
-            AddMove(list, 0, EncodeMove(kingSquare, toSquare, kingPiece, captured, 0, flag));
+            AddMove(list, 0, EncodeMove(kingSquare, toSquare, kingPiece, captured, 0, CAPTURE_FLAG));
         }
 
         if (numAttackers > 1) return;
@@ -152,6 +149,8 @@ namespace MoveGen {
 
             while (captures) {
                 int toSquare = PopFirstBit(captures);
+                if (!IsBitSet(board.occupancy[enemy], toSquare)) continue;
+
                 int captured = captureStart;
 
                 for (; captured < captureStart + 6; captured++) {
@@ -189,19 +188,13 @@ namespace MoveGen {
             
                 while (attacks) {
                     int toSquare = PopFirstBit(attacks);
-                    int flag = 0;
                     int captured = captureStart;
-                    int move;
 
-                    if (IsBitSet(board.occupancy[enemy], toSquare)) {
-                        flag = CAPTURE_FLAG;
-
-                        for (; captured < captureStart + 6; captured++) {
-                            if (IsBitSet(board.bitboards[captured], toSquare)) break;
-                        }
+                    for (; captured < captureStart + 6; captured++) {
+                        if (IsBitSet(board.bitboards[captured], toSquare)) break;
                     }
 
-                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, flag));
+                    AddMove(list, 0, EncodeMove(fromSquare, toSquare, piece, captured, 0, CAPTURE_FLAG));
                 }
             }
         }

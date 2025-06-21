@@ -44,7 +44,7 @@ void Board::TakeMove() {
             SetBit(bitboards[captured], toSquare);
             SetBit(occupancy[enemy], toSquare);
 
-            if (IS_PIECE_BIG[captured]) bigPieces[enemy]++;
+            if (!IS_PAWN[captured]) bigPieces[enemy]++;
 
             break;
         }
