@@ -21,9 +21,10 @@ bool Board::MakeMove(const int move, bool pseudoLegal) {
     history[ply].hashKey = hashKey;
     history[ply].move = move;
     history[ply].castlingPerms = castlingPerms;
-    history[ply].fiftyMoveCount = fiftyMoveCount++;
+    history[ply].fiftyMoveCount = fiftyMoveCount;
     history[ply].enPassant = enPassant;
 
+    fiftyMoveCount++;
     ply++;
 
     int enemy = side ^ 1;

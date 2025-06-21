@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 #include <string.h>
 
@@ -114,7 +115,8 @@ void Board::ParseFEN(const char* fen) {
         }
     }
 
-    fiftyMoveCount = atoi(fen + 1);
+    fen += 2;
+    fiftyMoveCount = atoi(fen);
 
     if (fiftyMoveCount < 0) {
         std::cout << "Invalid FEN string: invalid fifty move rule counter\n";
@@ -122,17 +124,121 @@ void Board::ParseFEN(const char* fen) {
         return;
     }
 
-    #ifdef NDEBUG
-        if (!CheckValidQuiet()) {
-            std::cout << "Invalid FEN string: failed validity check\n";
-        }
-    #else
-        CheckValid();
-    #endif
+    while (std::isdigit(*fen)) {
+        fen++;
+    }
+
+    fullMoveCount = atoi(fen + 1);
+    if (fullMoveCount < 0) fullMoveCount = 0;
+
+    if (!IsValid()) {
+        std::cout << "Invalid FEN string: failed validity check\n";
+    }
 
     hashKey = HashKeys::GenerateHashKey(this);
 }
 
-const char* GenerateFEN() {
-    return "";
+// maximum length fen i can think of (not a legal position but idc)
+// r1r1b1b1/n1n1k1q1/p1p1p1p1/p1p1p1p1/1P1P1P1P/1P1P1P1P/1Q1K1N1N/1B1B1R1R w KQkq a1 99 999
+// i think 90 should be enough
+
+constexpr size_t MAX_FEN_LENGTH = 90;
+
+#define IncrementFile \
+file++;\
+if (file > FILE_H) {\
+    file = FILE_A;\
+    rank--;\
+}
+
+#define AddJump \
+if (jump) {\
+    buffer[index++] = '0' + jump;\
+    jump = 0;\
+}
+
+const char* Board::GenerateFEN() {
+    static char buffer[MAX_FEN_LENGTH];
+
+    if (!IsValid()) {
+        std::cout << "Position is invalid, FEN string will be invalid\n";
+    }
+
+    int file = FILE_A;
+    int rank = RANK_8;
+
+    int jump = 0;
+    int index = 0;
+
+    while (rank >= RANK_1) {
+        if (file == FILE_A && rank < RANK_8) {
+            AddJump
+            buffer[index++] = '/';
+        }
+
+        int square = GetSquare(file, rank);
+
+        if (!IsBitSet(occupancy[BOTH], square)) {
+            jump++;
+            IncrementFile
+            continue;
+        }
+
+        AddJump
+
+        int piece;
+
+        for (piece = WP; piece <= BK; piece++) {
+            if (IsBitSet(bitboards[piece], square)) break;
+        }
+
+        // there should be a piece set, so I will not include the condition
+        // if (piece != NO_PIECE) {
+            buffer[index++] = PIECE_CHAR[piece];
+        // }
+        // else {
+        //     jump++;
+        // }
+
+        IncrementFile
+    }
+
+    AddJump
+
+    buffer[index++] = ' ';
+    buffer[index++] = SIDE_CHAR[side];
+    buffer[index++] = ' ';
+
+    if (castlingPerms) {
+        for (int i = 0; i < 4; i++) {
+            if (IsBitSet(castlingPerms, i)) {
+                buffer[index++] = CASTLING_CHAR[i];
+            }
+        }
+    }
+    else {
+        buffer[index++] = '-';
+    }
+    
+    buffer[index++] = ' ';
+
+    if (enPassant != NO_SQUARE) {
+        buffer[index++] = 'a' + GetFile(enPassant);
+        buffer[index++] = '1' + GetRank(enPassant);
+    }
+    else {
+        buffer[index++] = '-';
+    }
+
+    // then add fifty move and full move counters
+
+    int fullMoves = fullMoveCount + std::floor(ply / 2);
+
+    // sizeof(char) == 1UL
+    index += snprintf(buffer + index, MAX_FEN_LENGTH - index, " %i", fiftyMoveCount);
+    index += snprintf(buffer + index, MAX_FEN_LENGTH - index, " %i", fullMoves);
+
+    buffer[index] = '\0';
+
+    return buffer;
 }

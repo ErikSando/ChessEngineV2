@@ -23,6 +23,10 @@ enum PieceType {
 
 constexpr const char* START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+// these were added for FEN generation
+constexpr char SIDE_CHAR[4] = "wb-";
+constexpr char CASTLING_CHAR[5] = "KQkq";
+
 constexpr char PIECE_CHAR[14] = "PNBRQKpnbrqk.";
 
 constexpr int PIECE_SIDE[12] = {

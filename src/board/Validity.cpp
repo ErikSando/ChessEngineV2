@@ -67,7 +67,7 @@ void Board::CheckValid() {
     }
 }
 
-bool Board::CheckValidQuiet() {
+bool Board::IsValid() {
     int nWK = CountBits(bitboards[WK]);
     int nBK = CountBits(bitboards[BK]);
 

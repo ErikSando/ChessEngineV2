@@ -33,6 +33,8 @@ void CommandLoop() {
     Searcher searcher(ttable);
     SearchInfo search_info;
 
+    board.ParseFEN(START_FEN);
+
     std::thread search_thread(WorkerThread, std::ref(board), std::ref(searcher), std::ref(search_info));
 
     std::string command;
@@ -64,14 +66,16 @@ void CommandLoop() {
             std::cout << "exit | quit\n - Exit the program.\n";
             std::cout << "print\n - Prints the board to the console. White pieces are uppercased, black pieces are lowercased.\n";
             //std::cout << "make | play [move]\n - Play a move. Must be written in from-to-promotion form, e.g. g7g8q.\b";
-            std::cout << "take | undo\n - Undo the last move.\n";
             std::cout << "reset\n - Load the starting position.\n";
             std::cout << "pos [fen]\n - Parse the given FEN string.\n";
+            std::cout << "fen\n - Generate and print the FEN string of the current position.\n";
+            std::cout << "take | undo\n - Undo the last move.\n";
             std::cout << "perft [depth]\n - Traverses through the game tree to a specified depth, counting the number of nodes.\n";
             std::cout << "search | go [...options]\n - Search for the best move. Options are: depth [ply] time [time in ms]. If no options are given, a time of 5 seconds is used.\n";
             std::cout << "stop\n - Cancel the search and print the best move found so far.\n";
             std::cout << "post [true/false]\n - Set whether the engine will print it's results at each depth to the console.";
             std::cout << "eval\n - Calculate and print the static evaluation of the position.\n";
+            std::cout << "qeval\n - Find and print the quiescent evaluation of the position.\n";
             std::cout << "uci\n - Enter UCI mode.\n";
         }
         else if (cmd == "uci") {
@@ -110,6 +114,10 @@ void CommandLoop() {
 
             board.ParseFEN(fenstr.c_str());
             board.Print();
+        }
+        else if (cmd == "fen") {
+            const char* fenstr = board.GenerateFEN();
+            std::cout << fenstr << "\n";
         }
         else if (cmd == "perft") {
             if (args.size() < 2) {

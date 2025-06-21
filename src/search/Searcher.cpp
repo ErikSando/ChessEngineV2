@@ -45,7 +45,7 @@ inline bool ThreeFoldRepetition(Board& board) {
         }
     }
 
-    return repetitions >= 2;
+    return false;
 }
 
 inline void OrderMoves(MoveList& list) {
@@ -259,17 +259,17 @@ void Searcher::Search(Board& board, SearchInfo& info) {
             continue;
         }
 
-        depth++;
         fails = 0;
         alpha = score - ASPIRATION_WINDOW;
         beta = score + ASPIRATION_WINDOW;
 
         if (info.stopped) break;
-        if (!info.post) continue;
-
-        int time = Utils::GetTimeMS() - info.startTime;
 
         ttable.GetPVLine(board, pvLine, depth);
+
+        if (!info.post) continue;
+        
+        int time = Utils::GetTimeMS() - info.startTime;
 
         std::ostringstream pvString;
 
@@ -314,6 +314,8 @@ void Searcher::Search(Board& board, SearchInfo& info) {
         }
 
         std::cout << std::endl; // need to flush std::cout
+
+        depth++;
     }
 
     if (info.quitting || !info.postBestMove) return;
