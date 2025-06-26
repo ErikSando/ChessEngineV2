@@ -3,6 +3,7 @@
 #include <thread>
 #include <vector>
 
+#include "Attacks.h"
 #include "CLI.h"
 #include "Evaluation.h"
 #include "Perft.h"
@@ -202,6 +203,11 @@ namespace ErikEngine {
                 int eval = searcher.Quiescence(board, search_info, -INF, INF);
 
                 std::cout << "Quiescent evaluation: " << eval << "\n";
+            }
+            else if (cmd == "magics") {
+                std::cout << "WARNING: magic number generation is currently broken!\n";
+                Attacks::FindMagics();
+                std::cout << "WARNING: magic number generation is currently broken!\n";
             }
             // // command for testing legal move gen
             // else if (cmd == "moves") {

@@ -3,12 +3,12 @@
 #include <cstdlib>
 
 namespace ErikEngine {
+    using U64 = unsigned long long;
+    // using Bitboard = U64; // to be clear with what variables are used for
+
     constexpr const char* ENGINE_NAME = "ErikEngine";
     constexpr const char* ENGINE_AUTHOR = "Erik";
     constexpr const char* ENGINE_VERSION = "2.0";
-
-    using U64 = unsigned long long;
-    // using Bitboard = U64; // to be clear with what variables are used for
 
     #if defined(__GNUC__) || defined(__clang__)
 

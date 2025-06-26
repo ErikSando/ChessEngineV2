@@ -24,6 +24,11 @@ namespace ErikEngine {
     constexpr int ASPIRATION_WINDOW = 50;
     constexpr int WINDOW_EXPANSION_FACTOR = 30;
 
+    // this decreases speed significantly, the decreased branching factor isnt worth it
+    constexpr int MAX_FUTILITY_PRUNE_DEPTH = 2;
+    constexpr int FUTILITY_MARGIN_FACTOR = 100;
+    constexpr int MIN_NON_FUTILITY_PRUNED = 3;
+
     inline int CalculateWindow(int fails) {
         return ASPIRATION_WINDOW + fails * WINDOW_EXPANSION_FACTOR;
     }
@@ -50,21 +55,11 @@ namespace ErikEngine {
     }
 
     inline void OrderMoves(MoveList& list) {
-        for (int startidx = 0; startidx < list.length - 1; startidx++) {
-            int bestScore = list.score_at(startidx);
-            int bestIndex = startidx;
-            
-            for (int i = startidx + 1; i < list.length; i++) {
-                if (list.score_at(i) > bestScore) {
-                    bestScore = list.score_at(i);
-                    bestIndex = i;
-                }
-            }
-
-            Move temp = list[bestIndex];
-            list[bestIndex] = list[startidx];
-            list[startidx] = temp;
-        }
+        // as far as I know, std::sort uses insertion sort on small lists,
+        // so I don't need to do that manually
+        std::sort(list.begin(), list.end(), [&](const Move& a, const Move& b) {
+            return a.score > b.score;
+        });
     }
 
     int Searcher::Quiescence(Board& board, SearchInfo& info, int alpha, int beta) {
@@ -120,7 +115,8 @@ namespace ErikEngine {
 
         int nullMoveR = NULL_MOVE_REDUCTION + (depth > 6);
 
-        if (doNull && !inCheck && depth > nullMoveR && board.bigPieces[board.side] > 1) { // null move pruning
+        // null move pruning
+        if (doNull && !inCheck && depth > nullMoveR && board.bigPieces[board.side] > 1) {
             board.MakeNullMove();
             int score = -AlphaBeta(board, info, depth - 1 - nullMoveR, -beta, -beta + 1, false);
             board.TakeNullMove();
@@ -133,11 +129,13 @@ namespace ErikEngine {
 
         int extension = 0;
 
-        if (inCheck || enemyInCheck) extension = 1; // check extension
+        // check extension
+        if (inCheck || enemyInCheck) extension = 1;
 
         MoveList list;
         MoveGen::GenerateMovesPL(board, list);
 
+        // search PV move first
         if (pvMove) {
             for (int i = 0; i < list.length; i++) {
                 if (pvMove == list.move_at(i)) {
@@ -156,6 +154,18 @@ namespace ErikEngine {
 
         for (int i = 0; i < list.length; i++) {
             int move = list.move_at(i);
+
+            // futility pruning
+            if (
+                depth <= MAX_FUTILITY_PRUNE_DEPTH &&
+                legalMoves > MIN_NON_FUTILITY_PRUNED &&
+                !inCheck &&
+                list.score_at(i) == 0
+            ) {
+                int eval = Evaluation::Evaluate(board);
+                if (eval + FUTILITY_MARGIN_FACTOR * depth <= alpha) continue;
+            }
+
             if (!board.MakeMovePL(move)) continue;
 
             int score;
@@ -163,7 +173,13 @@ namespace ErikEngine {
             if (legalMoves == 0) { // legalMoves is considered "moves searched so far" in this context
                 score = -AlphaBeta(board, info, depth - 1 + extension, -beta, -alpha, true);
             }
-            else if (!inCheck && legalMoves >= FULL_DEPTH_MOVES && depth >= MIN_REDUCTION_DEPTH && list.score_at(i) == 0) { // late move reductions
+            // late move reductions
+            else if (
+                !inCheck &&
+                legalMoves >= FULL_DEPTH_MOVES &&
+                depth >= MIN_REDUCTION_DEPTH &&
+                list.score_at(i) == 0
+            ) {
                 // int reduction = REDUCTION_FACTOR * std::log(depth) * std::log(legalMoves - FULL_DEPTH_MOVES);
                 // reduction = std::clamp(reduction, 1, MAX_REDUCTION);
                 // int newDepth = std::max(1, depth - 1 - reduction) + extension;
@@ -183,7 +199,8 @@ namespace ErikEngine {
 
             board.TakeMove();
 
-            if (score >= beta) { // beta cut off
+            // beta cut off
+            if (score >= beta) {
                 ttable.StoreEntry(board, move, score, BETA_FLAG, depth);
 
                 if (GetFlag(move) != CAPTURE_FLAG) {
@@ -225,7 +242,7 @@ namespace ErikEngine {
 
     void Searcher::Search(Board& board, SearchInfo& info) {
         board.ply = 0;
-        ttable.age++;
+        ttable.IncAge();
         info.nodes = 0ULL;
         info.stopped = false;
         MoveScoring::Reset();

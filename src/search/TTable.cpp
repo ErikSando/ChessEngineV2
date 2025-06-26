@@ -8,41 +8,47 @@
 
 namespace ErikEngine {
     TTable::TTable(const int MB) {
+        m_age = 0;
+        m_size = 0;
+        m_entries = nullptr;
+
         Resize(MB);
     }
 
     TTable::~TTable() {
-        free(entries);
+        free(m_entries);
     }
 
     void TTable::Resize(const int MB) {
         size_t bytes = MB * 0x100000;
-        size = bytes / sizeof(TTEntry);
+        m_size = bytes / sizeof(TTEntry);
 
-        entries = static_cast<TTEntry*>(realloc(entries, bytes));
+        m_entries = static_cast<TTEntry*>(realloc(m_entries, bytes));
 
-        if (!entries) {
-            size = 0;
+        if (!m_entries) {
+            m_size = 0;
             std::cout << "Failed to initialise transposition table.\n";
             return;
         }
 
         Clear();
 
-        EE_DEBUG(std::cout << "Initialised transposition table with " << size << " entries.\n");
+        EE_DEBUG(std::cout << "Initialised transposition table with " << m_size << " entries.\n");
     }
 
     void TTable::Clear() {
-        age = 0;
-        if (!entries) return;
-        memset(entries, 0, size * sizeof(TTEntry));
+        m_age = 0;
+        if (!m_entries) return;
+        memset(m_entries, 0, m_size * sizeof(TTEntry));
     }
 
     void TTable::StoreEntry(Board& board, int move, int score, int flag, int depth) {
-        int index = board.hashKey % size;
-        TTEntry* entry = &entries[index];
+        int index = board.hashKey % m_size;
+        TTEntry* entry = &m_entries[index];
 
-        bool replace = entry->hashKey == 0ULL || /*entry->age < age ||*/ entry->depth < depth;
+        bool replace = entry->hashKey == 0ULL
+                    || entry->age < m_age
+                    || entry->depth < depth;
 
         if (!replace) return;
 
@@ -54,12 +60,12 @@ namespace ErikEngine {
         entry->score = score;
         entry->flag = flag;
         entry->depth = depth;
-        //entry->age = age;
+        entry->age = m_age;
     }
 
     int TTable::GetEntry(Board& board, int& pvMove, int alpha, int beta, int depth) const {
-        int index = board.hashKey % size;
-        const TTEntry* entry = &entries[index];
+        int index = board.hashKey % m_size;
+        const TTEntry* entry = &m_entries[index];
 
         if (board.hashKey != entry->hashKey) return NO_SCORE;
 
@@ -82,8 +88,8 @@ namespace ErikEngine {
     }
 
     int TTable::GetPVMove(U64 hashKey) const {
-        int index = hashKey % size;
-        const TTEntry* entry = &entries[index];
+        int index = hashKey % m_size;
+        const TTEntry* entry = &m_entries[index];
 
         return entry->move * (hashKey == entry->hashKey);
     }

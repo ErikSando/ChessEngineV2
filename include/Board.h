@@ -45,7 +45,7 @@ namespace ErikEngine {
 
         UndoInfo history[MAX_GAME_MOVES];
 
-        int ply = 0;
+        int ply;
         int fiftyMoveCount;
         int enPassant;
         int side;

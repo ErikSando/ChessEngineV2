@@ -14,7 +14,7 @@ namespace ErikEngine {
         int score;
         int flag;
         int depth;
-        //int age;
+        int age;
     };
 
     class TTable {
@@ -32,9 +32,16 @@ namespace ErikEngine {
         int GetPVMove(U64 hashKey) const;
         void GetPVLine(Board& board, int* pvLine, int depth) const;
 
-        int age;
+        inline int age() const { return m_age; }
+        inline int size() const { return m_size; }
 
-        int size;
-        TTEntry* entries;
+        inline void IncAge() { m_age++; }
+
+        private:
+
+        int m_age;
+        int m_size;
+
+        TTEntry* m_entries;
     };
 }

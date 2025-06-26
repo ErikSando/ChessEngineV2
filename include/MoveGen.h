@@ -30,6 +30,12 @@ namespace ErikEngine {
             length++;
         }
 
+        inline Move* begin() { return &m_moves[0]; }
+        inline Move* end() { return &m_moves[0] + length; }
+
+        inline const Move* cbegin() const { return &m_moves[0]; }
+        inline const Move* cend() const { return &m_moves[0] + length; }
+
         private:
 
         Move m_moves[MAX_MOVES];

@@ -104,11 +104,6 @@ namespace ErikEngine {
                 if (board.castlingPerms & WKC) {
                     if (!(board.occupancy[BOTH] & WKC_EMPTY_MASK) &&
                         !(attacked & WKC_SAFE_MASK)
-                    // if (!GetBit(board.occupancy[BOTH], g1) &&
-                    //     !GetBit(board.occupancy[BOTH], f1) &&
-                    //     !board.IsSquareAttacked(e1) &&
-                    //     !board.IsSquareAttacked(f1) &&
-                    //     !board.IsSquareAttacked(g1)
                     ) {
                         int move = EncodeMove(e1, g1, WK, 0, 0, CASTLING_FLAG);
                         list.add(0, move);
@@ -118,12 +113,6 @@ namespace ErikEngine {
                 if (board.castlingPerms & WQC) {
                     if (!(board.occupancy[BOTH] & WQC_EMPTY_MASK) &&
                         !(attacked & WQC_SAFE_MASK)
-                    // if (!GetBit(board.occupancy[BOTH], b1) &&
-                    //     !GetBit(board.occupancy[BOTH], c1) &&
-                    //     !GetBit(board.occupancy[BOTH], d1) &&
-                    //     !board.IsSquareAttacked(e1) &&
-                    //     !board.IsSquareAttacked(d1) &&
-                    //     !board.IsSquareAttacked(c1)
                     ) {
                         int move = EncodeMove(e1, c1, WK, 0, 0, CASTLING_FLAG);
                         list.add(0, move);
@@ -134,11 +123,6 @@ namespace ErikEngine {
                 if (board.castlingPerms & BKC) {
                     if (!(board.occupancy[BOTH] & BKC_EMPTY_MASK) &&
                         !(attacked & BKC_SAFE_MASK)
-                    // if (!GetBit(board.occupancy[BOTH], g8) &&
-                    //     !GetBit(board.occupancy[BOTH], f8) &&
-                    //     !board.IsSquareAttacked(e8) &&
-                    //     !board.IsSquareAttacked(f8) &&
-                    //     !board.IsSquareAttacked(g8)
                     ) {
                         int move = EncodeMove(e8, g8, BK, 0, 0, CASTLING_FLAG);
                         list.add(0, move);
@@ -148,12 +132,6 @@ namespace ErikEngine {
                 if (board.castlingPerms & BQC) {
                     if (!(board.occupancy[BOTH] & BQC_EMPTY_MASK) &&
                         !(attacked & BQC_SAFE_MASK)
-                    // if (!GetBit(board.occupancy[BOTH], b8) &&
-                    //     !GetBit(board.occupancy[BOTH], c8) &&
-                    //     !GetBit(board.occupancy[BOTH], d8) &&
-                    //     !board.IsSquareAttacked(e8) &&
-                    //     !board.IsSquareAttacked(d8) &&
-                    //     !board.IsSquareAttacked(c8)
                     ) {
                         int move = EncodeMove(e8, c8, BK, 0, 0, CASTLING_FLAG);
                         list.add(0, move);

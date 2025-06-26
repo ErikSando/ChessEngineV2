@@ -1,5 +1,7 @@
+#include <cstring>
+#include <ctime>
 #include <iostream>
-#include <string.h>
+#include <random>
 
 #include "Attacks.h"
 #include "Board.h"
@@ -52,6 +54,8 @@ namespace ErikEngine {
         }
 
         void FindMagics() {
+            srand(time(nullptr));
+
             std::cout << "constexpr U64 BishopMagics[64] = {\n";
 
             for (int row = 0; row < 16; row++) {
