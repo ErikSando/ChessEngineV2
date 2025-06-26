@@ -43,13 +43,13 @@ namespace ErikEngine {
 
     namespace MoveGen {
         constexpr U64 WKC_EMPTY_MASK = (1ULL << f1) | (1ULL << g1);
-        constexpr U64 WKC_SAFE_MASK = (1ULL << e1) | WKC_EMPTY_MASK;
-        constexpr U64 WQC_EMPTY_MASK = (1ULL << c1) | (1ULL << d1);
-        constexpr U64 WQC_SAFE_MASK = (1ULL << e1) | WQC_EMPTY_MASK;
+        constexpr U64 WKC_SAFE_MASK = (1ULL << e1) | (1ULL << f1) | (1ULL << g1);
+        constexpr U64 WQC_EMPTY_MASK = (1ULL << b1) | (1ULL << c1) | (1ULL << d1);
+        constexpr U64 WQC_SAFE_MASK = (1ULL << e1) | (1ULL << c1) | (1ULL << d1);
         constexpr U64 BKC_EMPTY_MASK = (1ULL << f8) | (1ULL << g8);
-        constexpr U64 BKC_SAFE_MASK = (1ULL << e8) | BKC_EMPTY_MASK;
-        constexpr U64 BQC_EMPTY_MASK = (1ULL << c8) | (1ULL << d8);
-        constexpr U64 BQC_SAFE_MASK = (1ULL << e8) | BQC_EMPTY_MASK;
+        constexpr U64 BKC_SAFE_MASK = (1ULL << e8) | (1ULL << f8) | (1ULL << g8);
+        constexpr U64 BQC_EMPTY_MASK = (1ULL << d8) | (1ULL << c8) | (1ULL << b8);
+        constexpr U64 BQC_SAFE_MASK = (1ULL << e8) | (1ULL << c8) | (1ULL << d8);
 
         extern U64 RANK_1_MASK; // defined in MoveGen.cpp
 
