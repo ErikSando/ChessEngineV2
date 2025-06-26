@@ -1,16 +1,10 @@
 #include <iostream>
 
-#include "Attacks.h"
-#include "CLI.h"
-#include "Evaluation.h"
-#include "HashKeys.h"
+#include "ErikEngine.h"
 
 int main(int argc, char** argv) {
-    Attacks::Init();
-    Evaluation::Init();
-    HashKeys::Init();
-
-    CommandLoop();
+    ErikEngine::Init();
+    ErikEngine::Run();
 
     return 0;
 }

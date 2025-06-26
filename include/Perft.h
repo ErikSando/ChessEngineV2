@@ -4,6 +4,8 @@
 
 #include "Board.h"
 
-namespace Perft {
-    void Perft(Board& board, int depth);
+namespace ErikEngine {
+    namespace Perft {
+        void Perft(Board& board, int depth);
+    }
 }

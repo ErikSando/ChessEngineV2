@@ -1,7 +1,7 @@
-// legal move generation with move scoring
+// Legal move generation with move scoring
 // I made this to test if search could be sped up with legal move generation
-// it was slower than pseudo legal move generation, but I want to
-// backup this file in case I can find a way to make it faster
+// It was slower than pseudo legal move generation.
+// But I want to backup this file in case I can find a way to make it faster
 
 // #include "Attacks.h"
 // #include "Board.h"

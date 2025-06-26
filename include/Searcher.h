@@ -2,38 +2,39 @@
 
 #include <atomic>
 
+#include "Globals.h"
 #include "TTable.h"
 
-enum PostType {
-    DEFAULT, UCI
-};
+namespace ErikEngine {
+    enum PostType {
+        DEFAULT, UCI
+    };
 
-struct SearchInfo {
-    int nodes = 0;
-    int startTime;
-    int stopTime;
-    int depth = MAX_DEPTH;
-    int postType = DEFAULT;
-    bool timeSet = false;
-    bool post = true;
-    bool postBestMove = true;
-    bool quitting = false;
-    std::atomic<bool> stopped = false;
-};
+    struct SearchInfo {
+        int nodes = 0;
+        U64 startTime;
+        U64 stopTime;
+        int depth = MAX_DEPTH;
+        int postType = DEFAULT;
+        bool timeSet = false;
+        bool post = true;
+        bool postBestMove = true;
+        bool quitting = false;
+        std::atomic<bool> stopped = false;
+    };
 
-class Searcher {
-    public:
+    class Searcher {
+        public:
 
-    Searcher(TTable& t_table) : ttable(t_table) {}
+        Searcher(TTable& t_table) : ttable(t_table) {}
 
-    void ClearTTable();
+        void ClearTTable();
 
-    int Quiescence(Board& board, SearchInfo& info, int alpha, int beta);
-    int AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, int beta, bool doNull);
+        int Quiescence(Board& board, SearchInfo& info, int alpha, int beta);
+        int AlphaBeta(Board& board, SearchInfo& info, int depth, int alpha, int beta, bool doNull);
 
-    void Search(Board& board, SearchInfo& info);
+        void Search(Board& board, SearchInfo& info);
 
-    private:
-
-    TTable& ttable;
-};
+        TTable& ttable;
+    };
+}

@@ -4,12 +4,12 @@ CXXFLAGS := -I include
 SRCDIR := src
 BINDIR := bin
 
-SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
+SRCS := $(shell find $(SRCDIR) -name '*.cpp')
 
 NAME := Main
 
 all:
-	$(CXX) -Ofast -o $(BINDIR)/$(NAME) $(SRCS) $(CXXFLAGS) -DNDEBUG
+	$(CXX) $(CXXFLAGS) $(SRCS) -o $(BINDIR)/$(NAME) -Ofast -DNDEBUG
 
 debug:
-	$(CXX) -o $(BINDIR)/$(NAME)Debug $(SRCS) $(CXXFLAGS)
+	$(CXX) $(CXXFLAGS) $(SRCS) -o $(BINDIR)/$(NAME)Debug

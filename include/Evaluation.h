@@ -2,7 +2,9 @@
 
 #include "Board.h"
 
-namespace Evaluation {
-    void Init();
-    int Evaluate(Board& board);
+namespace ErikEngine {
+    namespace Evaluation {
+        void Init();
+        int Evaluate(Board& board);
+    }
 }

@@ -1,5 +1,0 @@
-Add mobility evaluation and other heuristics
-
-Test capture generation, the bot makes very obvious tactical mistakes and an incomplete capture list could be the reason.
-
-Ensure evaluation and quiescence work, then work on search.
