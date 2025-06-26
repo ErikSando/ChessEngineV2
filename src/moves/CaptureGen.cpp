@@ -37,11 +37,11 @@ namespace ErikEngine {
 
             int enemyPawn = piece ^ 6;
 
-            U64 attackers = Attacks::PawnCaptures[side][kingSquare] & board.bitboards[enemyPawn] |
-                            Attacks::KnightAttacks[kingSquare] & board.bitboards[enemyPawn + N] |
-                            Attacks::GetBishopAttacks(kingSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawn + B] |
-                            Attacks::GetRookAttacks(kingSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawn + R] |
-                            Attacks::GetQueenAttacks(kingSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawn + Q];
+            U64 attackers = (Attacks::PawnCaptures[side][kingSquare] & board.bitboards[enemyPawn]) |
+                            (Attacks::KnightAttacks[kingSquare] & board.bitboards[enemyPawn + N]) |
+                            (Attacks::GetBishopAttacks(kingSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawn + B]) |
+                            (Attacks::GetRookAttacks(kingSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawn + R]) |
+                            (Attacks::GetQueenAttacks(kingSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawn + Q]);
 
             int numAttackers = CountBits(attackers);
 

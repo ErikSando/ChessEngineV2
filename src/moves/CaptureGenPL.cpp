@@ -11,7 +11,6 @@ namespace ErikEngine {
 
             int side = board.side;
             int enemy = side ^ 1;
-            int direction = enemy ? 8 : -8;
             int promotionRank = enemy ? RANK_8 : RANK_1;
             int captureStart = enemy ? BP : WP;
 

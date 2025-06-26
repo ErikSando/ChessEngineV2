@@ -32,11 +32,11 @@ namespace ErikEngine {
 
             int enemyPawn = piece ^ 6;
 
-            U64 attackers = Attacks::PawnCaptures[side][kingSquare] & board.bitboards[enemyPawn] |
-                            Attacks::KnightAttacks[kingSquare] & board.bitboards[enemyPawn + N] |
-                            Attacks::GetBishopAttacks(kingSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawn + B] |
-                            Attacks::GetRookAttacks(kingSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawn + R] |
-                            Attacks::GetQueenAttacks(kingSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawn + Q];
+            U64 attackers = (Attacks::PawnCaptures[side][kingSquare] & board.bitboards[enemyPawn]) |
+                            (Attacks::KnightAttacks[kingSquare] & board.bitboards[enemyPawn + N]) |
+                            (Attacks::GetBishopAttacks(kingSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawn + B]) |
+                            (Attacks::GetRookAttacks(kingSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawn + R]) |
+                            (Attacks::GetQueenAttacks(kingSquare, board.occupancy[BOTH]) & board.bitboards[enemyPawn + Q]);
 
             int numAttackers = CountBits(attackers);
 
@@ -138,60 +138,6 @@ namespace ErikEngine {
                     }
                 }
             }
-
-            // this seems to be faster, but it is less cool so I'm using the other one
-            // if (enemy) { // equivalent to if side == WHITE
-            //     if (board.castlingPerms & WKC) {
-            //         if (!IsBitSet(board.occupancy[BOTH], f1) &&
-            //             !IsBitSet(board.occupancy[BOTH], g1) &&
-            //             !IsBitSet(attacked, e1) &&
-            //             !IsBitSet(attacked, f1) &&
-            //             !IsBitSet(attacked, g1)
-            //         ) {
-            //             int move = EncodeMove(e1, g1, WK, 0, 0, CASTLING_FLAG);
-            //             list.add(0, move);
-            //         }
-            //     }
-
-            //     if (board.castlingPerms & WQC) {
-            //         if (!IsBitSet(board.occupancy[BOTH], d1) &&
-            //             !IsBitSet(board.occupancy[BOTH], c1) &&
-            //             !IsBitSet(board.occupancy[BOTH], b1) &&
-            //             !IsBitSet(attacked, e1) &&
-            //             !IsBitSet(attacked, d1) &&
-            //             !IsBitSet(attacked, c1)
-            //         ) {
-            //             int move = EncodeMove(e1, c1, WK, 0, 0, CASTLING_FLAG);
-            //             list.add(0, move);
-            //         }
-            //     }
-            // }
-            // else {
-            //     if (board.castlingPerms & BKC) {
-            //         if (!IsBitSet(board.occupancy[BOTH], f8) &&
-            //             !IsBitSet(board.occupancy[BOTH], g8) &&
-            //             !IsBitSet(attacked, e8) &&
-            //             !IsBitSet(attacked, f8) &&
-            //             !IsBitSet(attacked, g8)
-            //         ) {
-            //             int move = EncodeMove(e8, g8, BK, 0, 0, CASTLING_FLAG);
-            //             list.add(0, move);
-            //         }
-            //     }
-
-            //     if (board.castlingPerms & BQC) {
-            //         if (!IsBitSet(board.occupancy[BOTH], d8) &&
-            //             !IsBitSet(board.occupancy[BOTH], c8) &&
-            //             !IsBitSet(board.occupancy[BOTH], b8) &&
-            //             !IsBitSet(attacked, e8) &&
-            //             !IsBitSet(attacked, d8) &&
-            //             !IsBitSet(attacked, c8)
-            //         ) {
-            //             int move = EncodeMove(e8, c8, BK, 0, 0, CASTLING_FLAG);
-            //             list.add(0, move);
-            //         }
-            //     }
-            // }
 
             // pawns
             bitboard = board.bitboards[piece];
@@ -302,7 +248,6 @@ namespace ErikEngine {
                         int toSquare = PopFirstBit(attacks);
                         int flag = 0;
                         int captured = captureStart;
-                        int move;
 
                         if (IsBitSet(board.occupancy[enemy], toSquare)) {
                             flag = CAPTURE_FLAG;

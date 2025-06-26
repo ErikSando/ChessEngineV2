@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -I include
+CXXFLAGS := -Wall -Wextra -I include
 
 SRCDIR := src
 BINDIR := bin

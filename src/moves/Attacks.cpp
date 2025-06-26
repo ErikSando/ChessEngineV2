@@ -46,13 +46,13 @@ namespace ErikEngine {
 
             if (side == WHITE) {
                 attacks |=
-                    (bitboard << 7) & NotFileH |
-                    (bitboard << 9) & NotFileA;
+                    ((bitboard << 7) & NotFileH) |
+                    ((bitboard << 9) & NotFileA);
             }
             else {
                 attacks |=
-                    (bitboard >> 7) & NotFileA |
-                    (bitboard >> 9) & NotFileH;
+                    ((bitboard >> 7) & NotFileA) |
+                    ((bitboard >> 9) & NotFileH);
             }
 
             return attacks;
@@ -63,14 +63,14 @@ namespace ErikEngine {
             U64 bitboard = 1ULL << square;
 
             attacks |=
-                (bitboard << 6) & NotFileGH |
-                (bitboard << 10) & NotFileAB |
-                (bitboard << 15) & NotFileH |
-                (bitboard << 17) & NotFileA |
-                (bitboard >> 6) & NotFileAB |
-                (bitboard >> 10) & NotFileGH |
-                (bitboard >> 15) & NotFileA |
-                (bitboard >> 17) & NotFileH;
+                ((bitboard << 6) & NotFileGH) |
+                ((bitboard << 10) & NotFileAB) |
+                ((bitboard << 15) & NotFileH) |
+                ((bitboard << 17) & NotFileA) |
+                ((bitboard >> 6) & NotFileAB) |
+                ((bitboard >> 10) & NotFileGH) |
+                ((bitboard >> 15) & NotFileA) |
+                ((bitboard >> 17) & NotFileH);
 
             return attacks;
         }
@@ -80,14 +80,14 @@ namespace ErikEngine {
             U64 bitboard = 1ULL << square;
 
             attacks |=
-                (bitboard << 7) & NotFileH |
-                (bitboard << 8) |
-                (bitboard << 9) & NotFileA |
-                (bitboard << 1) & NotFileA |
-                (bitboard >> 1) & NotFileH |
-                (bitboard >> 7) & NotFileA |
-                (bitboard >> 8) |
-                (bitboard >> 9) & NotFileH;
+                ((bitboard << 7) & NotFileH) |
+                ((bitboard << 8)) |
+                ((bitboard << 9) & NotFileA) |
+                ((bitboard << 1) & NotFileA) |
+                ((bitboard >> 1) & NotFileH) |
+                ((bitboard >> 7) & NotFileA) |
+                ((bitboard >> 8)) |
+                ((bitboard >> 9) & NotFileH);
 
             return attacks;
         }
@@ -198,36 +198,36 @@ namespace ErikEngine {
             return attacks;
         }
 
-        U64 GetBishopAttacks(int square, U64 occupancy) {
-            occupancy &= BishopAttackMasks[square];
-            occupancy *= BishopMagics[square];
-            occupancy >>= 64 - BishopRelevantBits[square];
+        // U64 GetBishopAttacks(int square, U64 occupancy) {
+        //     occupancy &= BishopAttackMasks[square];
+        //     occupancy *= BishopMagics[square];
+        //     occupancy >>= 64 - BishopRelevantBits[square];
 
-            return BishopAttacks[square][occupancy];
-        }
+        //     return BishopAttacks[square][occupancy];
+        // }
 
-        U64 GetRookAttacks(int square, U64 occupancy) {
-            occupancy &= RookAttackMasks[square];
-            occupancy *= RookMagics[square];
-            occupancy >>= 64 - RookRelevantBits[square];
+        // U64 GetRookAttacks(int square, U64 occupancy) {
+        //     occupancy &= RookAttackMasks[square];
+        //     occupancy *= RookMagics[square];
+        //     occupancy >>= 64 - RookRelevantBits[square];
 
-            return RookAttacks[square][occupancy];
-        }
+        //     return RookAttacks[square][occupancy];
+        // }
 
-        U64 GetQueenAttacks(int square, U64 occupancy) {
-            U64 bishopOccupancy = occupancy;
-            U64 rookOccupancy = occupancy;
+        // U64 GetQueenAttacks(int square, U64 occupancy) {
+        //     U64 bishopOccupancy = occupancy;
+        //     U64 rookOccupancy = occupancy;
 
-            bishopOccupancy &= BishopAttackMasks[square];
-            bishopOccupancy *= BishopMagics[square];
-            bishopOccupancy >>= 64 - BishopRelevantBits[square];
+        //     bishopOccupancy &= BishopAttackMasks[square];
+        //     bishopOccupancy *= BishopMagics[square];
+        //     bishopOccupancy >>= 64 - BishopRelevantBits[square];
 
-            rookOccupancy &= RookAttackMasks[square];
-            rookOccupancy *= RookMagics[square];
-            rookOccupancy >>= 64 - RookRelevantBits[square];
+        //     rookOccupancy &= RookAttackMasks[square];
+        //     rookOccupancy *= RookMagics[square];
+        //     rookOccupancy >>= 64 - RookRelevantBits[square];
 
-            return BishopAttacks[square][bishopOccupancy] | RookAttacks[square][rookOccupancy];
-        }
+        //     return BishopAttacks[square][bishopOccupancy] | RookAttacks[square][rookOccupancy];
+        // }
 
         void InitAttackTables() {
             for (int square = 0; square < 64; square++) {

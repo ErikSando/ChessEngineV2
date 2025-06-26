@@ -6,17 +6,16 @@
 namespace ErikEngine {
     namespace Attacks {
         void Init();
+        void FindMagics();
 
         U64 IndexToU64(int index, int bits, U64 bitboard);
         U64 GenerateBishopAttackMask(int square);
         U64 GenerateRookAttackMask(int square);
         U64 GenerateBishopAttacks(int square, U64 blockers);
         U64 GenerateRookAttacks(int square, U64 blockers);
-        U64 GetBishopAttacks(int square, U64 blockers);
-        U64 GetRookAttacks(int square, U64 blockers);
-        U64 GetQueenAttacks(int square, U64 blockers);
-
-        void FindMagics();
+        // U64 GetBishopAttacks(int square, U64 blockers);
+        // U64 GetRookAttacks(int square, U64 blockers);
+        // U64 GetQueenAttacks(int square, U64 blockers);
 
         extern U64 PawnMoves[2][64];
         extern U64 PawnCaptures[2][64];
@@ -30,6 +29,9 @@ namespace ErikEngine {
         extern U64 RookRays[64][64];
         //extern U64 SliderRays[64][64];
 
+        extern U64 BishopAttackMasks[64];
+        extern U64 RookAttackMasks[64];
+
         inline U64 GetSliderRay(int fromSquare, int toSquare, int pieceType = Q) {
             switch (pieceType) {
                 case B: return BishopRays[fromSquare][toSquare];
@@ -38,21 +40,6 @@ namespace ErikEngine {
 
             return BishopRays[fromSquare][toSquare] | RookRays[fromSquare][toSquare];
         }
-
-        inline U64 GetPieceAttacks(int pieceType, int square, U64 blockers = 0ULL) {
-            switch (pieceType) {
-                case N: return KnightAttacks[square];
-                case B: return GetBishopAttacks(square, blockers);
-                case R: return GetRookAttacks(square, blockers);
-                case Q: return GetQueenAttacks(square, blockers);
-                case K: return KingAttacks[square];
-            }
-
-            return 0ULL;
-        }
-
-        extern U64 BishopAttackMasks[64];
-        extern U64 RookAttackMasks[64];
 
         constexpr U64 NotFileA = 0xFEFEFEFEFEFEFEFEULL;
         constexpr U64 NotFileAB = 0xFCFCFCFCFCFCFCFCULL;
@@ -118,5 +105,48 @@ namespace ErikEngine {
             0x6080022080401501ULL, 0xa0c8210200401082ULL, 0xa1000810200441ULL, 0x20080500201001ULL,
             0x21000800701205ULL, 0x1002000108041002ULL, 0x1090209002080104ULL, 0x4a88002084010042ULL
         };
+
+        inline U64 GetBishopAttacks(int square, U64 occupancy) {
+            occupancy &= BishopAttackMasks[square];
+            occupancy *= BishopMagics[square];
+            occupancy >>= 64 - BishopRelevantBits[square];
+
+            return BishopAttacks[square][occupancy];
+        }
+
+        inline U64 GetRookAttacks(int square, U64 occupancy) {
+            occupancy &= RookAttackMasks[square];
+            occupancy *= RookMagics[square];
+            occupancy >>= 64 - RookRelevantBits[square];
+
+            return RookAttacks[square][occupancy];
+        }
+
+        inline U64 GetQueenAttacks(int square, U64 occupancy) {
+            U64 bishopOccupancy = occupancy;
+            U64 rookOccupancy = occupancy;
+
+            bishopOccupancy &= BishopAttackMasks[square];
+            bishopOccupancy *= BishopMagics[square];
+            bishopOccupancy >>= 64 - BishopRelevantBits[square];
+
+            rookOccupancy &= RookAttackMasks[square];
+            rookOccupancy *= RookMagics[square];
+            rookOccupancy >>= 64 - RookRelevantBits[square];
+
+            return BishopAttacks[square][bishopOccupancy] | RookAttacks[square][rookOccupancy];
+        }
+
+        inline U64 GetPieceAttacks(int pieceType, int square, U64 blockers = 0ULL) {
+            switch (pieceType) {
+                case N: return KnightAttacks[square];
+                case B: return GetBishopAttacks(square, blockers);
+                case R: return GetRookAttacks(square, blockers);
+                case Q: return GetQueenAttacks(square, blockers);
+                case K: return KingAttacks[square];
+            }
+
+            return 0ULL;
+        }
     }
 }
