@@ -42,7 +42,7 @@ namespace ErikEngine {
         constexpr int MobilityValueMg[12] = { 0, 4, 3, 1, 1, 0, 0, 4, 3, 1, 1, 0 };
         constexpr int MobilityValueEg[12] = { 0, 2, 3, 3, 1, 0, 0, 2, 3, 3, 1, 0 };
 
-        constexpr int CentreManhattenDistance[64] = {
+        constexpr int CentreManhattenDistance[65] = {
             6, 5, 4, 3, 3, 4, 5, 6,
             5, 4, 3, 2, 2, 3, 4, 5,
             4, 3, 2, 1, 1, 2, 3, 4,

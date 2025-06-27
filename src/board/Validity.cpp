@@ -39,6 +39,7 @@ namespace ErikEngine {
             int en_passant_square_rank = GetRank(enPassant);
             int correct_en_passant_rank = side == WHITE ? RANK_6 : RANK_3;
 
+            if (en_passant_square_rank != correct_en_passant_rank) Print();
             EE_ASSERT(en_passant_square_rank == correct_en_passant_rank);
 
             int dir = side == WHITE ? -8 : 8;
@@ -53,24 +54,28 @@ namespace ErikEngine {
         if (castlingPerms & WKC) {
             EE_ASSERT(white_king_square == e1);
             bool rook_for_castling_exists = IsBitSet(bitboards[WR], h1);
+            (void) rook_for_castling_exists; // suppress unused warning in non-debug build
             EE_ASSERT(rook_for_castling_exists);
         }
 
         if (castlingPerms & WQC) {
             EE_ASSERT(white_king_square == e1);
             bool rook_for_castling_exists = IsBitSet(bitboards[WR], a1);
+            (void) rook_for_castling_exists;
             EE_ASSERT(rook_for_castling_exists);
         }
 
         if (castlingPerms & BKC) {
             EE_ASSERT(black_king_square == e8);
             bool rook_for_castling_exists = IsBitSet(bitboards[BR], h8);
+            (void) rook_for_castling_exists;
             EE_ASSERT(rook_for_castling_exists);
         }
 
         if (castlingPerms & BQC) {
             EE_ASSERT(black_king_square == e8);
             bool rook_for_castling_exists = IsBitSet(bitboards[BR], a8);
+            (void) rook_for_castling_exists;
             EE_ASSERT(rook_for_castling_exists);
         }
     }

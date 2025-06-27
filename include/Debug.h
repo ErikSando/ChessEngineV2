@@ -27,7 +27,7 @@ namespace ErikEngine {
         size_t pos = sv.find_first_of(s);
         if (pos == npos) return npos;
 
-        for (int i = 0; i < n - 1; i++) {
+        for (unsigned int i = 0; i < n - 1; i++) {
             size_t jump = sv.substr(pos + 1).find_first_of(s);
             if (jump == npos) return npos;
             pos += jump + 1;

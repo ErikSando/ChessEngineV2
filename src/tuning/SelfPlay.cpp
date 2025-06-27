@@ -16,7 +16,7 @@ namespace ErikEngine {
             while (list.length) {
                 board.ply = 0;
 
-                int score = searcher.AlphaBeta(board, info, depth, -INF, INF, true);
+                searcher.AlphaBeta(board, info, depth, -INF, INF, true);
                 int pvMove = searcher.ttable.GetPVMove(board.hashKey);
 
                 board.MakeMove(pvMove);

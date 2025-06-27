@@ -164,7 +164,7 @@ namespace ErikEngine {
             int pawns = 0;
             int bishops[2] = { 0, 0 };
 
-            int kingSquare[2];
+            int kingSquare[2] = { NO_SQUARE }; // it is assumed that king pieces exist
 
             int piece = WP;
             U64 bitboard = board.bitboards[piece];

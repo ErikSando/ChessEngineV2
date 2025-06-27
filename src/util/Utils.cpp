@@ -79,10 +79,10 @@ namespace ErikEngine {
                     int prom = GetPromotedPiece(move);
 
                     switch (promoted) {
-                        case 'q': if (IS_QUEEN[prom]) return move;
-                        case 'r': if (IS_ROOK[prom]) return move;
-                        case 'b': if (IS_BISHOP[prom]) return move;
-                        case 'n': if (IS_KNIGHT[prom]) return move;
+                        case 'q': if (IS_QUEEN[prom]) return move; break;
+                        case 'r': if (IS_ROOK[prom]) return move; break;
+                        case 'b': if (IS_BISHOP[prom]) return move; break;
+                        case 'n': if (IS_KNIGHT[prom]) return move; break;
                     }
                 }
             }

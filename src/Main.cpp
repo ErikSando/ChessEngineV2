@@ -2,7 +2,7 @@
 
 #include "ErikEngine.h"
 
-int main(int argc, char** argv) {
+int main(/*int argc, char** argv*/) {
     ErikEngine::Init();
     ErikEngine::Run();
 
