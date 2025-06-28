@@ -20,27 +20,47 @@
 // }
 
 namespace ErikEngine {
+    template<bool updateHash = true>
     inline void RemovePiece(Board* board, int piece, int side, int square) {
         ClearBit(board->bitboards[piece], square);
         ClearBit(board->occupancy[side], square);
-        board->hashKey ^= HashKeys::PieceKeys[piece][square];
+        if constexpr (updateHash) board->hashKey ^= HashKeys::PieceKeys[piece][square];
     }
 
+    template<bool updateHash = true>
     inline void AddPiece(Board* board, int piece, int side, int square) {
         SetBit(board->bitboards[piece], square);
         SetBit(board->occupancy[side], square);
-        board->hashKey ^= HashKeys::PieceKeys[piece][square];
+        if constexpr (updateHash) board->hashKey ^= HashKeys::PieceKeys[piece][square];
     }
 
+    template<bool updateHash = true>
     inline void MovePiece(Board* board, int piece, int side, int fromSquare, int toSquare) {
-        RemovePiece(board, piece, side, fromSquare);
-        AddPiece(board, piece, side, toSquare);
+        RemovePiece<updateHash>(board, piece, side, fromSquare);
+        AddPiece<updateHash>(board, piece, side, toSquare);
     }
 
-    inline void MovePieceNoHashing(Board* board, int piece, int side, int fromSquare, int toSquare) {
-        ClearBit(board->bitboards[piece], fromSquare);
-        ClearBit(board->occupancy[side], fromSquare);
-        SetBit(board->bitboards[piece], toSquare);
-        SetBit(board->occupancy[side], toSquare);
-    }
+    // inline void RemovePiece(Board* board, int piece, int side, int square) {
+    //     ClearBit(board->bitboards[piece], square);
+    //     ClearBit(board->occupancy[side], square);
+    //     board->hashKey ^= HashKeys::PieceKeys[piece][square];
+    // }
+
+    // inline void AddPiece(Board* board, int piece, int side, int square) {
+    //     SetBit(board->bitboards[piece], square);
+    //     SetBit(board->occupancy[side], square);
+    //     board->hashKey ^= HashKeys::PieceKeys[piece][square];
+    // }
+
+    // inline void MovePiece(Board* board, int piece, int side, int fromSquare, int toSquare) {
+    //     RemovePiece(board, piece, side, fromSquare);
+    //     AddPiece(board, piece, side, toSquare);
+    // }
+
+    // inline void MovePieceNoHashing(Board* board, int piece, int side, int fromSquare, int toSquare) {
+    //     ClearBit(board->bitboards[piece], fromSquare);
+    //     ClearBit(board->occupancy[side], fromSquare);
+    //     SetBit(board->bitboards[piece], toSquare);
+    //     SetBit(board->occupancy[side], toSquare);
+    // }
 }

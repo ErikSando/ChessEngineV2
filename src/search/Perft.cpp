@@ -15,14 +15,14 @@ namespace ErikEngine {
             if (stop_perft || !depth) return 1;
 
             MoveList list;
-            MoveGen::GenerateMoves(board, list);
+            MoveGen::GenerateMoves<MoveType::Legal>(board, list);
 
             if (depth == 1) return list.length;
 
             U64 n = 0;
 
             for (int i = 0; i < list.length; i++) {
-                board.MakeMove(list[i].move);
+                board.MakeMove<MoveContext::Perft, false>(list[i].move);
                 n += CountNodes(board, depth - 1);
                 board.TakeMove();
             }
@@ -34,7 +34,7 @@ namespace ErikEngine {
             U64 nodes = 0;
 
             MoveList list;
-            MoveGen::GenerateMoves(board, list);
+            MoveGen::GenerateMoves<MoveType::Legal>(board, list);
 
             std::cout << "Running perft to depth " << depth << "...\n";
 
@@ -45,7 +45,7 @@ namespace ErikEngine {
 
                 U64 newNodes = 0;
 
-                board.MakeMove(move);
+                board.MakeMove<MoveContext::Perft, false>(move);
                 newNodes = CountNodes(board, depth - 1);
                 board.TakeMove();
 

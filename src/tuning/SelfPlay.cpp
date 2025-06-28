@@ -1,35 +1,35 @@
-#include "Board.h"
-#include "MoveGen.h"
-#include "Searcher.h"
-#include "Tuning.h"
+// #include "Board.h"
+// #include "MoveGen.h"
+// #include "Searcher.h"
+// #include "Tuning.h"
 
-namespace ErikEngine {
-    namespace Tuning {
-        int SelfPlay(Board& board, Searcher& searcher, int depth) {
-            board.ParseFEN(START_FEN);
+// namespace ErikEngine {
+//     namespace Tuning {
+//         int SelfPlay(Board& board, Searcher& searcher, int depth) {
+//             board.ParseFEN(START_FEN);
 
-            SearchInfo info;
+//             SearchInfo info;
 
-            MoveList list;
-            MoveGen::GenerateMoves(board, list);
+//             MoveList list;
+//             MoveGen::GenerateMoves(board, list);
 
-            while (list.length) {
-                board.ply = 0;
+//             while (list.length) {
+//                 board.ply = 0;
 
-                searcher.AlphaBeta(board, info, depth, -INF, INF, true);
-                int pvMove = searcher.ttable.GetPVMove(board.hashKey);
+//                 searcher.AlphaBeta(board, info, depth, -INF, INF, true);
+//                 int pvMove = searcher.ttable.GetPVMove(board.hashKey);
 
-                board.MakeMove(pvMove);
+//                 board.MakeMove(pvMove);
 
-                MoveGen::GenerateMoves(board, list);
-            }
+//                 MoveGen::GenerateMoves(board, list);
+//             }
 
-            board.Print();
+//             board.Print();
 
-            bool checkmate = board.IsSquareAttacked(FirstBitIndex(board.bitboards[board.side == WHITE ? WK : BK]));
+//             bool checkmate = board.IsSquareAttacked(FirstBitIndex(board.bitboards[board.side == WHITE ? WK : BK]));
 
-            if (checkmate) return board.side ^ 1;
-            else return BOTH;
-        }
-    }
-}
+//             if (checkmate) return board.side ^ 1;
+//             else return BOTH;
+//         }
+//     }
+// }

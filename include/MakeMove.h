@@ -1,7 +1,5 @@
-#include <iostream>
+#pragma once
 
-#include "Board.h"
-#include "Data.h"
 #include "Globals.h"
 #include "Move.h"
 #include "MoveHandling.h"
@@ -18,14 +16,17 @@ namespace ErikEngine {
         7, 15, 15, 15,  3, 15, 15, 11
     };
 
-    bool Board::MakeMove(const int move, bool pseudoLegal) {
-        history[ply].hashKey = hashKey;
+    template<MoveContext moveContext, bool pseudoLegal>
+    inline bool Board::MakeMove(const int move) {
+        constexpr bool updateHash = (moveContext != MoveContext::Perft);
+
+        if (updateHash) history[ply].hashKey = hashKey;
         history[ply].move = move;
         history[ply].castlingPerms = castlingPerms;
-        history[ply].fiftyMoveCount = fiftyMoveCount;
+        if (updateHash) history[ply].fiftyMoveCount = fiftyMoveCount;
         history[ply].enPassant = enPassant;
 
-        fiftyMoveCount++;
+        if (updateHash) fiftyMoveCount++;
         ply++;
 
         int enemy = side ^ 1;
@@ -34,30 +35,27 @@ namespace ErikEngine {
         int piece = GetMovedPiece(move);
         int promoted = GetPromotedPiece(move);
 
-        if (IS_PAWN[piece]) fiftyMoveCount = 0;
+        if (updateHash) if (IS_PAWN[piece]) fiftyMoveCount = 0;
 
-        // HashCastling(this);
-        hashKey ^= HashKeys::CastlingPermKeys[castlingPerms];
+        if (updateHash) hashKey ^= HashKeys::CastlingPermKeys[castlingPerms];
         castlingPerms &= CastlingPermsUpdate[fromSquare] & CastlingPermsUpdate[toSquare];
-        // HashCastling(this);
-        hashKey ^= HashKeys::CastlingPermKeys[castlingPerms];
+        if (updateHash) hashKey ^= HashKeys::CastlingPermKeys[castlingPerms];
 
         int _enPassant = enPassant;
 
         if (enPassant != NO_SQUARE) {
-            // HashEnPassant(this);
-            hashKey ^= HashKeys::EnPassantKeys[enPassant];
+            if (updateHash) hashKey ^= HashKeys::EnPassantKeys[enPassant];
             enPassant = NO_SQUARE;
         }
 
-        RemovePiece(this, piece, side, fromSquare);
+        RemovePiece<updateHash>(this, piece, side, fromSquare);
 
         if (promoted) {
-            AddPiece(this, promoted, side, toSquare);
+            AddPiece<updateHash>(this, promoted, side, toSquare);
             bigPieces[side]++;
         }
         else {
-            AddPiece(this, piece, side, toSquare);
+            AddPiece<updateHash>(this, piece, side, toSquare);
         }
 
         int flag = GetFlag(move);
@@ -65,41 +63,37 @@ namespace ErikEngine {
         switch (flag) {
             case CAPTURE_FLAG: {
                 int captured = GetCapturedPiece(move);
-                RemovePiece(this, captured, enemy, toSquare);
-
+                RemovePiece<updateHash>(this, captured, enemy, toSquare);
                 if (!IS_PAWN[captured]) bigPieces[enemy]--;
-
                 break;
             }
 
             case PAWNSTART_FLAG:
                 if (side == WHITE) {
                     enPassant = fromSquare + 8;
-                    // HashEnPassant(this);
-                    hashKey ^= HashKeys::EnPassantKeys[enPassant];
+                    if (updateHash) hashKey ^= HashKeys::EnPassantKeys[enPassant];
                 }
                 else {
                     enPassant = toSquare + 8;
-                    // HashEnPassant(this);
-                    hashKey ^= HashKeys::EnPassantKeys[enPassant];
+                    if (updateHash) hashKey ^= HashKeys::EnPassantKeys[enPassant];
                 }
             break;
 
             case ENPASSANT_FLAG:
                 if (side == WHITE) {
-                    RemovePiece(this, BP, BLACK, _enPassant - 8);
+                    RemovePiece<updateHash>(this, BP, BLACK, _enPassant - 8);
                 }
                 else {
-                    RemovePiece(this, WP, WHITE, _enPassant + 8);
+                    RemovePiece<updateHash>(this, WP, WHITE, _enPassant + 8);
                 }
             break;
 
             case CASTLING_FLAG:
                 switch (toSquare) {
-                    case g1: MovePiece(this, WR, WHITE, h1, f1); break;
-                    case c1: MovePiece(this, WR, WHITE, a1, d1); break;
-                    case g8: MovePiece(this, BR, BLACK, h8, f8); break;
-                    case c8: MovePiece(this, BR, BLACK, a8, d8); break;
+                    case g1: MovePiece<updateHash>(this, WR, WHITE, h1, f1); break;
+                    case c1: MovePiece<updateHash>(this, WR, WHITE, a1, d1); break;
+                    case g8: MovePiece<updateHash>(this, BR, BLACK, h8, f8); break;
+                    case c8: MovePiece<updateHash>(this, BR, BLACK, a8, d8); break;
                 }
             break;
         }
@@ -109,29 +103,28 @@ namespace ErikEngine {
         int kingSquare = FirstBitIndex(bitboards[side == WHITE ? WK : BK]);
 
         side ^= 1;
-        // HashSide(this);
-        hashKey ^= HashKeys::SideKey;
+        if (updateHash) hashKey ^= HashKeys::SideKey;
 
-        if (pseudoLegal && IsSquareAttacked(kingSquare, side)) {
-            TakeMove();
-            return false;
+        if constexpr (pseudoLegal) {
+            if (IsSquareAttacked(kingSquare, side)) {
+                TakeMove<moveContext>();
+                return false;
+            }
         }
 
         return true;
     }
 
-    void Board::MakeNullMove() {
+    inline void Board::MakeNullMove() {
         history[ply].hashKey = hashKey;
         history[ply].enPassant = enPassant;
 
         ply++;
 
         side ^= 1;
-        // HashSide(this);
         hashKey ^= HashKeys::SideKey;
 
         if (enPassant != NO_SQUARE) {
-            // HashEnPassant(this);
             hashKey ^= HashKeys::EnPassantKeys[enPassant];
             enPassant = NO_SQUARE;
         }

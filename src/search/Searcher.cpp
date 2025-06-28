@@ -44,7 +44,7 @@ namespace ErikEngine {
     inline bool ThreeFoldRepetition(Board& board) {
         int repetitions = 0;
 
-        for (int i = board.ply - board.fiftyMoveCount; i < board.ply - 1; i++) {
+        for (int i = board.ply - board.fiftyMoveCount; i < board.ply; i++) {
             if (board.hashKey == board.history[i].hashKey) {
                 repetitions++;
                 if (repetitions >= 2) return true;
@@ -78,11 +78,11 @@ namespace ErikEngine {
         if (eval > alpha) alpha = eval;
 
         MoveList list;
-        MoveGen::GenerateCapturesPL(board, list);
+        MoveGen::GenerateCaptures(board, list);
         OrderMoves(list);
 
         for (int i = 0; i < list.length; i++) {
-            if (!board.MakeMovePL(list.move_at(i))) continue;
+            if (!board.MakeMove(list.move_at(i))) continue;
             int score = -Quiescence(board, info, -beta, -alpha);
             board.TakeMove();
 
@@ -133,7 +133,7 @@ namespace ErikEngine {
         if (inCheck || enemyInCheck) extension = 1;
 
         MoveList list;
-        MoveGen::GenerateMovesPL(board, list);
+        MoveGen::GenerateMoves(board, list);
 
         // search PV move first
         if (pvMove) {
@@ -166,7 +166,7 @@ namespace ErikEngine {
                 if (eval + FUTILITY_MARGIN_FACTOR * depth <= alpha) continue;
             }
 
-            if (!board.MakeMovePL(move)) continue;
+            if (!board.MakeMove(move)) continue;
 
             int score;
 

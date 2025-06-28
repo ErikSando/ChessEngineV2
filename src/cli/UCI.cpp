@@ -86,7 +86,7 @@ namespace ErikEngine {
                         continue;
                     }
 
-                    if (!board.MakeMove(move, true)) {
+                    if (!board.MakeMove(move)) {
                         std::cout << "Illegal move: " << movestr << "\n";
                         continue;
                     }

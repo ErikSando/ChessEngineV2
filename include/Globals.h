@@ -86,10 +86,23 @@ namespace ErikEngine {
 
     inline U64 RandU64() {
         U64 u1, u2, u3, u4;
+
+        #ifdef _WIN32
+
+        u1 = (U64) (rand()) & 0xFFFF;
+        u2 = (U64) (rand()) & 0xFFFF;
+        u3 = (U64) (rand()) & 0xFFFF;
+        u4 = (U64) (rand()) & 0xFFFF;
+
+        #else
+
         u1 = (U64) (random()) & 0xFFFF;
         u2 = (U64) (random()) & 0xFFFF;
         u3 = (U64) (random()) & 0xFFFF;
         u4 = (U64) (random()) & 0xFFFF;
+
+        #endif
+
         return u1 | (u2 << 16) | (u3 << 32) | (u4 << 48);
     }
 

@@ -63,9 +63,9 @@ namespace ErikEngine {
             return moveString.str();
         }
 
-        int ParseMove(const Board& board, const int fromSquare, const int toSquare, const char promoted) {
+        int ParseMove(Board& board, const int fromSquare, const int toSquare, const char promoted) {
             MoveList list;
-            MoveGen::GenerateMovesPL(board, list);
+            MoveGen::GenerateMoves(board, list);
         
             for (int i = 0; i < list.length; i++) {
                 int move = list.move_at(i);
@@ -90,7 +90,7 @@ namespace ErikEngine {
             return 0;
         }
         
-        int ParseMove(const Board& board, const char* move) {
+        int ParseMove(Board& board, const char* move) {
             int fromF = *move++ - 'a';
             int fromR = *move++ - '1';
             int toF = *move++ - 'a';
@@ -103,7 +103,7 @@ namespace ErikEngine {
             return ParseMove(board, fromSquare, toSquare, promoted);
         }
         
-        int ParseMove(const Board& board, const std::string& move) {
+        int ParseMove(Board& board, const std::string& move) {
             int fromF = move.at(0) - 'a';
             int fromR = move.at(1) - '1';
             int toF = move.at(2) - 'a';
@@ -116,13 +116,13 @@ namespace ErikEngine {
             return ParseMove(board, fromSquare, toSquare, promoted);
         }
 
-        bool MoveExists(const Board& board, int move) {
+        bool MoveExists(Board& board, int move) {
             MoveList list;
             // choosing to use pseudo legal to differentiate between invalid and illegal moves
             // invalid meaning the piece can not move in the way specified
             // illegal meaning the piece movement is valid, but the move leaves the king in check
             // i made up that definition of invalid, not sure if that is correct chess terminology
-            MoveGen::GenerateMovesPL(board, list);
+            MoveGen::GenerateMoves(board, list);
 
             for (int i = 0; i < list.length; i++) {
                 if (move == list.move_at(i)) return true;

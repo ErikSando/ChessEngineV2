@@ -281,7 +281,7 @@ namespace ErikEngine {
                 //     continue;
                 // }
 
-                if (!Utils::MoveExists(board, move) || !board.MakeMove(move, true)) continue;
+                if (!Utils::MoveExists(board, move) || !board.MakeMove(move)) continue;
 
                 board.Print();
             }

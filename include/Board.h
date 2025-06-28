@@ -4,6 +4,8 @@
 #include "Data.h"
 #include "Globals.h"
 
+// MakeMove.h and TakeMove.h included at the end
+
 namespace ErikEngine {
     struct UndoInfo {
         U64 hashKey;
@@ -11,6 +13,10 @@ namespace ErikEngine {
         int castlingPerms;
         int fiftyMoveCount;
         int enPassant;
+    };
+
+    enum class MoveContext {
+        Search, Perft
     };
 
     class Board {
@@ -27,12 +33,16 @@ namespace ErikEngine {
         void AssertValid();
         bool IsValid();
 
-        bool MakeMove(const int move, bool pseudoLegal = false);
+        template<MoveContext moveContext = MoveContext::Search, bool pseudoLegal = true>
+        bool MakeMove(const int move);
 
-        inline bool MakeMovePL(const int move) {
-            return MakeMove(move, true);
-        }
+        // bool MakeMove(const int move, bool pseudoLegal = true);
 
+        // inline bool MakeMovePL(const int move) {
+        //     return MakeMove(move, true);
+        // }
+
+        template<MoveContext moveContext = MoveContext::Search>
         void TakeMove();
 
         void MakeNullMove();
@@ -111,3 +121,7 @@ namespace ErikEngine {
         }
     };
 }
+
+#include "MoveGen.h"
+#include "MakeMove.h"
+#include "TakeMove.h"
