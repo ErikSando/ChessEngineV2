@@ -58,11 +58,6 @@ namespace ErikEngine {
         constexpr U64 BQC_EMPTY_MASK = (1ULL << d8) | (1ULL << c8) | (1ULL << b8);
         constexpr U64 BQC_SAFE_MASK = (1ULL << e8) | (1ULL << c8) | (1ULL << d8);
 
-        // void GenerateMovesPL(const Board& board, MoveList& list);
-        // void GenerateCapturesPL(const Board& board, MoveList& list);
-        // void GenerateMoves(Board& board, MoveList& list);
-        // void GenerateCaptures(Board& board, MoveList& list);
-
         // MOVE REPRESENTATION
         // 0              0            0              0           0000      0000      0000   000000  000000  (28 bits)
         // is en passant  is castling  is pawn start  is capture  promoted  captured  piece  to      from
