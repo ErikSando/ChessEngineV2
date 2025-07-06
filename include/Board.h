@@ -25,13 +25,13 @@ namespace ErikEngine {
         Board();
 
         void Clear();
-        void Print();
+        void Print() const;
         void ParseFEN(const char* fen);
 
-        const char* GenerateFEN();
+        const char* GenerateFEN() const;
 
-        void AssertValid();
-        bool IsValid();
+        void AssertValid() const;
+        bool IsValid() const;
 
         template<MoveContext moveContext = MoveContext::Search, bool pseudoLegal = true>
         bool MakeMove(const int move);
@@ -86,7 +86,7 @@ namespace ErikEngine {
 
                 while (pieces) {
                     int square = PopFirstBit(pieces);
-                    attacked |= Attacks::GetPieceAttacks(pieceType, square, blockers);
+                    attacked |= Attacks::GetAttackMask(pieceType, square, blockers);
                 }
             }
 

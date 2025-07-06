@@ -24,7 +24,6 @@ namespace ErikEngine {
     constexpr int ASPIRATION_WINDOW = 50;
     constexpr int WINDOW_EXPANSION_FACTOR = 30;
 
-    // this decreases speed significantly, the decreased branching factor isnt worth it
     constexpr int MAX_FUTILITY_PRUNE_DEPTH = 2;
     constexpr int FUTILITY_MARGIN_FACTOR = 100;
     constexpr int MIN_NON_FUTILITY_PRUNED = 3;
@@ -55,9 +54,7 @@ namespace ErikEngine {
     }
 
     inline void OrderMoves(MoveList& list) {
-        // as far as I know, std::sort uses insertion sort on small lists,
-        // so I don't need to do that manually
-        std::sort(list.begin(), list.end(), [&](const Move& a, const Move& b) {
+        std::sort(list.begin(), list.end(), [&] (const Move& a, const Move& b) {
             return a.score > b.score;
         });
     }
@@ -81,7 +78,7 @@ namespace ErikEngine {
         MoveGen::GenerateCaptures(board, list);
         OrderMoves(list);
 
-        for (int i = 0; i < list.length; i++) {
+        for (size_t i = 0; i < list.size(); i++) {
             if (!board.MakeMove(list.move_at(i))) continue;
             int score = -Quiescence(board, info, -beta, -alpha);
             board.TakeMove();
@@ -137,7 +134,7 @@ namespace ErikEngine {
 
         // search PV move first
         if (pvMove) {
-            for (int i = 0; i < list.length; i++) {
+            for (size_t i = 0; i < list.size(); i++) {
                 if (pvMove == list.move_at(i)) {
                     list[i].score = INF;
                     break;
@@ -152,7 +149,7 @@ namespace ErikEngine {
         int bestScore = -INF;
         int hashFlag = ALPHA_FLAG;
 
-        for (int i = 0; i < list.length; i++) {
+        for (size_t i = 0; i < list.size(); i++) {
             int move = list.move_at(i);
 
             // futility pruning

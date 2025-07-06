@@ -27,7 +27,7 @@ namespace ErikEngine {
 
     static const char* SIDE_STR[3] = { "white", "black", "none" };
 
-    void Board::Print() {
+    void Board::Print() const {
         for (int rank = RANK_8; rank >= RANK_1; rank--) {
             std::cout << " " << (rank + 1) << "  ";
 

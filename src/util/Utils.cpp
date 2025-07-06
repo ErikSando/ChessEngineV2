@@ -8,12 +8,12 @@
 #include "MoveGen.h"
 
 namespace ErikEngine {
-    inline char to_lower(char c) {
-        // branchless code, very epic
-        return c + 32 * (c >= 'A' && c <= 'Z');
-    }
-
     namespace Utils {
+        inline char to_lower(char c) {
+            // branchless code, very epic
+            return c + 32 * (c >= 'A' && c <= 'Z');
+        }
+
         int ToSquare(char fileC, char rankC) {
             assert(fileC >= 'a' && fileC <= 'h');
             assert(rankC >= '1' && rankC <= '8');
@@ -58,7 +58,8 @@ namespace ErikEngine {
             char promotedChar = '\0';
             if (promoted) promotedChar = to_lower(PIECE_CHAR[promoted]);
 
-            moveString << fromF << fromR << toF << toR << promotedChar;
+            moveString << fromF << fromR << toF << toR;
+            if (promotedChar) moveString << promotedChar; // on Windows, the null character will display (will look like a whitespace)
 
             return moveString.str();
         }
@@ -66,53 +67,45 @@ namespace ErikEngine {
         int ParseMove(Board& board, const int fromSquare, const int toSquare, const char promoted) {
             MoveList list;
             MoveGen::GenerateMoves(board, list);
-        
-            for (int i = 0; i < list.length; i++) {
+
+            for (size_t i = 0; i < list.size(); i++) {
                 int move = list.move_at(i);
-        
+
                 int _fromSquare = GetFromSquare(move);
                 int _toSquare = GetToSquare(move);
-        
+
                 if (_fromSquare == fromSquare && _toSquare == toSquare) {
-                    if (!promoted) return move;
-
-                    int prom = GetPromotedPiece(move);
-
-                    switch (promoted) {
-                        case 'q': if (IS_QUEEN[prom]) return move; break;
-                        case 'r': if (IS_ROOK[prom]) return move; break;
-                        case 'b': if (IS_BISHOP[prom]) return move; break;
-                        case 'n': if (IS_KNIGHT[prom]) return move; break;
-                    }
+                    // don't need the !promoted check but it helps clarify the purpose of this if statement
+                    if (!promoted || promoted == GetPromotedPiece(move)) return move;
                 }
             }
-        
+
             return 0;
         }
-        
+
         int ParseMove(Board& board, const char* move) {
             int fromF = *move++ - 'a';
             int fromR = *move++ - '1';
             int toF = *move++ - 'a';
             int toR = *move++ - '1';
             char promoted = *move;
-        
+
             int fromSquare = GetSquare(fromF, fromR);
             int toSquare = GetSquare(toF, toR);
-        
+
             return ParseMove(board, fromSquare, toSquare, promoted);
         }
-        
+
         int ParseMove(Board& board, const std::string& move) {
             int fromF = move.at(0) - 'a';
             int fromR = move.at(1) - '1';
             int toF = move.at(2) - 'a';
             int toR = move.at(3) - '1';
-            char promoted = move.size() >= 5 ? move.at(4) : '\0';
-        
+            char promoted = move.size() >= 5 ? move.at(4) : 0;
+
             int fromSquare = GetSquare(fromF, fromR);
             int toSquare = GetSquare(toF, toR);
-        
+
             return ParseMove(board, fromSquare, toSquare, promoted);
         }
 
@@ -124,7 +117,7 @@ namespace ErikEngine {
             // i made up that definition of invalid, not sure if that is correct chess terminology
             MoveGen::GenerateMoves(board, list);
 
-            for (int i = 0; i < list.length; i++) {
+            for (size_t i = 0; i < list.size(); i++) {
                 if (move == list.move_at(i)) return true;
             }
 

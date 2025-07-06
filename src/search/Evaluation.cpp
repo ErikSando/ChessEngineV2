@@ -8,7 +8,7 @@ namespace ErikEngine {
     using namespace EvalParams;
 
     namespace Evaluation {
-        int PieceTablesMg[12][64];
+        int PieceTablesOp[12][64];
         int PieceTablesEg[12][64];
 
         namespace Masks {
@@ -16,7 +16,7 @@ namespace ErikEngine {
             U64 Ranks[8];
             U64 PassedPawnWhite[64];
             U64 PassedPawnBlack[64];
-            U64 IsolatedPawn[64]; // file indexing can be used but square indexing is preferred
+            U64 IsolatedPawn[64];
             U64 StackedPawn[64];
             U64 ClosePawnShieldWhite[64];
             U64 FarPawnShieldWhite[64];
@@ -31,22 +31,22 @@ namespace ErikEngine {
             }
         }
 
-        const int* MgPieceTables[6] = {
-            PawnTableMg, KnightTableMg, BishopTableMg, RookTableMg, QueenTableMg, KingTableMg
+        const int* PieceTypeTablesOp[6] = {
+            PawnTableOp, KnightTableOp, BishopTableOp, RookTableOp, QueenTableOp, KingTableOp
         };
 
-        const int* EgPieceTables[6] = {
+        const int* PieceTypeTablesEg[6] = {
             PawnTableEg, KnightTableEg, BishopTableEg, RookTableEg, QueenTableEg, KingTableEg
         };
 
         void InitPieceSquareTables() {
             for (int piece = WP; piece <= WK; piece++) {
                 for (int square = 0; square < 64; square++) {
-                    PieceTablesMg[piece][square] = PieceValuesMg[piece] + MgPieceTables[piece][MirrorSquare(square)];
-                    PieceTablesEg[piece][square] = PieceValuesEg[piece] + EgPieceTables[piece][MirrorSquare(square)];
+                    PieceTablesOp[piece][square] = PieceValuesOp[piece] + PieceTypeTablesOp[piece][MirrorSquare(square)];
+                    PieceTablesEg[piece][square] = PieceValuesEg[piece] + PieceTypeTablesEg[piece][MirrorSquare(square)];
 
-                    PieceTablesMg[piece + 6][square] = PieceValuesMg[piece] + MgPieceTables[piece][square];
-                    PieceTablesEg[piece + 6][square] = PieceValuesEg[piece] + EgPieceTables[piece][square];
+                    PieceTablesOp[piece + 6][square] = PieceValuesOp[piece] + PieceTypeTablesOp[piece][square];
+                    PieceTablesEg[piece + 6][square] = PieceValuesEg[piece] + PieceTypeTablesEg[piece][square];
                 }
             }
         }
@@ -156,10 +156,10 @@ namespace ErikEngine {
         int Evaluate(Board& board) {
             if (MaterialDraw(board)) return 0;
 
-            int mgScore = 0;
+            int opScore = 0;
             int egScore = 0;
             int score = 0; // score that doesnt depend on game phase
-            int mgPhase = 0;
+            int opPhase = 0;
 
             int pawns = 0;
             int bishops[2] = { 0, 0 };
@@ -174,10 +174,10 @@ namespace ErikEngine {
 
                 pawns++;
 
-                mgScore += PieceTablesMg[piece][square];
+                opScore += PieceTablesOp[piece][square];
                 egScore += PieceTablesEg[piece][square];
 
-                mgPhase += PhaseInc[piece];
+                opPhase += PhaseInc[piece];
 
                 if (Masks::StackedPawn[square] & board.bitboards[WP]) score -= StackedPawnPenalty;
                 if (!(Masks::IsolatedPawn[square] & board.bitboards[WP])) score -= IsolatedPawnPenalty;
@@ -196,10 +196,10 @@ namespace ErikEngine {
 
                 pawns++;
 
-                mgScore -= PieceTablesMg[piece][square];
+                opScore -= PieceTablesOp[piece][square];
                 egScore -= PieceTablesEg[piece][square];
 
-                mgPhase += PhaseInc[piece];
+                opPhase += PhaseInc[piece];
 
                 if (Masks::StackedPawn[square] & board.bitboards[BP]) score += StackedPawnPenalty;
                 if (!(Masks::IsolatedPawn[square] & board.bitboards[BP])) score += IsolatedPawnPenalty;
@@ -211,7 +211,7 @@ namespace ErikEngine {
             }
 
             // std::cout << "After pawns:\n";
-            // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
+            // std::cout << opScore << ", " << egScore << ", " << score << "\n";
 
             piece = WN;
             bitboard = board.bitboards[piece];
@@ -219,15 +219,15 @@ namespace ErikEngine {
             while (bitboard) {
                 int square = PopFirstBit(bitboard);
 
-                mgScore += PieceTablesMg[piece][square];
+                opScore += PieceTablesOp[piece][square];
                 egScore += PieceTablesEg[piece][square];
 
-                mgPhase += PhaseInc[piece];
+                opPhase += PhaseInc[piece];
 
                 U64 attacks = Attacks::KnightAttacks[square] & ~board.occupancy[WHITE];
                 int mobility = CountBits(attacks);
 
-                mgScore += mobility * MobilityValueMg[piece];
+                opScore += mobility * MobilityValueOp[piece];
                 egScore += mobility * MobilityValueEg[piece];
             }
 
@@ -237,20 +237,20 @@ namespace ErikEngine {
             while (bitboard) {
                 int square = PopFirstBit(bitboard);
 
-                mgScore -= PieceTablesMg[piece][square];
+                opScore -= PieceTablesOp[piece][square];
                 egScore -= PieceTablesEg[piece][square];
 
-                mgPhase += PhaseInc[piece];
+                opPhase += PhaseInc[piece];
 
                 U64 attacks = Attacks::KnightAttacks[square] & ~board.occupancy[BLACK];
                 int mobility = CountBits(attacks);
 
-                mgScore -= mobility * MobilityValueMg[piece];
+                opScore -= mobility * MobilityValueOp[piece];
                 egScore -= mobility * MobilityValueEg[piece];
             }
 
             // std::cout << "After knights:\n";
-            // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
+            // std::cout << opScore << ", " << egScore << ", " << score << "\n";
 
             piece = WB;
             bitboard = board.bitboards[piece];
@@ -260,15 +260,15 @@ namespace ErikEngine {
 
                 bishops[WHITE]++;
 
-                mgScore += PieceTablesMg[piece][square];
+                opScore += PieceTablesOp[piece][square];
                 egScore += PieceTablesEg[piece][square];
 
-                mgPhase += PhaseInc[piece];
+                opPhase += PhaseInc[piece];
 
                 U64 attacks = Attacks::GetBishopAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[WHITE];
                 int mobility = CountBits(attacks);
 
-                mgScore += mobility * MobilityValueMg[piece];
+                opScore += mobility * MobilityValueOp[piece];
                 egScore += mobility * MobilityValueEg[piece];
             }
 
@@ -280,20 +280,20 @@ namespace ErikEngine {
 
                 bishops[BLACK]++;
 
-                mgScore -= PieceTablesMg[piece][square];
+                opScore -= PieceTablesOp[piece][square];
                 egScore -= PieceTablesEg[piece][square];
 
-                mgPhase += PhaseInc[piece];
+                opPhase += PhaseInc[piece];
 
                 U64 attacks = Attacks::GetBishopAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[BLACK];
                 int mobility = CountBits(attacks);
 
-                mgScore -= mobility * MobilityValueMg[piece];
+                opScore -= mobility * MobilityValueOp[piece];
                 egScore -= mobility * MobilityValueEg[piece];
             }
 
             // std::cout << "After bishops:\n";
-            // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
+            // std::cout << opScore << ", " << egScore << ", " << score << "\n";
 
             piece = WR;
             bitboard = board.bitboards[piece];
@@ -301,15 +301,15 @@ namespace ErikEngine {
             while (bitboard) {
                 int square = PopFirstBit(bitboard);
 
-                mgScore += PieceTablesMg[piece][square];
+                opScore += PieceTablesOp[piece][square];
                 egScore += PieceTablesEg[piece][square];
 
-                mgPhase += PhaseInc[piece];
+                opPhase += PhaseInc[piece];
 
                 U64 attacks = Attacks::GetRookAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[WHITE];
                 int mobility = CountBits(attacks);
 
-                mgScore += mobility * MobilityValueMg[piece];
+                opScore += mobility * MobilityValueOp[piece];
                 egScore += mobility * MobilityValueEg[piece];
 
                 if (!(Masks::StackedPawn[square] & (board.bitboards[WP] | board.bitboards[BP]))) {
@@ -326,15 +326,15 @@ namespace ErikEngine {
             while (bitboard) {
                 int square = PopFirstBit(bitboard);
 
-                mgScore -= PieceTablesMg[piece][square];
+                opScore -= PieceTablesOp[piece][square];
                 egScore -= PieceTablesEg[piece][square];
 
-                mgPhase += PhaseInc[piece];
+                opPhase += PhaseInc[piece];
 
                 U64 attacks = Attacks::GetRookAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[BLACK];
                 int mobility = CountBits(attacks);
 
-                mgScore -= mobility * MobilityValueMg[piece];
+                opScore -= mobility * MobilityValueOp[piece];
                 egScore -= mobility * MobilityValueEg[piece];
 
                 if (!(Masks::StackedPawn[square] & (board.bitboards[WP] | board.bitboards[WP]))) {
@@ -346,7 +346,7 @@ namespace ErikEngine {
             }
 
             // std::cout << "After rooks:\n";
-            // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
+            // std::cout << opScore << ", " << egScore << ", " << score << "\n";
 
             piece = WQ;
             bitboard = board.bitboards[piece];
@@ -354,15 +354,15 @@ namespace ErikEngine {
             while (bitboard) {
                 int square = PopFirstBit(bitboard);
 
-                mgScore += PieceTablesMg[piece][square];
+                opScore += PieceTablesOp[piece][square];
                 egScore += PieceTablesEg[piece][square];
 
-                mgPhase += PhaseInc[piece];
+                opPhase += PhaseInc[piece];
 
                 U64 attacks = Attacks::GetQueenAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[WHITE];
                 int mobility = CountBits(attacks);
 
-                mgScore += mobility * MobilityValueMg[piece];
+                opScore += mobility * MobilityValueOp[piece];
                 egScore += mobility * MobilityValueEg[piece];
 
                 if (!(Masks::StackedPawn[square] & (board.bitboards[WP] | board.bitboards[BP]))) {
@@ -379,15 +379,15 @@ namespace ErikEngine {
             while (bitboard) {
                 int square = PopFirstBit(bitboard);
 
-                mgScore -= PieceTablesMg[piece][square];
+                opScore -= PieceTablesOp[piece][square];
                 egScore -= PieceTablesEg[piece][square];
 
-                mgPhase += PhaseInc[piece];
+                opPhase += PhaseInc[piece];
 
                 U64 attacks = Attacks::GetQueenAttacks(square, board.occupancy[BOTH]) & ~board.occupancy[BLACK];
                 int mobility = CountBits(attacks);
 
-                mgScore -= mobility * MobilityValueMg[piece];
+                opScore -= mobility * MobilityValueOp[piece];
                 egScore -= mobility * MobilityValueEg[piece];
 
                 if (!(Masks::StackedPawn[square] & (board.bitboards[WP] | board.bitboards[BP]))) {
@@ -399,7 +399,7 @@ namespace ErikEngine {
             }
 
             // std::cout << "After queens:\n";
-            // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
+            // std::cout << opScore << ", " << egScore << ", " << score << "\n";
 
             piece = WK;
             bitboard = board.bitboards[piece];
@@ -407,7 +407,7 @@ namespace ErikEngine {
             while (bitboard) {
                 int square = PopFirstBit(bitboard);
 
-                mgScore += PieceTablesMg[piece][square];
+                opScore += PieceTablesOp[piece][square];
                 egScore += PieceTablesEg[piece][square];
 
                 kingSquare[WHITE] = square;
@@ -416,11 +416,11 @@ namespace ErikEngine {
                 int closePawnShield = CountBits(Masks::ClosePawnShieldWhite[square] & board.bitboards[WP]);
                 int farPawnShield = CountBits(Masks::FarPawnShieldWhite[square] & board.bitboards[WP]);
 
-                mgScore -= virtualAttacks * KingVirtualAttackPenalty;
-                mgScore += closePawnShield * ClosePawnShieldBonus;
-                mgScore += farPawnShield * FarPawnShieldBonus;
+                opScore -= virtualAttacks * KingVirtualAttackPenalty;
+                opScore += closePawnShield * ClosePawnShieldBonus;
+                opScore += farPawnShield * FarPawnShieldBonus;
                 
-                if (!(Masks::StackedPawn[square] & board.bitboards[WP])) mgScore -= KingOpenFilePenalty;
+                if (!(Masks::StackedPawn[square] & board.bitboards[WP])) opScore -= KingOpenFilePenalty;
             }
 
             piece = BK;
@@ -429,7 +429,7 @@ namespace ErikEngine {
             while (bitboard) {
                 int square = PopFirstBit(bitboard);
 
-                mgScore -= PieceTablesMg[piece][square];
+                opScore -= PieceTablesOp[piece][square];
                 egScore -= PieceTablesEg[piece][square];
 
                 kingSquare[BLACK] = square;
@@ -438,15 +438,15 @@ namespace ErikEngine {
                 int closePawnShield = CountBits(Masks::ClosePawnShieldBlack[square] & board.bitboards[BP]);
                 int farPawnShield = CountBits(Masks::FarPawnShieldBlack[square] & board.bitboards[BP]);
 
-                mgScore += virtualAttacks * KingVirtualAttackPenalty;
-                mgScore -= closePawnShield * ClosePawnShieldBonus;
-                mgScore -= farPawnShield * FarPawnShieldBonus;
+                opScore += virtualAttacks * KingVirtualAttackPenalty;
+                opScore -= closePawnShield * ClosePawnShieldBonus;
+                opScore -= farPawnShield * FarPawnShieldBonus;
                 
-                if (!(Masks::StackedPawn[square] & board.bitboards[BP])) mgScore += KingOpenFilePenalty;
+                if (!(Masks::StackedPawn[square] & board.bitboards[BP])) opScore += KingOpenFilePenalty;
             }
 
             // std::cout << "After kings:\n";
-            // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
+            // std::cout << opScore << ", " << egScore << ", " << score << "\n";
 
             if (pawns == 0) {
                 if (egScore > 0) {
@@ -460,18 +460,18 @@ namespace ErikEngine {
             }
 
             // std::cout << "After mop up:\n";
-            // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
+            // std::cout << opScore << ", " << egScore << ", " << score << "\n";
 
             if (bishops[WHITE] > 1) score += BishopPairBonus;
             if (bishops[BLACK] > 1) score -= BishopPairBonus;
 
             // std::cout << "After bishop pair:\n";
-            // std::cout << mgScore << ", " << egScore << ", " << score << "\n";
+            // std::cout << opScore << ", " << egScore << ", " << score << "\n";
 
-            if (mgPhase > 24) mgPhase = 24;
-            int egPhase = 24 - mgPhase;
+            if (opPhase > 24) opPhase = 24;
+            int egPhase = 24 - opPhase;
 
-            int eval = score + (mgScore * mgPhase + egScore * egPhase) / 24;
+            int eval = score + (opScore * opPhase + egScore * egPhase) / 24;
 
             // std::cout << "Evaluation: " << eval << "\n";
 

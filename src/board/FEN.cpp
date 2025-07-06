@@ -158,7 +158,7 @@ namespace ErikEngine {
         jump = 0;\
     }
 
-    const char* Board::GenerateFEN() {
+    const char* Board::GenerateFEN() const {
         static char buffer[MAX_FEN_LENGTH];
 
         if (!IsValid()) {

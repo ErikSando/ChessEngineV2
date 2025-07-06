@@ -137,7 +137,19 @@ namespace ErikEngine {
             return BishopAttacks[square][bishopOccupancy] | RookAttacks[square][rookOccupancy];
         }
 
-        inline U64 GetPieceAttacks(int pieceType, int square, U64 blockers = 0ULL) {
+        // inline U64 GetPieceAttacks(int pieceType, int square, U64 blockers = 0ULL) {
+        //     switch (pieceType) {
+        //         case N: return KnightAttacks[square];
+        //         case B: return GetBishopAttacks(square, blockers);
+        //         case R: return GetRookAttacks(square, blockers);
+        //         case Q: return GetQueenAttacks(square, blockers);
+        //         case K: return KingAttacks[square];
+        //     }
+
+        //     return 0ULL;
+        // }
+
+        inline U64 GetAttackMask(int pieceType, int square, U64 blockers = 0ULL) {
             switch (pieceType) {
                 case N: return KnightAttacks[square];
                 case B: return GetBishopAttacks(square, blockers);

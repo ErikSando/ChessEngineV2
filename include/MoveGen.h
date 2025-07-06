@@ -6,7 +6,7 @@
 #include "MoveScoring.h"
 
 namespace ErikEngine {
-    constexpr int MAX_MOVES = 256;
+    constexpr size_t MAX_MOVES = 256;
 
     struct Move {
         int move;
@@ -14,32 +14,36 @@ namespace ErikEngine {
     };
 
     struct MoveList {
-        int length = 0;
-
         inline Move& operator[](size_t index) { return m_moves[index]; }
+
+        inline size_t size() { return m_length; }
+        inline void clear() { m_length = 0; }
 
         // inline Move& at(size_t index) { return m_moves[index]; }
 
-        // these could be references, but i think readability (and performance) is better if
+        // these could be references, but i think readability is better if
         // these are read only and the move list is edited with [index].move/score
         inline int move_at(size_t index) { return m_moves[index].move; }
         inline int score_at(size_t index) { return m_moves[index].score; }
 
         inline void add(int score, int move) {
-            m_moves[length].move = move;
-            m_moves[length].score = score;
-            length++;
+            // I realise that a buffer overflow is certainly possible by setting bits on the piece
+            // bitboards in the same bits for different bitboards to end up with a lot of moves generated
+            m_moves[m_length].move = move;
+            m_moves[m_length].score = score;
+            m_length++;
         }
 
         inline Move* begin() { return &m_moves[0]; }
-        inline Move* end() { return &m_moves[0] + length; }
+        inline Move* end() { return &m_moves[0] + m_length; }
 
         inline const Move* cbegin() const { return &m_moves[0]; }
-        inline const Move* cend() const { return &m_moves[0] + length; }
+        inline const Move* cend() const { return &m_moves[0] + m_length; }
 
         private:
 
         Move m_moves[MAX_MOVES];
+        size_t m_length;
     };
 
     enum class MoveType {
@@ -86,7 +90,7 @@ namespace ErikEngine {
 
         template<MoveType moveType = MoveType::PseudoLegal>
         inline void GenerateMoves(Board& board, MoveList& list) {
-            list.length = 0;
+            list.clear();
 
             int side = board.side;
             int enemy = side ^ 1;
@@ -222,8 +226,8 @@ namespace ErikEngine {
 
                     while (bitboard) {
                         int fromSquare = PopFirstBit(bitboard);
-                        U64 attacks = Attacks::GetPieceAttacks(pieceType, fromSquare, board.occupancy[BOTH]) & ~board.occupancy[side];
-                    
+                        U64 attacks = Attacks::GetAttackMask(pieceType, fromSquare, board.occupancy[BOTH]) & ~board.occupancy[side];
+
                         while (attacks) {
                             int toSquare = PopFirstBit(attacks);
                             int score;
@@ -471,7 +475,7 @@ namespace ErikEngine {
                             ray = pinRays[fromSquare];
                         }
 
-                        U64 attacks = Attacks::GetPieceAttacks(pieceType, fromSquare, board.occupancy[BOTH]) & ~board.occupancy[side] & (blockMask | captureMask) & ray;
+                        U64 attacks = Attacks::GetAttackMask(pieceType, fromSquare, board.occupancy[BOTH]) & ~board.occupancy[side] & (blockMask | captureMask) & ray;
                     
                         while (attacks) {
                             int toSquare = PopFirstBit(attacks);
@@ -495,7 +499,7 @@ namespace ErikEngine {
 
         template<MoveType moveType = MoveType::PseudoLegal>
         inline void GenerateCaptures(Board& board, MoveList& list) {
-            list.length = 0;
+            list.clear();
 
             int side = board.side;
             int enemy = side ^ 1;
@@ -548,7 +552,7 @@ namespace ErikEngine {
 
                     while (bitboard) {
                         int fromSquare = PopFirstBit(bitboard);
-                        U64 attacks = Attacks::GetPieceAttacks(pieceType, fromSquare, board.occupancy[BOTH]) & board.occupancy[enemy];
+                        U64 attacks = Attacks::GetAttackMask(pieceType, fromSquare, board.occupancy[BOTH]) & board.occupancy[enemy];
 
                         while (attacks) {
                             int toSquare = PopFirstBit(attacks);
@@ -633,7 +637,7 @@ namespace ErikEngine {
                         U64 ray = Attacks::GetSliderRay(kingSquare, attackerSquare, pieceType);
                         if (!ray) continue;
 
-                        // U64 sliderAttacks = Attacks::GetPieceAttacks(pieceType, attackerSquare, board.occupancy[BOTH]) & ~board.occupancy[enemy];
+                        // U64 sliderAttacks = Attacks::GetAttackMask(pieceType, attackerSquare, board.occupancy[BOTH]) & ~board.occupancy[enemy];
                         // U64 blockers = ray & sliderAttacks & board.occupancy[side];
 
                         U64 blockers = ray & board.occupancy[BOTH];
@@ -729,7 +733,7 @@ namespace ErikEngine {
                             ray = pinRays[fromSquare];
                         }
 
-                        U64 attacks = Attacks::GetPieceAttacks(pieceType, fromSquare, board.occupancy[BOTH]) & board.occupancy[enemy] & (blockMask | captureMask) & ray;
+                        U64 attacks = Attacks::GetAttackMask(pieceType, fromSquare, board.occupancy[BOTH]) & board.occupancy[enemy] & (blockMask | captureMask) & ray;
                     
                         while (attacks) {
                             int toSquare = PopFirstBit(attacks);

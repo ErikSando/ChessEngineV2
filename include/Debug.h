@@ -1,6 +1,6 @@
 #pragma once
 
-// #include "Board.h"
+#include "Board.h"
 
 #ifdef NDEBUG
     #define EE_DEBUG(x)
@@ -38,8 +38,7 @@ namespace ErikEngine {
 
     extern const char* FILE_NAME(std::string_view path);
 
-    // namespace Debug {
-    //     void CheckBoardValid(Board& board);
-    //     bool IsBoardValid(Board& board);
-    // }
+    namespace Debug {
+        void AssertValid(const Board& board);
+    }
 }

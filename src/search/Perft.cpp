@@ -10,19 +10,19 @@
 namespace ErikEngine {
     namespace Perft {
         U64 CountNodes(Board& board, int depth) {
-            EE_DEBUG(board.AssertValid());
+            EE_DEBUG(Debug::AssertValid(board));
 
             if (stop_perft || !depth) return 1;
 
             MoveList list;
             MoveGen::GenerateMoves<MoveType::Legal>(board, list);
 
-            if (depth == 1) return list.length;
+            if (depth == 1) return list.size();
 
             U64 n = 0;
 
-            for (int i = 0; i < list.length; i++) {
-                board.MakeMove<MoveContext::Perft, false>(list[i].move);
+            for (size_t i = 0; i < list.size(); i++) {
+                board.MakeMove<MoveContext::Perft, false>(list.move_at(i));
                 n += CountNodes(board, depth - 1);
                 board.TakeMove();
             }
@@ -40,8 +40,8 @@ namespace ErikEngine {
 
             int start = Utils::GetTimeMS();
 
-            for (int i = 0; i < list.length; i++) {
-                int move = list[i].move;
+            for (size_t i = 0; i < list.size(); i++) {
+                int move = list.move_at(i);
 
                 U64 newNodes = 0;
 
